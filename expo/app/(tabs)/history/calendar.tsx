@@ -50,7 +50,7 @@ export default function HistoryCalendarScreen() {
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
-        <AppText variant="heading" style={styles.chromeTitle}>
+        <AppText variant="display" style={styles.chromeTitle}>
           Calendar
         </AppText>
       </View>
@@ -64,7 +64,7 @@ export default function HistoryCalendarScreen() {
           >
             <ChevronLeft size={20} color={colors.ink} />
           </Pressable>
-          <AppText variant="heading">{monthLabel}</AppText>
+          <AppText variant="title">{monthLabel}</AppText>
           <Pressable
             onPress={() => setCursor((current) => startOfMonth(addMonths(current, 1)))}
             style={styles.monthButton}
@@ -213,10 +213,10 @@ function createStyles(colors: ColorTokens) {
     borderRadius: radius.pill,
   },
   dotCompleted: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.success,
   },
   dotSkipped: {
-    backgroundColor: colors.inkSecondary,
+    backgroundColor: colors.inkFaint,
   },
   dotMissed: {
     backgroundColor: colors.dangerInk,

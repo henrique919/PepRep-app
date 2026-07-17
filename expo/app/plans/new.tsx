@@ -352,8 +352,8 @@ function createStyles(colors: ColorTokens) {
     backgroundColor: colors.surface,
   },
   chipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    backgroundColor: colors.solid,
+    borderColor: colors.solid,
   },
   timeRow: {
     flexDirection: "row",

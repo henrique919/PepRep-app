@@ -9,10 +9,17 @@ import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
+import StatusPill, { type ScheduleStatus } from "@/src/components/ui/StatusPill";
 import type { DoseEvent } from "@/src/db/types";
 import { fmt } from "@/src/engine";
 import { compareIsoDesc, formatClock, formatDayHeading } from "@/src/engine/schedule";
-import { eventDayKey, siteLabel, statusLabel } from "@/src/history/display";
+import { eventDayKey, siteLabel } from "@/src/history/display";
+
+function statusToPill(status: DoseEvent["status"]): ScheduleStatus {
+  if (status === "completed") return "logged";
+  if (status === "skipped") return "skipped";
+  return "missed";
+}
 import { useLedgerStore } from "@/src/store/ledger";
 import { useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
