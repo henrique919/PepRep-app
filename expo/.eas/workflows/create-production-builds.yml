@@ -1,8 +1,6 @@
 name: Create Production Builds
 
 # Android APK + iOS Simulator — no Apple Developer Program required.
-# When you have an Apple account, remove ios.simulator from eas.json
-# production and switch iOS to a device/App Store build.
 jobs:
   build_android:
     type: build
