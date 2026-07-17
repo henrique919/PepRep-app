@@ -52,6 +52,27 @@ function isOfflineError(error: unknown): boolean {
   );
 }
 
+const MAX_ANSWER_WORDS = 120;
+
+/** Prefer a complete sentence ending over a mid-sentence cut. */
+export function clipAskAnswer(text: string, maxWords = MAX_ANSWER_WORDS): string {
+  const trimmed = text.trim();
+  if (trimmed.length === 0) return trimmed;
+  const words = trimmed.split(/\s+/);
+  if (words.length <= maxWords) return trimmed;
+
+  const limited = words.slice(0, maxWords).join(" ");
+  const sentenceEnd = Math.max(
+    limited.lastIndexOf(". "),
+    limited.lastIndexOf("? "),
+    limited.lastIndexOf("! "),
+  );
+  if (sentenceEnd >= Math.floor(limited.length * 0.45)) {
+    return limited.slice(0, sentenceEnd + 1).trim();
+  }
+  return `${limited.replace(/[,:;–—-]\s*$/, "").trim()}.`;
+}
+
 /**
  * Ask a reference question. Stateless regarding user records.
  * Policy refusals never hit the network.
@@ -80,7 +101,7 @@ export async function askQuestion(question: string, ctx: AskContext): Promise<As
         text: "I don't have that in PepRep's reference set. Try Reference or the calculator for measurement math.",
       };
     }
-    return { kind: "answer", text: trimmed };
+    return { kind: "answer", text: clipAskAnswer(trimmed) };
   } catch (error) {
     if (isCreditError(error)) return { kind: "exhausted" };
     if (isOfflineError(error)) return { kind: "offline" };

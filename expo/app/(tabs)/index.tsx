@@ -439,23 +439,31 @@ export default function CalculatorScreen() {
           )}
 
           {mode === "draw" && drawResult !== null && drawResult.ok && (
-            <View style={styles.actionRow}>
-              <Button
-                label="Log this dose"
-                tone="accent"
-                onPress={logThisDose}
-                icon={<NotebookPen size={17} color={colors.onAccent} />}
-                testID="log-this-dose"
-                style={styles.actionButton}
-              />
-              <Button
-                label="Save as vial"
-                tone="primary"
-                onPress={saveAsVial}
-                icon={<TestTubes size={17} color={colors.onDark} />}
-                testID="save-as-vial"
-                style={styles.actionButton}
-              />
+            <View style={styles.actionColumn}>
+              <View style={styles.actionBlock}>
+                <Button
+                  label="Save as vial"
+                  tone="accent"
+                  onPress={saveAsVial}
+                  icon={<TestTubes size={17} color={colors.onAccent} />}
+                  testID="save-as-vial"
+                />
+                <AppText variant="caption" tone="faint" style={styles.actionHint}>
+                  Keeps this mix for reuse — opens vial setup with these numbers.
+                </AppText>
+              </View>
+              <View style={styles.actionBlock}>
+                <Button
+                  label="Log this dose"
+                  tone="ghost"
+                  onPress={logThisDose}
+                  icon={<NotebookPen size={17} color={colors.ink} />}
+                  testID="log-this-dose"
+                />
+                <AppText variant="caption" tone="faint" style={styles.actionHint}>
+                  One-off record in History — does not create a vial.
+                </AppText>
+              </View>
             </View>
           )}
 
@@ -565,11 +573,15 @@ const styles = StyleSheet.create({
   mathLabel: {
     marginTop: spacing.xs,
   },
-  actionRow: {
+  actionColumn: {
+    gap: spacing.lg,
+  },
+  actionBlock: {
     gap: spacing.sm,
   },
-  actionButton: {
-    alignSelf: "stretch",
+  actionHint: {
+    textAlign: "center",
+    paddingHorizontal: spacing.md,
   },
   disclaimer: {
     textAlign: "center",

@@ -183,12 +183,13 @@ not new architecture. Do not rebuild what works.
     - Keep Ask a leaf: offline/exhausted/rate-limited states unchanged; never block the app.
   - Accept: a corpus question returns a complete, concise answer; the directionality/refusal
     rules still hold (see T3.3); no answer ends mid-sentence.
+  - BLOCKED: real `system` role needs Ask endpoint URL + auth (still folding via Rork). Done without transport change: LENGTH ≤120 words appended beside corpus; `clipAskAnswer` ends on a sentence boundary.
 
 ---
 
 ## TIER 2 — CLARITY & POLISH
 
-- [ ] **T2.1 — Settings discoverability**
+- [x] **T2.1 — Settings discoverability**
   - Files: `expo/app/(tabs)/reference/index.tsx`, `expo/app/(tabs)/today.tsx`
   - Root cause: Settings is only reachable from the Today gear (top-right), which you found
     unclear. The 5 tabs are full, so a "More" tab isn't available.
@@ -196,25 +197,29 @@ not new architecture. Do not rebuild what works.
     Reference tab — Reference is the natural home for info/config back-pages. Keep the Today
     gear too. Ensure both route to `/settings`.
   - Accept: Settings is reachable from Reference in one tap, with a visible text label.
+  - Note: Reference "More" section with labelled Settings / About / Glossary rows; Today gear kept.
 
-- [ ] **T2.2 — Calculator log vs save clarity**
+- [x] **T2.2 — Calculator log vs save clarity**
   - Files: `expo/app/(tabs)/index.tsx`
   - Do: with T0.4 and T1.1 done, make the two secondary actions unambiguous — primary
     **"Save as vial"** (reusable), secondary **"Log this dose"** (one-off record). Short helper
     text under each so the user knows where each goes.
   - Accept: it's obvious which button creates a vial and which records a dose.
+  - Note: Save as vial is accent primary; Log this dose is ghost; helper captions under each.
 
-- [ ] **T2.3 — Empty/scarce states pass a skim test**
+- [x] **T2.3 — Empty/scarce states pass a skim test**
   - Files: Today, Vials, History, Reference, Ask
   - Do: verify every empty state has one honest sentence + one real action (most already do).
     Fix any that show a bare list or a dead control. No fake/sample rows.
   - Accept: each primary screen with no data explains itself and offers a next step.
+  - Note: audited Today/Vials/History empty states (sentence + CTA); Reference search miss explains next try; Ask keeps offline/rate-limit leaf states — no fake rows.
 
-- [ ] **T2.4 — Privacy copy tracks the Ask transport**
+- [x] **T2.4 — Privacy copy tracks the Ask transport**
   - Files: `expo/app/settings.tsx` (~L386)
   - Do: if T1.6 changes the Ask provider away from Rork AI Cloud, update the privacy sentence
     to name the actual destination. It must stay literally true.
   - Accept: the privacy text names the real service that receives Ask question text.
+  - Note: unchanged — still names Rork AI Cloud (T1.6 transport blocked / NEEDS-INPUT).
 
 ---
 

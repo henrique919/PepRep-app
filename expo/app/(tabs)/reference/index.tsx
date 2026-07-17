@@ -1,5 +1,11 @@
 import { useRouter } from "expo-router";
-import { BookMarked, MessageCircleQuestion, Search } from "lucide-react-native";
+import {
+  BookMarked,
+  Info,
+  MessageCircleQuestion,
+  Search,
+  Settings,
+} from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -7,6 +13,7 @@ import AppText from "@/src/components/ui/AppText";
 import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Field from "@/src/components/ui/Field";
+import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
 import { NOT_ESTABLISHED, searchCompounds } from "@/src/data/compounds";
 import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
@@ -109,8 +116,61 @@ export default function ReferenceScreen() {
             </Pressable>
           ))
         )}
+
+        <View style={styles.moreSection}>
+          <AppText variant="overline" tone="faint">
+            More
+          </AppText>
+          <Card padded={false} style={styles.moreCard}>
+            <NavRow
+              label="Settings"
+              icon={<Settings size={18} color={colors.ink} />}
+              onPress={() => router.push("/settings")}
+              testID="reference-open-settings"
+            />
+            <Hairline />
+            <NavRow
+              label="About"
+              icon={<Info size={18} color={colors.ink} />}
+              onPress={() => router.push("/about")}
+              testID="reference-open-about"
+            />
+            <Hairline />
+            <NavRow
+              label="Glossary"
+              icon={<BookMarked size={18} color={colors.ink} />}
+              onPress={() => router.push("/reference/glossary")}
+              testID="reference-open-glossary"
+            />
+          </Card>
+        </View>
       </ScrollView>
     </Screen>
+  );
+}
+
+function NavRow({
+  label,
+  icon,
+  onPress,
+  testID,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  onPress: () => void;
+  testID: string;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.navRow, pressed && styles.navRowPressed]}
+      testID={testID}
+    >
+      <View style={styles.navIcon}>{icon}</View>
+      <AppText variant="heading" style={styles.navLabel}>
+        {label}
+      </AppText>
+    </Pressable>
   );
 }
 
@@ -185,5 +245,30 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     gap: spacing.md,
+  },
+  moreSection: {
+    marginTop: spacing.lg,
+    gap: spacing.sm,
+  },
+  moreCard: {
+    overflow: "hidden",
+  },
+  navRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: 52,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+  },
+  navRowPressed: {
+    backgroundColor: colors.surfaceSunken,
+  },
+  navIcon: {
+    width: 28,
+    alignItems: "center",
+  },
+  navLabel: {
+    flex: 1,
   },
 });
