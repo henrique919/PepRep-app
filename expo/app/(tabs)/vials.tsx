@@ -9,10 +9,11 @@ import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Screen from "@/src/components/ui/Screen";
-import type { DoseEntry, Vial } from "@/src/db/models";
-import { summarizeVial, vialConcentration } from "@/src/engine/inventory";
+import type { Vial } from "@/src/db/models";
+import { summaryFromTxns } from "@/src/db/vialBalance";
+import { vialConcentration } from "@/src/engine/inventory";
 import type { VialSummary, ConcentrationInfo } from "@/src/engine/inventory";
-import { useDosesStore } from "@/src/store/doses";
+import { selectTxnsForVial, useLedgerStore } from "@/src/store/ledger";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
 import { colors, spacing } from "@/src/theme/tokens";
 
@@ -27,7 +28,8 @@ export default function VialsScreen() {
   const router = useRouter();
   const vials = useVialsStore(useShallow(selectActiveVials));
   const removeVial = useVialsStore((state) => state.removeVial);
-  const doses = useDosesStore((state) => state.doses);
+  const txns = useLedgerStore((state) => state.txns);
+  const events = useLedgerStore((state) => state.events);
 
   const [armedId, setArmedId] = useState<string | null>(null);
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,22 +43,29 @@ export default function VialsScreen() {
   const nowIso = new Date().toISOString();
 
   const views: VialView[] = useMemo(() => {
+    const ledgerState = useLedgerStore.getState();
     return vials.map((vial) => {
-      const vialDoses: DoseEntry[] = doses.filter((dose) => dose.vialId === vial.id);
-      const lastDose = vialDoses.length > 0 ? vialDoses[0] : undefined;
-      const lastDoseMcg = lastDose !== undefined ? lastDose.doseMcg : null;
+      const vialTxns = selectTxnsForVial(ledgerState, vial.id);
+      const lastEvent = events.find(
+        (event) =>
+          event.vialId === vial.id &&
+          event.status === "completed" &&
+          event.voidedAt === undefined &&
+          event.doseMcg !== undefined,
+      );
+      const lastDoseMcg = lastEvent?.doseMcg ?? null;
       return {
         vial,
-        summary: summarizeVial(
+        summary: summaryFromTxns(
           vial.vialMg,
-          vialDoses.map((dose) => dose.doseMcg),
+          vialTxns,
           lastDoseMcg ?? undefined,
         ),
         concentration: vialConcentration(vial.vialMg, vial.diluentMl),
         lastDoseMcg,
       };
     });
-  }, [vials, doses]);
+  }, [vials, txns, events]);
 
   const handleDeletePress = (id: string) => {
     if (armedId === id) {

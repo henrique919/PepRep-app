@@ -20,8 +20,13 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { runMigrations } from "@/src/db/migrations";
+import { runMissedRollover } from "@/src/db/rollover";
+import { dayKey } from "@/src/engine/schedule";
 import { useDosesStore } from "@/src/store/doses";
+import { useLedgerStore } from "@/src/store/ledger";
+import { usePlansStore } from "@/src/store/plans";
 import { useRemindersStore } from "@/src/store/reminders";
+import { useSettingsStore } from "@/src/store/settings";
 import { useVialsStore } from "@/src/store/vials";
 import { colors } from "@/src/theme/tokens";
 
@@ -48,7 +53,9 @@ function RootLayoutNav() {
     >
       <Stack.Screen name="(tabs)" />
       <Stack.Screen name="settings" />
+      <Stack.Screen name="plans" />
       <Stack.Screen name="log-entry" options={{ presentation: "modal" }} />
+      <Stack.Screen name="log-plan" options={{ presentation: "modal" }} />
       <Stack.Screen name="vial-new" options={{ presentation: "modal" }} />
       <Stack.Screen name="about" options={{ presentation: "modal" }} />
     </Stack>
@@ -70,13 +77,32 @@ export default function RootLayout() {
   const hydrateVials = useVialsStore((state) => state.hydrate);
   const hydrateDoses = useDosesStore((state) => state.hydrate);
   const hydrateReminders = useRemindersStore((state) => state.hydrate);
+  const hydratePlans = usePlansStore((state) => state.hydrate);
+  const hydrateLedger = useLedgerStore((state) => state.hydrate);
+  const hydrateSettings = useSettingsStore((state) => state.hydrate);
 
   useEffect(() => {
     let cancelled = false;
     const boot = async () => {
       try {
         await runMigrations();
-        await Promise.all([hydrateVials(), hydrateDoses(), hydrateReminders()]);
+        await Promise.all([
+          hydrateVials(),
+          hydrateDoses(),
+          hydrateReminders(),
+          hydratePlans(),
+          hydrateLedger(),
+          hydrateSettings(),
+        ]);
+        const today = dayKey(new Date().toISOString());
+        const { created } = await runMissedRollover({
+          plans: usePlansStore.getState().plans,
+          events: useLedgerStore.getState().events,
+          today,
+        });
+        if (created.length > 0) {
+          await useLedgerStore.getState().appendEvents(created);
+        }
       } catch (error) {
         console.error("[boot] Failed to hydrate local data", error);
       } finally {
@@ -87,7 +113,7 @@ export default function RootLayout() {
     return () => {
       cancelled = true;
     };
-  }, [hydrateVials, hydrateDoses, hydrateReminders]);
+  }, [hydrateVials, hydrateDoses, hydrateReminders, hydratePlans, hydrateLedger, hydrateSettings]);
 
   const ready = fontsLoaded && dataReady;
 

@@ -76,6 +76,8 @@ export interface DoseEvent {
   planId?: string;
   scheduleVersionId?: string;
   occurrenceKey?: string;
+  /** Optional link to a saved CalcSnapshot (immutable math). */
+  snapshotId?: string;
   status: DoseEventStatus;
   /** DENORMALISED COPY — never a live join. This is what freezes history. */
   compoundName: string;

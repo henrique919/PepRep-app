@@ -1,10 +1,15 @@
 /**
- * Jest runs ONLY pure TypeScript (src/engine + the pure db mappers) — no
- * React, no React Native, no I/O, so a plain node environment suffices.
+ * Jest runs pure TypeScript under src/engine, src/db, src/ask, and src/data —
+ * no React, no React Native, no live network.
  */
 module.exports = {
   testEnvironment: "node",
-  roots: ["<rootDir>/src/engine", "<rootDir>/src/db"],
+  roots: [
+    "<rootDir>/src/engine",
+    "<rootDir>/src/db",
+    "<rootDir>/src/ask",
+    "<rootDir>/src/data",
+  ],
   moduleFileExtensions: ["ts", "js"],
   transform: {
     "^.+\\.ts$": [

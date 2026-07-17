@@ -46,6 +46,9 @@ export const useDosesStore = create<DosesState>((set, get) => ({
     await doseEventsRepository.append(event);
     const txn = doseTxnForEvent(event, createId());
     if (txn !== null) await txnsRepository.append(txn);
+    // Keep ledger store in sync for Vials remaining (derived from txns).
+    const { useLedgerStore } = await import("@/src/store/ledger");
+    await useLedgerStore.getState().hydrate();
     return dose;
   },
 
@@ -61,6 +64,8 @@ export const useDosesStore = create<DosesState>((set, get) => ({
     const txns = await txnsRepository.list();
     const voidTxn = voidTxnForEvent(txns, id, createId(), voidedAt);
     if (voidTxn !== null) await txnsRepository.append(voidTxn);
+    const { useLedgerStore } = await import("@/src/store/ledger");
+    await useLedgerStore.getState().hydrate();
   },
 
   reset: () => set({ doses: [], hydrated: true }),

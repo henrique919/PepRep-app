@@ -1,6 +1,6 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronDown, ChevronUp, NotebookPen } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 
 import MathSteps from "@/src/components/domain/MathSteps";
@@ -20,17 +20,40 @@ import { colors, DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/
 
 type CalcMode = "draw" | "water";
 
+function stringParam(value: string | string[] | undefined): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") return value[0];
+  return "";
+}
+
+function unitFromConvention(value: string): MassUnit | null {
+  if (value === "mg" || value === "mcg") return value;
+  return null;
+}
+
 export default function CalculatorScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
+
+  const prefilledName = stringParam(params.compoundName);
+  const prefilledUnit = unitFromConvention(stringParam(params.massUnitConvention));
 
   const [mode, setMode] = useState<CalcMode>("draw");
+  const [compoundLabel, setCompoundLabel] = useState<string>(prefilledName);
   const [vialText, setVialText] = useState<string>("");
   const [waterText, setWaterText] = useState<string>("");
   const [doseText, setDoseText] = useState<string>("");
-  const [doseUnit, setDoseUnit] = useState<MassUnit>("mcg");
+  const [doseUnit, setDoseUnit] = useState<MassUnit>(prefilledUnit ?? "mcg");
   const [targetUnitsText, setTargetUnitsText] = useState<string>("");
   const [capacity, setCapacity] = useState<SyringeCapacity>(100);
   const [showMath, setShowMath] = useState<boolean>(false);
+
+  useEffect(() => {
+    const name = stringParam(params.compoundName);
+    const unit = unitFromConvention(stringParam(params.massUnitConvention));
+    if (name.length > 0) setCompoundLabel(name);
+    if (unit !== null) setDoseUnit(unit);
+  }, [params.compoundName, params.massUnitConvention]);
 
   const vialMg = parseNumeric(vialText);
   const diluentMl = parseNumeric(waterText);
@@ -79,6 +102,11 @@ export default function CalculatorScreen() {
               PepRep · U-100 instrument
             </AppText>
             <AppText variant="title">Reconstitution</AppText>
+            {compoundLabel.length > 0 && (
+              <AppText variant="label" tone="secondary" testID="calc-compound-name">
+                {compoundLabel}
+              </AppText>
+            )}
           </View>
 
           <SegmentedControl<CalcMode>

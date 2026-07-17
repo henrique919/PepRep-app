@@ -9,6 +9,7 @@ import { initialTxnForVial } from "@/src/db/ledger";
 import type { Vial } from "@/src/db/models";
 import { createId } from "@/src/db/models";
 import { txnsRepository, vialsRepository } from "@/src/db/repositories";
+import { useLedgerStore } from "@/src/store/ledger";
 
 export type NewVial = Omit<Vial, "id">;
 
@@ -38,7 +39,9 @@ export const useVialsStore = create<VialsState>((set, get) => ({
     await vialsRepository.saveAll(vials);
     // Open the vial's ledger with its full labelled contents. Remaining is
     // always derived from txns; there is no editable balance anywhere.
-    await txnsRepository.append(initialTxnForVial(vial, createId()));
+    const txn = initialTxnForVial(vial, createId());
+    await txnsRepository.append(txn);
+    useLedgerStore.setState((state) => ({ txns: [...state.txns, txn] }));
     return vial;
   },
 

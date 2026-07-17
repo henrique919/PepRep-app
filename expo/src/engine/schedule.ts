@@ -16,6 +16,7 @@ import {
 } from "date-fns";
 
 import type { Plan, ScheduleVersion } from "../db/types";
+import { occurrenceKey as buildOccurrenceKey } from "../db/occurrence";
 
 export interface TimeOfDay {
   hour: number;
@@ -125,6 +126,69 @@ export function appendScheduleVersion(plan: Plan, version: ScheduleVersion): Pla
       : existing,
   );
   return { ...plan, versions: [...closed, version] };
+}
+
+/**
+ * Inclusive walk of calendar day keys using date-fns `addDays`.
+ * Never divides epoch ms by 86400000 — correct across DST boundaries.
+ */
+export function eachDayKey(fromKey: string, toKey: string): string[] {
+  if (fromKey > toKey) return [];
+  const keys: string[] = [];
+  let cursor = startOfDay(parseISO(fromKey));
+  const end = startOfDay(parseISO(toKey));
+  while (cursor.getTime() <= end.getTime()) {
+    keys.push(format(cursor, "yyyy-MM-dd"));
+    cursor = addDays(cursor, 1);
+  }
+  return keys;
+}
+
+/** Local wall-clock ISO for a day key + "HH:mm" (DST-safe via date-fns). */
+export function localDateTimeIso(day: string, timeLocal: string): string {
+  const [hourText, minuteText] = timeLocal.split(":");
+  const hours = Number(hourText);
+  const minutes = Number(minuteText);
+  const base = startOfDay(parseISO(day));
+  return set(base, {
+    hours: Number.isFinite(hours) ? hours : 0,
+    minutes: Number.isFinite(minutes) ? minutes : 0,
+    seconds: 0,
+    milliseconds: 0,
+  }).toISOString();
+}
+
+export interface PlannedOccurrence {
+  planId: string;
+  compoundName: string;
+  version: ScheduleVersion;
+  timeLocal: string;
+  occurrenceKey: string;
+  dayKey: string;
+}
+
+/**
+ * Occurrences due on a day key from the ScheduleVersion active ON THAT DATE
+ * (via versionActiveOn / dueOnDay) — never from the newest version alone.
+ */
+export function occurrencesOnDay(plans: Plan[], day: string): PlannedOccurrence[] {
+  const rows: PlannedOccurrence[] = [];
+  for (const plan of plans) {
+    if (!dueOnDay(plan, day)) continue;
+    const version = versionActiveOn(plan, day);
+    if (version === undefined) continue;
+    for (const timeLocal of version.timesLocal) {
+      rows.push({
+        planId: plan.id,
+        compoundName: plan.compoundName,
+        version,
+        timeLocal,
+        occurrenceKey: buildOccurrenceKey(day, timeLocal, plan.id),
+        dayKey: day,
+      });
+    }
+  }
+  return rows.sort((a, b) => a.timeLocal.localeCompare(b.timeLocal));
 }
 
 /** Zero-padded "08:05" label for a reminder time. */

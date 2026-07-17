@@ -28,6 +28,7 @@ import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
 import { useDosesStore } from "@/src/store/doses";
 import { useRemindersStore } from "@/src/store/reminders";
+import { useSettingsStore } from "@/src/store/settings";
 import { useVialsStore } from "@/src/store/vials";
 import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
@@ -48,6 +49,8 @@ export default function SettingsScreen() {
   const resetDoses = useDosesStore((state) => state.reset);
   const resetVials = useVialsStore((state) => state.reset);
   const reminders = useRemindersStore((state) => state.reminders);
+  const askEnabled = useSettingsStore((state) => state.askEnabled);
+  const setAskEnabled = useSettingsStore((state) => state.setAskEnabled);
   const addReminder = useRemindersStore((state) => state.addReminder);
   const setEnabled = useRemindersStore((state) => state.setEnabled);
   const removeReminder = useRemindersStore((state) => state.removeReminder);
@@ -373,6 +376,47 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Privacy */}
+        <View style={styles.section}>
+          <AppText variant="overline" tone="faint">
+            Privacy
+          </AppText>
+          <Card style={styles.privacyCard} padded={false}>
+            <View style={styles.privacyCopy}>
+              <AppText variant="label" tone="secondary">
+                Your vials, doses, schedule and history never leave this device. There is no account
+                and no analytics. The one exception is Ask: your question text is sent to Rork AI
+                Cloud to generate an answer. Your records are never included. You can turn Ask off
+                below.
+              </AppText>
+            </View>
+            <Hairline />
+            <View style={styles.askToggleRow}>
+              <View style={styles.actionBody}>
+                <AppText variant="body" weight="medium">
+                  Ask
+                </AppText>
+                <AppText variant="caption" tone="faint">
+                  {askEnabled
+                    ? "On — question text may leave this device"
+                    : "Off — no Ask network calls"}
+                </AppText>
+              </View>
+              <Switch
+                value={askEnabled}
+                onValueChange={(next) => {
+                  setAskEnabled(next).catch((error) =>
+                    console.error("[settings] Toggle Ask failed", error),
+                  );
+                }}
+                trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
+                thumbColor={colors.surface}
+                testID="toggle-ask"
+              />
+            </View>
+          </Card>
+        </View>
+
         {/* About */}
         <View style={styles.section}>
           <Card padded={false}>
@@ -389,7 +433,7 @@ export default function SettingsScreen() {
         </View>
 
         <AppText variant="caption" tone="faint" style={styles.footer}>
-          PepRep 1.0.0 · Fully offline · No account, no analytics, no network
+          PepRep 1.0.0 · No account · No analytics · Ask is optional
         </AppText>
       </ScrollView>
     </Screen>
@@ -505,6 +549,19 @@ const styles = StyleSheet.create({
   actionBody: {
     flex: 1,
     gap: 2,
+  },
+  privacyCard: {
+    overflow: "hidden",
+  },
+  privacyCopy: {
+    padding: spacing.lg,
+  },
+  askToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   status: {
     paddingHorizontal: spacing.xs,
