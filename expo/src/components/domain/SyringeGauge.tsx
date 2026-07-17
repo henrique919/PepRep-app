@@ -1,5 +1,11 @@
-import React, { useId, useMemo } from "react";
+import React, { useEffect, useId, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  Easing,
+} from "react-native-reanimated";
 import Svg, {
   Circle,
   ClipPath,
@@ -52,6 +58,34 @@ const ROD_END_PAD = 8;
 export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
   const uid = useId().replace(/:/g, "");
   const model = useMemo(() => buildSyringeGauge(units, capacity), [units, capacity]);
+  const [fillProgress, setFillProgress] = useState(0);
+  const appear = useSharedValue(0);
+
+  useEffect(() => {
+    appear.value = 0;
+    appear.value = withTiming(1, {
+      duration: 380,
+      easing: Easing.out(Easing.cubic),
+    });
+
+    const target = model.fillFraction;
+    const start = performance.now();
+    const duration = 520;
+    let frame = 0;
+    setFillProgress(0);
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - (1 - t) ** 3;
+      setFillProgress(target * eased);
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [model.fillFraction, units, capacity, appear]);
+
+  const shellStyle = useAnimatedStyle(() => ({
+    opacity: 0.55 + appear.value * 0.45,
+  }));
 
   const layout = useMemo(() => {
     const { barrelW, barrelH, needleLen } = barrelLayout(model.capacityUnits);
@@ -63,9 +97,9 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
     const viewW = thumbX + THUMB_W + ROD_END_PAD;
     const barrelY = (VIEW_H - barrelH) / 2 + 4;
     const cy = barrelY + barrelH / 2;
-    const fillX = barrelX + barrelW * model.fillFraction;
+    const fillX = barrelX + barrelW * fillProgress;
     /** Stopper sits at the fluid meniscus; empty barrel parks it at the zero end. */
-    const stopX = model.fillFraction > 0 ? fillX : barrelX + 5;
+    const stopX = fillProgress > 0.001 ? fillX : barrelX + 5;
     const markerX = Math.min(Math.max(fillX, barrelX), barrelX + barrelW);
     const labelX = Math.min(Math.max(markerX, 36), viewW - 36);
 
@@ -86,7 +120,7 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
       markerX,
       labelX,
     };
-  }, [model.capacityUnits, model.fillFraction]);
+  }, [model.capacityUnits, fillProgress]);
 
   const {
     barrelW,
@@ -107,14 +141,14 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
   const labelTicks = model.ticks.filter((tick) => tick.major);
   const fluidColor = model.overflow ? colors.fluidOverflow : colors.fluid;
   const markerColor = model.overflow ? colors.dangerInk : colors.accent;
-  const showFill = model.fillFraction > 0;
+  const showFill = fillProgress > 0.001;
   const rodW = Math.max(thumbX - stopX - 4, 0);
   const clipId = `barrel-bore-${uid}`;
   const fluidGradId = `fluid-grad-${uid}`;
   const glassGradId = `glass-grad-${uid}`;
 
   return (
-    <View style={[styles.wrap, { aspectRatio: viewW / VIEW_H }]}>
+    <Animated.View style={[styles.wrap, { aspectRatio: viewW / VIEW_H }, shellStyle]}>
       <Svg width="100%" height="100%" viewBox={`0 0 ${viewW} ${VIEW_H}`}>
         <Defs>
           <LinearGradient id={glassGradId} x1="0" y1="0" x2="0" y2="1">
@@ -406,7 +440,7 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
           </SvgText>
         ))}
       </Svg>
-    </View>
+    </Animated.View>
   );
 }
 

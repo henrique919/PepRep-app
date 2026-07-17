@@ -2,10 +2,12 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronDown, ChevronUp, NotebookPen, TestTubes } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import MathSteps from "@/src/components/domain/MathSteps";
 import SyringeGauge from "@/src/components/domain/SyringeGauge";
 import Warnings from "@/src/components/domain/Warnings";
+import AnimatedReadout from "@/src/components/ui/AnimatedReadout";
 import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
@@ -13,6 +15,7 @@ import Hairline from "@/src/components/ui/Hairline";
 import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
+import { hapticTick } from "@/src/haptics";
 import type { DiluentOutcome, DrawOutcome, MassUnit, SyringeCapacity } from "@/src/engine";
 import { calculateDiluent, calculateDraw, fmt, SYRINGES } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
@@ -100,6 +103,7 @@ export default function CalculatorScreen() {
 
   const logThisDose = () => {
     if (drawResult === null || !drawResult.ok || doseValue === null) return;
+    hapticTick();
     router.push({
       pathname: "/log-entry",
       params: {
@@ -116,6 +120,7 @@ export default function CalculatorScreen() {
 
   const saveAsVial = () => {
     if (drawResult === null || !drawResult.ok || vialMg === null || diluentMl === null) return;
+    hapticTick();
     router.push({
       pathname: "/vial-new",
       params: {
@@ -279,9 +284,7 @@ export default function CalculatorScreen() {
                   <View style={styles.redTick} />
                 </View>
                 <View style={styles.bigNumberRow}>
-                  <AppText variant="readout" tone="onDark" weight="semibold">
-                    {fmt(drawResult.units, 1)}
-                  </AppText>
+                  <AnimatedReadout value={drawResult.units} decimals={1} testID="draw-units-readout" />
                   <AppText
                     variant="heading"
                     tone="onDarkSecondary"
@@ -351,9 +354,7 @@ export default function CalculatorScreen() {
                   <View style={styles.redTick} />
                 </View>
                 <View style={styles.bigNumberRow}>
-                  <AppText variant="readout" tone="onDark" weight="semibold">
-                    {fmt(waterResult.diluentMl, 2)}
-                  </AppText>
+                  <AnimatedReadout value={waterResult.diluentMl} decimals={2} testID="water-ml-readout" />
                   <AppText
                     variant="heading"
                     tone="onDarkSecondary"
@@ -424,7 +425,7 @@ export default function CalculatorScreen() {
                 testID="toggle-math"
               />
               {showMath && (
-                <View style={styles.mathBody}>
+                <Animated.View entering={FadeInDown.duration(280).springify().damping(18)} style={styles.mathBody}>
                   <View style={styles.mathHairline}>
                     <Hairline />
                   </View>
@@ -432,7 +433,7 @@ export default function CalculatorScreen() {
                     Worked steps
                   </AppText>
                   <MathSteps steps={activeResult.steps} />
-                </View>
+                </Animated.View>
               )}
             </Card>
           )}

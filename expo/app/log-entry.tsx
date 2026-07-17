@@ -25,6 +25,7 @@ import { formatDateTime } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
 import { useDosesStore } from "@/src/store/doses";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
+import { hapticTick } from "@/src/haptics";
 import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 function stringParam(value: string | string[] | undefined): string {
@@ -91,7 +92,10 @@ export default function LogEntryScreen() {
       note: note.trim(),
       atIso: new Date().toISOString(),
     })
-      .then(() => setSaved(true))
+      .then(() => {
+        hapticTick();
+        setSaved(true);
+      })
       .catch((error) => console.error("[log-entry] Failed to save dose", error));
   };
 

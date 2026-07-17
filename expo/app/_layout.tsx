@@ -1,3 +1,5 @@
+import "react-native-reanimated";
+
 import {
   IBMPlexMono_400Regular,
   IBMPlexMono_500Medium,

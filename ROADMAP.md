@@ -298,7 +298,7 @@ required for market-ready, not optional.
     what the app is and isn't.
   - Note: 3-step onboarding (instrument / versioned safety ack / demo 10-unit draw + syringe); settings onboardingComplete + CURRENT_SAFETY_ACK_VERSION; root Redirect gate.
 
-- [ ] **C.4 — Motion, haptics and microinteractions**
+- [x] **C.4 — Motion, haptics and microinteractions**
   - Files: shared; use `react-native-reanimated` (already an Expo-standard dep) + Haptics
   - Do: springy screen/sheet transitions; the units readout counts up to its value; the
     syringe fills with a smooth animation; a haptic tick on log/save/skip; pressed-states on
@@ -306,6 +306,7 @@ required for market-ready, not optional.
   - Why it wins: this is the difference between "web app in a shell" and "premium native."
   - Accept: the app feels alive and native on device; no janky instant state-swaps on the
     primary flows.
+  - Note: added reanimated; AnimatedReadout count-up; SyringeGauge fluid fill animation; hapticTick on log/save; SegmentedControl pressed; math reveal FadeInDown.
 
 - [ ] **C.5 — App icon & identity**
   - Files: `expo/assets/*`, `app.json`

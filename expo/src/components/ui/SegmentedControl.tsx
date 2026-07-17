@@ -42,7 +42,11 @@ export default function SegmentedControl<T extends string | number>({
           <Pressable
             key={String(option.value)}
             onPress={() => select(option.value)}
-            style={[styles.segment, active && styles.activeSegment]}
+            style={({ pressed }) => [
+              styles.segment,
+              active && styles.activeSegment,
+              pressed && styles.pressedSegment,
+            ]}
           >
             <AppText
               variant="label"
@@ -82,5 +86,9 @@ const styles = StyleSheet.create({
   activeSegment: {
     backgroundColor: colors.surface,
     borderColor: colors.hairline,
+  },
+  pressedSegment: {
+    opacity: 0.88,
+    transform: [{ scale: 0.985 }],
   },
 });
