@@ -9,7 +9,9 @@
     "start-web-dev": "DEBUG=expo* bunx rork start -p fdbzggh0h14wkaztx609o --web",
     "lint": "expo lint",
     "typecheck": "tsc --noEmit",
-    "test": "jest"
+    "test": "jest",
+    "export:web": "expo export --platform web",
+    "deploy:web": "expo export --platform web && eas deploy"
   },
   "dependencies": {
     "@expo-google-fonts/ibm-plex-mono": "^0.4.1",
