@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: fontSize.heading,
     color: colors.ink,
+    backgroundColor: colors.surface,
     paddingVertical: spacing.sm,
   },
   monoInput: {

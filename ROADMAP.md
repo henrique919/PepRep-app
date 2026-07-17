@@ -68,7 +68,7 @@ not new architecture. Do not rebuild what works.
     and ≥1 time exist, "Create plan" enables and creates the plan; it then appears on Today.
   - Note: replaced free-text HH:mm with hour 0–23 field + minute chips; normalises via formatTimeOfDay; inline errors on bad/duplicate times.
 
-- [ ] **T0.3 — Ask input text is invisible (dark-on-dark on web)**
+- [x] **T0.3 — Ask input text is invisible (dark-on-dark on web)**
   - Files: `expo/src/components/ui/Field.tsx`, and add `expo/app/+html.tsx` if absent.
   - Root cause: the `TextInput` itself has no `backgroundColor`; only its wrapper does. Under
     a browser/OS in dark mode, the DOM `<input>` gets the UA's dark field background while
@@ -80,6 +80,7 @@ not new architecture. Do not rebuild what works.
     T3.1 — this task only guarantees legibility now.)
   - Accept: in a dark-mode browser, typed text and placeholder are clearly legible in Ask and
     every other input.
+  - Note: Field TextInput gets colors.surface background; +html.tsx forces color-scheme light so web UA dark mode cannot hide ink text.
 
 - [ ] **T0.4 — Calculator "Log this dose" loses context and looks like it goes nowhere**
   - Files: `expo/app/(tabs)/index.tsx` (`logThisDose`, ~L76), `expo/app/log-entry.tsx`
