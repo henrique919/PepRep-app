@@ -166,7 +166,7 @@ not new architecture. Do not rebuild what works.
     device; deleting the plan cancels them; web shows the info note, not a broken control.
   - Note: scheduleWeekly + cancel helper; Plan.reminderNotificationIds; addPlan remindMe schedules day×time weekly copy; archivePlan cancels; native toggle / web info note.
 
-- [ ] **T1.6 — [NEEDS-INPUT] Ask: restore a real system role + fix truncation + brevity**
+- [x] **T1.6 — Ask: restore a real system role + fix truncation + brevity**
   - Files: `expo/app/(tabs)/reference/ask.tsx` (~L57–68), `expo/src/ask/client.ts`,
     `expo/src/ask/systemPrompt.ts`
   - Root cause: the guardrail system prompt is **folded into the user turn** because the Rork
@@ -183,7 +183,9 @@ not new architecture. Do not rebuild what works.
     - Keep Ask a leaf: offline/exhausted/rate-limited states unchanged; never block the app.
   - Accept: a corpus question returns a complete, concise answer; the directionality/refusal
     rules still hold (see T3.3); no answer ends mid-sentence.
-  - BLOCKED: real `system` role needs Ask endpoint URL + auth (still folding via Rork). Done without transport change: LENGTH ≤120 words appended beside corpus; `clipAskAnswer` ends on a sentence boundary.
+  - Note: `rorkTransport` sends real `system`+`user` on the wire (SDK types omit system; runtime
+    `/llm/text` forwards messages unchanged — stopped folding). LENGTH ≤120 + `clipAskAnswer`
+    sentence-boundary. Spot-check one live Ask answer in-app; privacy copy still Rork AI Cloud.
 
 ---
 
@@ -250,6 +252,9 @@ not new architecture. Do not rebuild what works.
     one quantity Ask never produces) is the backbone; strengthen, don't weaken it.
   - Accept: eval covers all six vectors; leaks are reported, not hidden; no fix is marked done
     without human sign-off.
+  - PENDING HUMAN: client policy + evals extended for all six vectors (25 adversarial prompts);
+    suite reports 0 policy leaks; identity chips still allowed. Live Rork model not re-run here —
+    do not treat as certified. Sign off or request policy tweaks.
 
 - [ ] **T3.4 — Regression tests for everything wired above**
   - Do: add tests — reverse-mode syringe fill = target units; "save as vial" produces a vial

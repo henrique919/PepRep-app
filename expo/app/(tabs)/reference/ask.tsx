@@ -19,6 +19,7 @@ import EmptyState from "@/src/components/ui/EmptyState";
 import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import { askQuestion, type AskOutcome } from "@/src/ask";
+import { callRorkGenerateText } from "@/src/ask/rorkTransport";
 import { useSettingsStore } from "@/src/store/settings";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
@@ -58,19 +59,7 @@ export default function AskScreen() {
       const result = await askQuestion(trimmed, {
         askEnabled,
         online: isProbablyOnline(),
-        generateText: async ({ messages }) => {
-          // Rork generateText accepts user|assistant only — fold system into the user turn.
-          const system = messages.find((message) => message.role === "system")?.content ?? "";
-          const user = messages.find((message) => message.role === "user")?.content ?? "";
-          return generateText({
-            messages: [
-              {
-                role: "user",
-                content: `${system}\n\n---\nUser question:\n${user}`,
-              },
-            ],
-          });
-        },
+        generateText: async ({ messages }) => callRorkGenerateText(generateText, messages),
       });
       setOutcome(result);
     } catch (error) {
