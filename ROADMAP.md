@@ -285,7 +285,7 @@ required for market-ready, not optional.
   - Accept: the syringe is genuinely admirable at a glance and precisely correct on inspection.
   - Note: rebuilt SyringeGauge as engine-driven U-100 anatomy (capacity-proportional barrel, accent fluid + overflow hatch, ribbed stopper/rod/thumb rest, exact fill callout); fluid/fluidOverflow tokens.
 
-- [ ] **C.3 — First-run onboarding (the anti-PeptidePal)**
+- [x] **C.3 — First-run onboarding (the anti-PeptidePal)**
   - Files: new `app/onboarding/*`, gate on a settings flag
   - Do: a short, honest, crafted first run — what PepRep is (measurement instrument, not an
     advisor), the one safety acknowledgement (versioned), and a guided "calculate your first
@@ -296,6 +296,7 @@ required for market-ready, not optional.
     ack. A calm, premium first run sets the trustworthy tone the whole positioning rests on.
   - Accept: a first-time user reaches a correct first draw within ~20 seconds and understands
     what the app is and isn't.
+  - Note: 3-step onboarding (instrument / versioned safety ack / demo 10-unit draw + syringe); settings onboardingComplete + CURRENT_SAFETY_ACK_VERSION; root Redirect gate.
 
 - [ ] **C.4 — Motion, haptics and microinteractions**
   - Files: shared; use `react-native-reanimated` (already an Expo-standard dep) + Haptics

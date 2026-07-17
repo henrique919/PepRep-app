@@ -11,7 +11,7 @@ import {
 } from "@expo-google-fonts/inter";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
-import { Stack } from "expo-router";
+import { Redirect, Stack, useSegments, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
@@ -44,6 +44,18 @@ if (Platform.OS !== "web") {
 }
 
 function RootLayoutNav() {
+  const hydrated = useSettingsStore((state) => state.hydrated);
+  const onboardingComplete = useSettingsStore((state) => state.onboardingComplete);
+  const segments = useSegments();
+  const inOnboarding = (segments as string[])[0] === "onboarding";
+
+  if (hydrated && !onboardingComplete && !inOnboarding) {
+    return <Redirect href={"/onboarding" as Href} />;
+  }
+  if (hydrated && onboardingComplete && inOnboarding) {
+    return <Redirect href={"/(tabs)" as Href} />;
+  }
+
   return (
     <Stack
       screenOptions={{
@@ -52,6 +64,7 @@ function RootLayoutNav() {
       }}
     >
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="settings" />
       <Stack.Screen name="plans" />
       <Stack.Screen name="log-entry" options={{ presentation: "modal" }} />
