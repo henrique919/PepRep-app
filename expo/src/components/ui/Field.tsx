@@ -43,7 +43,11 @@ export default function Field({
       <View style={[styles.inputRow, focused && styles.focused]}>
         <TextInput
           testID={testID}
-          style={[styles.input, mono ? styles.monoInput : styles.uiInput]}
+          style={[
+            styles.input,
+            mono ? styles.monoInput : styles.uiInput,
+            focused && styles.inputFocused,
+          ]}
           value={value}
           onChangeText={onChangeText}
           placeholder={placeholder}
@@ -66,7 +70,7 @@ export default function Field({
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.xs + 2,
+    gap: spacing.sm,
   },
   labelRow: {
     flexDirection: "row",
@@ -77,22 +81,27 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceSunken,
     borderWidth: hairlineWidth,
     borderColor: colors.hairline,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    minHeight: 50,
+    paddingHorizontal: spacing.lg,
+    minHeight: 52,
   },
   focused: {
     borderColor: colors.accent,
+    backgroundColor: colors.surface,
   },
   input: {
     flex: 1,
     fontSize: fontSize.heading,
     color: colors.ink,
-    backgroundColor: colors.surface,
+    // Explicit fill so web UA dark-mode cannot hide ink (T0.3).
+    backgroundColor: colors.surfaceSunken,
     paddingVertical: spacing.sm,
+  },
+  inputFocused: {
+    backgroundColor: colors.surface,
   },
   monoInput: {
     fontFamily: fonts.monoMedium,

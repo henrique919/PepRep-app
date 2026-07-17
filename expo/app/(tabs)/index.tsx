@@ -16,7 +16,7 @@ import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import type { DiluentOutcome, DrawOutcome, MassUnit, SyringeCapacity } from "@/src/engine";
 import { calculateDiluent, calculateDraw, fmt, SYRINGES } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
-import { colors, DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { colors, DISCLAIMER, hairlineWidth, letterSpacing, radius, spacing } from "@/src/theme/tokens";
 
 type CalcMode = "draw" | "water";
 
@@ -162,14 +162,14 @@ export default function CalculatorScreen() {
               onChange={setMode}
               testID="calc-mode"
             />
-            <AppText variant="caption" tone="secondary">
+            <AppText variant="caption" tone="secondary" style={styles.modeHint}>
               {mode === "draw"
                 ? "You've mixed your vial. Enter the water you added and your dose — see the units to draw."
                 : "Before you mix. Pick the dose and the draw size you want — see how much water to add."}
             </AppText>
           </View>
 
-          <Card style={styles.formCard}>
+          <Card elevated style={styles.formCard}>
             <Field
               label="Peptide in vial"
               value={vialText}
@@ -238,7 +238,7 @@ export default function CalculatorScreen() {
           </Card>
 
           {activeResult === null && (
-            <Card style={styles.resultCard}>
+            <Card elevated style={styles.resultCard}>
               <View style={styles.overlineBlock}>
                 <AppText variant="overline" tone="faint">
                   {mode === "draw" ? "Exact draw" : "Water to add"}
@@ -254,7 +254,7 @@ export default function CalculatorScreen() {
           )}
 
           {activeResult !== null && !activeResult.ok && (
-            <Card style={styles.resultCard}>
+            <Card elevated style={styles.resultCard}>
               <View style={styles.overlineBlock}>
                 <AppText variant="overline" tone="faint">
                   Check inputs
@@ -271,28 +271,36 @@ export default function CalculatorScreen() {
 
           {mode === "draw" && drawResult !== null && drawResult.ok && (
             <View style={styles.resultGroup}>
-              <Card style={styles.resultCard} testID="draw-result">
+              <Card dark elevated style={styles.resultCard} testID="draw-result">
                 <View style={styles.overlineBlock}>
-                  <AppText variant="overline" tone="faint">
+                  <AppText variant="overline" tone="onDarkSecondary">
                     Exact draw
                   </AppText>
                   <View style={styles.redTick} />
                 </View>
                 <View style={styles.bigNumberRow}>
-                  <AppText mono weight="semibold" style={styles.bigNumber}>
+                  <AppText variant="readout" tone="onDark" weight="semibold">
                     {fmt(drawResult.units, 1)}
                   </AppText>
-                  <AppText variant="title" tone="secondary" mono>
+                  <AppText
+                    variant="heading"
+                    tone="onDarkSecondary"
+                    mono
+                    weight="medium"
+                    style={styles.unitSuffix}
+                  >
                     units
                   </AppText>
                 </View>
-                <AppText variant="label" tone="secondary" mono>
+                <AppText variant="label" tone="onDarkSecondary" mono>
                   U-100 · {fmt(drawResult.volumeMl, 3)} mL
                 </AppText>
 
-                <Hairline />
+                <Hairline dark />
 
-                <SyringeGauge units={drawResult.units} capacity={capacity} />
+                <View style={styles.gaugeWell}>
+                  <SyringeGauge units={drawResult.units} capacity={capacity} />
+                </View>
               </Card>
 
               <View style={styles.statsRow}>
@@ -335,31 +343,39 @@ export default function CalculatorScreen() {
 
           {mode === "water" && waterResult !== null && waterResult.ok && targetUnits !== null && (
             <View style={styles.resultGroup}>
-              <Card style={styles.resultCard} testID="water-result">
+              <Card dark elevated style={styles.resultCard} testID="water-result">
                 <View style={styles.overlineBlock}>
-                  <AppText variant="overline" tone="faint">
+                  <AppText variant="overline" tone="onDarkSecondary">
                     Water to add
                   </AppText>
                   <View style={styles.redTick} />
                 </View>
                 <View style={styles.bigNumberRow}>
-                  <AppText mono weight="semibold" style={styles.bigNumber}>
+                  <AppText variant="readout" tone="onDark" weight="semibold">
                     {fmt(waterResult.diluentMl, 2)}
                   </AppText>
-                  <AppText variant="title" tone="secondary" mono>
+                  <AppText
+                    variant="heading"
+                    tone="onDarkSecondary"
+                    mono
+                    weight="medium"
+                    style={styles.unitSuffix}
+                  >
                     mL
                   </AppText>
                 </View>
-                <AppText variant="label" tone="secondary" mono>
+                <AppText variant="label" tone="onDarkSecondary" mono>
                   bacteriostatic water · one-time mix
                 </AppText>
 
-                <Hairline />
+                <Hairline dark />
 
-                <AppText variant="caption" tone="faint">
+                <AppText variant="caption" tone="onDarkSecondary">
                   Draw this water volume produces
                 </AppText>
-                <SyringeGauge units={targetUnits} capacity={100} />
+                <View style={styles.gaugeWell}>
+                  <SyringeGauge units={targetUnits} capacity={100} />
+                </View>
               </Card>
 
               <View style={styles.statsRow}>
@@ -392,7 +408,7 @@ export default function CalculatorScreen() {
           {hasOkResult && activeResult.ok && <Warnings warnings={activeResult.warnings} />}
 
           {hasOkResult && activeResult.ok && (
-            <Card padded={false}>
+            <Card elevated padded={false} style={styles.mathCard}>
               <Button
                 label={showMath ? "Hide the math" : "Show the math"}
                 tone="ghost"
@@ -409,7 +425,12 @@ export default function CalculatorScreen() {
               />
               {showMath && (
                 <View style={styles.mathBody}>
-                  <Hairline />
+                  <View style={styles.mathHairline}>
+                    <Hairline />
+                  </View>
+                  <AppText variant="overline" tone="faint" style={styles.mathLabel}>
+                    Worked steps
+                  </AppText>
                   <MathSteps steps={activeResult.steps} />
                 </View>
               )}
@@ -452,48 +473,60 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: spacing.lg,
-    gap: spacing.lg,
+    gap: spacing.section,
     paddingBottom: spacing.xxl,
   },
   header: {
     gap: spacing.xs,
     marginTop: spacing.sm,
+    marginBottom: spacing.xs,
   },
   modeBlock: {
     gap: spacing.sm,
   },
+  modeHint: {
+    paddingHorizontal: spacing.xs,
+  },
   formCard: {
-    gap: spacing.lg,
+    gap: spacing.xl,
   },
   unitToggle: {
     width: 118,
   },
   syringeRow: {
-    gap: spacing.xs + 2,
-  },
-  resultGroup: {
     gap: spacing.sm,
   },
-  resultCard: {
+  resultGroup: {
     gap: spacing.md,
+  },
+  resultCard: {
+    gap: spacing.lg,
   },
   overlineBlock: {
     gap: spacing.xs,
   },
   redTick: {
     width: 3,
-    height: 11,
+    height: 12,
     backgroundColor: colors.accent,
+    borderRadius: 1,
   },
   bigNumberRow: {
     flexDirection: "row",
     alignItems: "baseline",
     gap: spacing.sm,
   },
-  bigNumber: {
-    fontSize: 52,
-    lineHeight: 58,
-    color: colors.ink,
+  unitSuffix: {
+    letterSpacing: letterSpacing.tight,
+    paddingBottom: spacing.xs,
+  },
+  gaugeWell: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: hairlineWidth,
+    borderColor: colors.hairlineDark,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
   },
   statsRow: {
     flexDirection: "row",
@@ -507,15 +540,29 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: hairlineWidth,
     borderColor: colors.hairline,
-    padding: spacing.lg,
+    paddingVertical: spacing.lg,
+    paddingHorizontal: spacing.lg,
     gap: spacing.xs,
+  },
+  mathCard: {
+    overflow: "hidden",
   },
   mathToggle: {
     borderWidth: 0,
+    borderRadius: 0,
+    backgroundColor: colors.surface,
   },
   mathBody: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
+    paddingBottom: spacing.lg,
+    gap: spacing.md,
+    backgroundColor: colors.bg,
+  },
+  mathHairline: {
+    marginHorizontal: -spacing.lg,
+  },
+  mathLabel: {
+    marginTop: spacing.xs,
   },
   actionRow: {
     gap: spacing.sm,
@@ -526,5 +573,6 @@ const styles = StyleSheet.create({
   disclaimer: {
     textAlign: "center",
     paddingHorizontal: spacing.lg,
+    marginTop: spacing.sm,
   },
 });

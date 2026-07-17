@@ -2,9 +2,18 @@ import React from "react";
 import { StyleSheet, Text } from "react-native";
 import type { TextProps, TextStyle } from "react-native";
 
-import { colors, fonts, fontSize } from "@/src/theme/tokens";
+import { colors, fonts, fontSize, letterSpacing, lineHeight } from "@/src/theme/tokens";
 
-type Variant = "display" | "title" | "heading" | "body" | "label" | "caption" | "overline";
+type Variant =
+  | "display"
+  | "title"
+  | "heading"
+  | "body"
+  | "label"
+  | "caption"
+  | "overline"
+  | "readout"
+  | "gauge";
 type Tone =
   | "ink"
   | "secondary"
@@ -61,15 +70,17 @@ export default function AppText({
   ...rest
 }: AppTextProps) {
   const defaultWeight: Weight =
-    variant === "display" || variant === "title"
+    variant === "display" || variant === "title" || variant === "readout"
       ? "bold"
-      : variant === "heading"
+      : variant === "heading" || variant === "gauge"
         ? "semibold"
         : variant === "overline"
           ? "semibold"
           : "regular";
   const finalWeight = weight ?? defaultWeight;
-  const fontFamily = mono ? monoFamily[finalWeight] : uiFamily[finalWeight];
+  const fontFamily = mono || variant === "readout" || variant === "gauge"
+    ? monoFamily[finalWeight]
+    : uiFamily[finalWeight];
 
   const composed: TextStyle = {
     ...styles[variant],
@@ -85,11 +96,46 @@ export default function AppText({
 }
 
 const styles = StyleSheet.create({
-  display: { fontSize: fontSize.display, lineHeight: 36 },
-  title: { fontSize: fontSize.title, lineHeight: 28 },
-  heading: { fontSize: fontSize.heading, lineHeight: 24 },
-  body: { fontSize: fontSize.body, lineHeight: 22 },
-  label: { fontSize: fontSize.label, lineHeight: 18 },
-  caption: { fontSize: fontSize.caption, lineHeight: 17 },
-  overline: { fontSize: 11, lineHeight: 14, letterSpacing: 1.4, textTransform: "uppercase" },
+  display: {
+    fontSize: fontSize.display,
+    lineHeight: lineHeight.display,
+  },
+  title: {
+    fontSize: fontSize.title,
+    lineHeight: lineHeight.title,
+  },
+  heading: {
+    fontSize: fontSize.heading,
+    lineHeight: lineHeight.heading,
+  },
+  body: {
+    fontSize: fontSize.body,
+    lineHeight: lineHeight.body,
+  },
+  label: {
+    fontSize: fontSize.label,
+    lineHeight: lineHeight.label,
+  },
+  caption: {
+    fontSize: fontSize.caption,
+    lineHeight: lineHeight.caption,
+  },
+  overline: {
+    fontSize: fontSize.overline,
+    lineHeight: lineHeight.overline,
+    letterSpacing: letterSpacing.overline,
+    textTransform: "uppercase",
+  },
+  readout: {
+    fontSize: fontSize.readout,
+    lineHeight: lineHeight.readout,
+    letterSpacing: letterSpacing.readout,
+    fontVariant: ["tabular-nums"],
+  },
+  gauge: {
+    fontSize: fontSize.gauge,
+    lineHeight: lineHeight.gauge,
+    letterSpacing: letterSpacing.tight,
+    fontVariant: ["tabular-nums"],
+  },
 });

@@ -4,7 +4,7 @@ import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/ui/AppText";
 import Hairline from "@/src/components/ui/Hairline";
 import type { MathStep } from "@/src/engine";
-import { colors, radius, spacing } from "@/src/theme/tokens";
+import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface MathStepsProps {
   steps: MathStep[];
@@ -44,23 +44,31 @@ export default function MathSteps({ steps }: MathStepsProps) {
 const styles = StyleSheet.create({
   wrap: {
     gap: 0,
+    backgroundColor: colors.surfaceSunken,
+    borderRadius: radius.md,
+    borderWidth: hairlineWidth,
+    borderColor: colors.hairline,
+    overflow: "hidden",
+    paddingHorizontal: spacing.lg,
   },
   step: {
     flexDirection: "row",
     gap: spacing.md,
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
   },
   indexBadge: {
-    width: 26,
-    height: 26,
+    width: 28,
+    height: 28,
     borderRadius: radius.pill,
     backgroundColor: colors.accentSoft,
+    borderWidth: hairlineWidth,
+    borderColor: colors.hairline,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 2,
+    marginTop: spacing.xs,
   },
   stepBody: {
     flex: 1,
-    gap: 3,
+    gap: spacing.xs,
   },
 });

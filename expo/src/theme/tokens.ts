@@ -21,11 +21,17 @@ export const colors = {
   accentPressed: "#C44A09",
   accentSoft: "#FAE9DE",
   onAccent: "#FFFFFF",
+  /** Barrel fluid — accent with body so the column reads as liquid, not a wash. */
+  fluid: "#E36A2A",
   warnBg: "#FAF3DF",
   warnBorder: "#E8D9A8",
   warnInk: "#7A5D10",
   dangerInk: "#9C3A2E",
   dangerBg: "#F8E9E5",
+  /** Overflow fluid — distinct from in-capacity accent liquid. */
+  fluidOverflow: "#B85A4A",
+  /** Soft instrument shadow — warm ink, never pure black. */
+  shadow: "#1C1B18",
 } as const;
 
 export const spacing = {
@@ -35,6 +41,8 @@ export const spacing = {
   lg: 16,
   xl: 24,
   xxl: 32,
+  /** Section rhythm on the calculator — between major blocks. */
+  section: 20,
 } as const;
 
 export const radius = {
@@ -46,13 +54,35 @@ export const radius = {
 } as const;
 
 export const fontSize = {
+  overline: 11,
   caption: 12,
   label: 13,
   body: 15,
   heading: 17,
   title: 22,
   display: 30,
+  /** Secondary instrument numerals (stat cards). */
   gauge: 44,
+  /** Hero units / mL readout on the result panel. */
+  readout: 56,
+} as const;
+
+export const lineHeight = {
+  overline: 14,
+  caption: 17,
+  label: 18,
+  body: 22,
+  heading: 24,
+  title: 28,
+  display: 36,
+  gauge: 48,
+  readout: 60,
+} as const;
+
+export const letterSpacing = {
+  tight: -0.4,
+  readout: -1.6,
+  overline: 1.5,
 } as const;
 
 export const fonts = {
@@ -66,6 +96,24 @@ export const fonts = {
 } as const;
 
 export const hairlineWidth = 1 as const;
+
+/** Quiet elevation for light panels on warm paper. */
+export const shadows = {
+  card: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  result: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.14,
+    shadowRadius: 18,
+    elevation: 6,
+  },
+} as const;
 
 /** Standard quiet disclaimer shown in the calculator footer and About. */
 export const DISCLAIMER =

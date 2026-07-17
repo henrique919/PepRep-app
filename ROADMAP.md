@@ -262,7 +262,7 @@ without copying anyone: PepRep's premium comes from precision and honesty, not s
 social proof or promises. Do Tier C after Tier 1 (wiring must be stable first). Treat it as
 required for market-ready, not optional.
 
-- [ ] **C.1 — Design realization pass on the core surfaces**
+- [x] **C.1 — Design realization pass on the core surfaces**
   - Files: `app/(tabs)/index.tsx`, result cards, `src/components/ui/*`, `src/theme/tokens.ts`
   - Do: take the "instrument" concept from good-in-theory to premium-in-practice. Tighten
     typographic rhythm and spacing discipline; make the hero units readout feel like a
@@ -272,6 +272,7 @@ required for market-ready, not optional.
   - Why it wins: the user's own reaction was "almost too basic." This is the single biggest
     lever between "functional" and "premium."
   - Accept: a designer would call the calculator screen polished; nothing reads as a wireframe.
+  - Note: extended tokens (readout/gauge type, letterSpacing, shadows, section rhythm); dark elevated result panel with mono readout; sunken fields; crafted math reveal; warm-paper brand retained.
 
 - [ ] **C.2 — The syringe as the signature object**
   - Files: `src/components/domain/SyringeGauge.tsx`
