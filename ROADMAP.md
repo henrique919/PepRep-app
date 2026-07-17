@@ -308,17 +308,19 @@ required for market-ready, not optional.
     primary flows.
   - Note: added reanimated; AnimatedReadout count-up; SyringeGauge fluid fill animation; hapticTick on log/save; SegmentedControl pressed; math reveal FadeInDown.
 
-- [ ] **C.5 — App icon & identity**
+- [x] **C.5 — App icon & identity**
   - Files: `expo/assets/*`, `app.json`
   - Do: an original icon in the instrument aesthetic (precision, warm paper, single accent) —
     no copied branding, no generic syringe clip-art. It is the first impression in the store.
   - Accept: the icon looks like a considered product, distinct from every competitor.
+  - Note: original warm-paper + accent syringe icon at assets/images/icon.png (also adaptive + splash); app.json paths unchanged.
 
-- [ ] **C.6 — One deliberate hero moment**
+- [x] **C.6 — One deliberate hero moment**
   - Do: pick the single moment a user shows a friend and make it delightful — the syringe
     filling to the exact mark, or the "show the math" reveal resolving to the answer. Invest
     disproportionately in that one moment.
   - Accept: there is a clearly identifiable "wow" the team can point to.
+  - Note: hero = units readout count-up + syringe fluid filling to the exact mark (shared on calculator + onboarding); math reveal springs open as the supporting beat.
 
 ---
 
