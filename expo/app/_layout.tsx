@@ -30,7 +30,7 @@ import { usePlansStore } from "@/src/store/plans";
 import { useRemindersStore } from "@/src/store/reminders";
 import { useSettingsStore } from "@/src/store/settings";
 import { useVialsStore } from "@/src/store/vials";
-import { colors } from "@/src/theme/tokens";
+import { ThemeProvider, useTheme } from "@/src/theme";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -46,6 +46,7 @@ if (Platform.OS !== "web") {
 }
 
 function RootLayoutNav() {
+  const { colors } = useTheme();
   const hydrated = useSettingsStore((state) => state.hydrated);
   const onboardingComplete = useSettingsStore((state) => state.onboardingComplete);
   const segments = useSegments();
@@ -74,6 +75,16 @@ function RootLayoutNav() {
       <Stack.Screen name="vial-new" options={{ presentation: "modal" }} />
       <Stack.Screen name="about" options={{ presentation: "modal" }} />
     </Stack>
+  );
+}
+
+function ThemedShell() {
+  const { isDark } = useTheme();
+  return (
+    <>
+      <StatusBar style={isDark ? "light" : "dark"} />
+      <RootLayoutNav />
+    </>
   );
 }
 
@@ -141,12 +152,13 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <GestureHandlerRootView style={styles.flex}>
-      <SafeAreaProvider>
-        <StatusBar style="dark" />
-        <RootLayoutNav />
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <ThemeProvider>
+      <GestureHandlerRootView style={styles.flex}>
+        <SafeAreaProvider>
+          <ThemedShell />
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }
 

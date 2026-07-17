@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { X } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -16,12 +16,17 @@ import Card from "@/src/components/ui/Card";
 import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
-import type { SyringeCapacity } from "@/src/engine";
-import { fmt, SYRINGES } from "@/src/engine";
+import { createId } from "@/src/db/models";
+import { snapshotsRepository } from "@/src/db/repositories";
+import { snapshotFromDraw } from "@/src/db/snapshot";
+import type { MassUnit, SyringeCapacity } from "@/src/engine";
+import { calculateDraw, fmt, SYRINGES } from "@/src/engine";
 import { vialConcentration } from "@/src/engine/inventory";
 import { parseNumeric } from "@/src/engine/parse";
 import { useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 function stringParam(value: string | string[] | undefined): string {
   if (typeof value === "string") return value;
@@ -35,6 +40,8 @@ function capacityFromParam(value: string): SyringeCapacity {
 }
 
 export default function NewVialScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams();
   const addVial = useVialsStore((state) => state.addVial);
@@ -47,8 +54,21 @@ export default function NewVialScreen() {
   );
   const [note, setNote] = useState<string>("");
 
+  useEffect(() => {
+    const compound = stringParam(params.compoundName);
+    const vialMgParam = stringParam(params.vialMg);
+    const diluentParam = stringParam(params.diluentMl);
+    const capacityParam = stringParam(params.syringeCapacity);
+    if (compound.length > 0) setName(compound);
+    if (vialMgParam.length > 0) setVialText(vialMgParam);
+    if (diluentParam.length > 0) setWaterText(diluentParam);
+    if (capacityParam.length > 0) setCapacity(capacityFromParam(capacityParam));
+  }, [params.compoundName, params.vialMg, params.diluentMl, params.syringeCapacity]);
+
   const vialMg = parseNumeric(vialText);
   const diluentMl = parseNumeric(waterText);
+  const doseValue = parseNumeric(stringParam(params.doseValue));
+  const doseUnit: MassUnit = stringParam(params.doseUnit) === "mg" ? "mg" : "mcg";
 
   const concentration = useMemo(
     () => (vialMg !== null && diluentMl !== null ? vialConcentration(vialMg, diluentMl) : null),
@@ -64,15 +84,39 @@ export default function NewVialScreen() {
 
   const save = () => {
     if (!canSave || vialMg === null || diluentMl === null) return;
-    addVial({
-      name: name.trim(),
-      vialMg,
-      diluentMl,
-      syringeCapacityUnits: capacity,
-      note: note.trim(),
-      reconstitutedAtIso: new Date().toISOString(),
-      archivedAtIso: null,
-    })
+    const reconstitutedAtIso = new Date().toISOString();
+
+    const persist = async () => {
+      let snapshotId: string | undefined;
+      if (doseValue !== null && doseValue > 0) {
+        const drawInput = {
+          vialMg,
+          diluentMl,
+          doseValue,
+          doseUnit,
+          syringeCapacityUnits: capacity,
+        };
+        const draw = calculateDraw(drawInput);
+        if (draw.ok) {
+          const snapshot = snapshotFromDraw(drawInput, draw, createId(), reconstitutedAtIso);
+          await snapshotsRepository.append(snapshot);
+          snapshotId = snapshot.id;
+        }
+      }
+
+      await addVial({
+        name: name.trim(),
+        vialMg,
+        diluentMl,
+        syringeCapacityUnits: capacity,
+        note: note.trim(),
+        reconstitutedAtIso,
+        archivedAtIso: null,
+        snapshotId,
+      });
+    };
+
+    persist()
       .then(() => router.back())
       .catch((error) => console.error("[vial-new] Failed to save vial", error));
   };
@@ -130,6 +174,7 @@ export default function NewVialScreen() {
                 value={capacity}
                 onChange={setCapacity}
                 mono
+                testID="vial-syringe-capacity"
               />
             </View>
             <Field
@@ -138,69 +183,75 @@ export default function NewVialScreen() {
               onChangeText={setNote}
               mono={false}
               keyboardType="default"
-              placeholder="Batch, storage, anything useful"
+              placeholder="Lot, source, anything you want to remember"
               testID="input-vial-note"
             />
           </Card>
 
           {concentration !== null && (
-            <Card dark style={styles.previewCard}>
-              <AppText variant="overline" tone="onDarkSecondary">
-                Resulting concentration
+            <Card>
+              <AppText variant="overline" tone="faint">
+                Concentration
               </AppText>
-              <AppText mono weight="semibold" tone="accent" style={styles.previewNumber}>
+              <AppText variant="title" mono>
                 {fmt(concentration.mgPerMl, 3)} mg/mL
               </AppText>
-              <AppText variant="label" mono tone="onDarkSecondary">
-                = {fmt(concentration.mcgPerMl)} mcg/mL
+              <AppText variant="caption" tone="faint">
+                Derived from the amounts above — not editable.
               </AppText>
             </Card>
           )}
 
-          <Button label="Save vial" tone="accent" onPress={save} disabled={!canSave} testID="save-vial" />
+          <Button
+            label="Save vial"
+            tone="accent"
+            onPress={save}
+            disabled={!canSave}
+            testID="save-vial"
+          />
+          {!canSave && (
+            <AppText variant="caption" tone="faint">
+              Enter a label, vial amount, and water volume to save.
+            </AppText>
+          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  chrome: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    borderBottomWidth: hairlineWidth,
-    borderBottomColor: colors.hairline,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  formCard: {
-    gap: spacing.lg,
-  },
-  syringeRow: {
-    gap: spacing.xs + 2,
-  },
-  previewCard: {
-    gap: spacing.xs,
-  },
-  previewNumber: {
-    fontSize: 30,
-    lineHeight: 36,
-  },
-});
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
+    flex: {
+      flex: 1,
+    },
+    chrome: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+      borderBottomWidth: hairlineWidth,
+      borderBottomColor: colors.hairline,
+    },
+    closeButton: {
+      width: 36,
+      height: 36,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surfaceSunken,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    content: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    formCard: {
+      gap: spacing.lg,
+    },
+    syringeRow: {
+      gap: spacing.xs + 2,
+    },
+  });
+}

@@ -7,9 +7,13 @@ import AppText from "@/src/components/ui/AppText";
 import Card from "@/src/components/ui/Card";
 import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
-import { colors, DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 export default function AboutScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
 
   return (
@@ -78,7 +82,10 @@ export default function AboutScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -117,3 +124,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
 });
+}

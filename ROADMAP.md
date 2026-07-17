@@ -225,17 +225,19 @@ not new architecture. Do not rebuild what works.
 
 ## TIER 3 — HARDENING & DEPTH (do after Tiers 0–2 are green)
 
-- [ ] **T3.1 — Real dark theme (durable answer to T0.3)**
+- [x] **T3.1 — Real dark theme (durable answer to T0.3)**
   - Do: promote `tokens.ts` to theme-aware (light + dark palettes) and consume via a theme
     hook; honour `useColorScheme()`. Keep the warm-paper light theme as default. This replaces
     the T0.3 stopgap with a designed dark mode.
   - Accept: light and dark both fully styled; no illegible controls in either.
+  - Note: lightColors/darkColors + ThemeProvider/useTheme (system scheme); UI kit + screens themed; craft tokens (fluid/readout) retained; warm-paper default.
 
-- [ ] **T3.2 — CalcSnapshot on save/log (if not added in T1.1)**
+- [x] **T3.2 — CalcSnapshot on save/log (if not added in T1.1)**
   - Do: persist a `CalcSnapshot` when a draw is saved as a vial or logged, and surface it on
     the History event detail ("show the saved math"). Only if the model supports it; otherwise
     add the model field via a migration — never lose existing data.
   - Accept: a logged/saved calc can show the exact steps it came from.
+  - Note: snapshotFromDraw + snapshotsRepository; schema v3 additive snapshotId; log-entry/vial-new/plan-log persist; History event detail shows saved steps.
 
 - [ ] **T3.3 — [HUMAN-GATED] Ask red-team, remaining vectors**
   - Context: the guardrail was adversarially tested on ONE vector (incremental extraction) and

@@ -3,7 +3,6 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
-import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import Hairline from "@/src/components/ui/Hairline";
 import type { Vial } from "@/src/db/models";
@@ -11,7 +10,8 @@ import { fmt } from "@/src/engine";
 import type { VialSummary } from "@/src/engine/inventory";
 import type { ConcentrationInfo } from "@/src/engine/inventory";
 import { daysSince } from "@/src/engine/schedule";
-import { colors, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { radius, spacing } from "@/src/theme/tokens";
 
 interface VialCardProps {
   vial: Vial;
@@ -22,7 +22,6 @@ interface VialCardProps {
   nowIso: string;
   deleteArmed: boolean;
   onDeletePress: () => void;
-  onCalculate: () => void;
 }
 
 export default function VialCard({
@@ -33,8 +32,8 @@ export default function VialCard({
   nowIso,
   deleteArmed,
   onDeletePress,
-  onCalculate,
 }: VialCardProps) {
+  const { colors } = useTheme();
   const age = daysSince(vial.reconstitutedAtIso, nowIso);
   const ageLabel = age === 0 ? "reconstituted today" : age === 1 ? "1 day ago" : `${age} days ago`;
 
@@ -52,7 +51,7 @@ export default function VialCard({
         <Pressable
           onPress={onDeletePress}
           hitSlop={10}
-          style={[styles.deleteButton, deleteArmed && styles.deleteArmed]}
+          style={[styles.deleteButton, deleteArmed && { backgroundColor: colors.dangerBg }]}
           testID={`delete-vial-${vial.id}`}
         >
           {deleteArmed ? (
@@ -79,8 +78,8 @@ export default function VialCard({
           </View>
         )}
 
-        <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${summary.remainingPercent}%` }]} />
+        <View style={[styles.progressTrack, { backgroundColor: colors.surfaceSunken }]}>
+          <View style={[styles.progressFill, { width: `${summary.remainingPercent}%`, backgroundColor: colors.accent }]} />
         </View>
 
         <View style={styles.statRow}>
@@ -103,15 +102,6 @@ export default function VialCard({
           {ageLabel}
           {vial.note.length > 0 ? ` · ${vial.note}` : ""}
         </AppText>
-
-        <Button
-          label="Calculate"
-          tone="ghost"
-          compact
-          onPress={onCalculate}
-          testID={`calculate-vial-${vial.id}`}
-          style={styles.calculateButton}
-        />
       </View>
     </Card>
   );
@@ -140,13 +130,11 @@ const styles = StyleSheet.create({
   progressTrack: {
     height: 8,
     borderRadius: radius.pill,
-    backgroundColor: colors.surfaceSunken,
     overflow: "hidden",
   },
   progressFill: {
     height: 8,
     borderRadius: radius.pill,
-    backgroundColor: colors.accent,
   },
   deleteButton: {
     minWidth: 30,
@@ -155,12 +143,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.xs,
-  },
-  deleteArmed: {
-    backgroundColor: colors.dangerBg,
-  },
-  calculateButton: {
-    alignSelf: "flex-start",
-    marginTop: spacing.xs,
   },
 });

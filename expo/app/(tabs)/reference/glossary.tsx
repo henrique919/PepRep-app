@@ -8,9 +8,13 @@ import Card from "@/src/components/ui/Card";
 import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
 import { GLOSSARY_ENTRIES } from "@/src/data/glossary";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 export default function GlossaryScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
 
   return (
@@ -58,7 +62,10 @@ export default function GlossaryScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -95,3 +102,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
 });
+}

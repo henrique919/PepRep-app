@@ -17,7 +17,9 @@ import { formatDateTime } from "@/src/engine/schedule";
 import { siteLabel, statusLabel, stepsFromSnapshotOutputs } from "@/src/history/display";
 import { useLedgerStore } from "@/src/store/ledger";
 import { useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 function stringParam(value: string | string[] | undefined): string {
   if (typeof value === "string") return value;
@@ -25,7 +27,15 @@ function stringParam(value: string | string[] | undefined): string {
   return "";
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function Fact({
+  label,
+  value,
+  styles,
+}: {
+  label: string;
+  value: string;
+  styles: ReturnType<typeof createStyles>;
+}) {
   return (
     <View style={styles.fact}>
       <AppText variant="overline" tone="faint">
@@ -39,6 +49,8 @@ function Fact({ label, value }: { label: string; value: string }) {
 }
 
 export default function HistoryEventScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams();
   const id = stringParam(params.id);
@@ -116,28 +128,28 @@ export default function HistoryEventScreen() {
             </View>
 
             <Card padded={false}>
-              <Fact label="When" value={formatDateTime(event.occurredAt)} />
+              <Fact styles={styles} label="When" value={formatDateTime(event.occurredAt)} />
               <Hairline />
-              <Fact label="Status" value={statusLabel(event.status)} />
+              <Fact styles={styles} label="Status" value={statusLabel(event.status)} />
               <Hairline />
-              <Fact label="Site" value={site ?? "not recorded"} />
+              <Fact styles={styles} label="Site" value={site ?? "not recorded"} />
               <Hairline />
-              <Fact label="Vial" value={vialName ?? "not recorded"} />
+              <Fact styles={styles} label="Vial" value={vialName ?? "not recorded"} />
               <Hairline />
-              <Fact
+              <Fact styles={styles}
                 label="Occurrence key"
                 value={event.occurrenceKey ?? "not linked to a plan slot"}
               />
               {event.note !== undefined && event.note.length > 0 && (
                 <>
                   <Hairline />
-                  <Fact label="Note" value={event.note} />
+                  <Fact styles={styles} label="Note" value={event.note} />
                 </>
               )}
               {event.voidedAt !== undefined && (
                 <>
                   <Hairline />
-                  <Fact label="Voided at" value={formatDateTime(event.voidedAt)} />
+                  <Fact styles={styles} label="Voided at" value={formatDateTime(event.voidedAt)} />
                 </>
               )}
             </Card>
@@ -182,7 +194,10 @@ export default function HistoryEventScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -223,3 +238,4 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
 });
+}

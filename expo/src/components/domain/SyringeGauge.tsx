@@ -22,7 +22,8 @@ import Svg, {
 import type { SyringeCapacity } from "@/src/engine";
 import { fmt } from "@/src/engine";
 import { buildSyringeGauge } from "@/src/engine/syringe";
-import { colors, fonts } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { fonts } from "@/src/theme/tokens";
 
 interface SyringeGaugeProps {
   units: number;
@@ -57,6 +58,7 @@ const ROD_END_PAD = 8;
  */
 export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
   const uid = useId().replace(/:/g, "");
+  const { colors } = useTheme();
   const model = useMemo(() => buildSyringeGauge(units, capacity), [units, capacity]);
   const [fillProgress, setFillProgress] = useState(0);
   const appear = useSharedValue(0);

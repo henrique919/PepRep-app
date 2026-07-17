@@ -9,7 +9,13 @@ import { create } from "zustand";
 import { doseTxnForEvent, voidTxnForEvent } from "@/src/db/ledger";
 import type { DoseEntry, Vial } from "@/src/db/models";
 import { createId } from "@/src/db/models";
-import { doseEventsRepository, dosesRepository, txnsRepository } from "@/src/db/repositories";
+import {
+  doseEventsRepository,
+  dosesRepository,
+  snapshotsRepository,
+  txnsRepository,
+} from "@/src/db/repositories";
+import { snapshotFromDraw } from "@/src/db/snapshot";
 import type { DoseEvent, InventoryTxn } from "@/src/db/types";
 import { calculateDraw, mgToMcg, type MassUnit } from "@/src/engine";
 import { compareIsoDesc } from "@/src/engine/schedule";
@@ -66,17 +72,22 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
 
     let volumeMl: number | undefined;
     let units: number | undefined;
+    let snapshotId: string | undefined;
     if (input.vial !== undefined) {
-      const draw = calculateDraw({
+      const drawInput = {
         vialMg: input.vial.vialMg,
         diluentMl: input.vial.diluentMl,
         doseValue: input.doseValue,
         doseUnit: input.doseUnit,
         syringeCapacityUnits: input.vial.syringeCapacityUnits,
-      });
+      };
+      const draw = calculateDraw(drawInput);
       if (draw.ok) {
         volumeMl = draw.volumeMl;
         units = draw.units;
+        const snapshot = snapshotFromDraw(drawInput, draw, createId(), occurredAt);
+        await snapshotsRepository.append(snapshot);
+        snapshotId = snapshot.id;
       }
     }
 
@@ -95,6 +106,7 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
       vialId: input.vialId,
       occurredAt,
       note: input.note !== undefined && input.note.trim().length > 0 ? input.note.trim() : undefined,
+      snapshotId,
     };
 
     await doseEventsRepository.append(event);
@@ -114,6 +126,7 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
       site: null,
       note: event.note ?? "",
       atIso: occurredAt,
+      snapshotId,
     };
     const existingDoses = await dosesRepository.list();
     const nextDoses = [entry, ...existingDoses].sort((a, b) =>

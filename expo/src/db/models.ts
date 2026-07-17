@@ -47,6 +47,8 @@ export interface Vial {
   note: string;
   reconstitutedAtIso: string;
   archivedAtIso: string | null;
+  /** Optional link to the CalcSnapshot taken when this vial was saved from a draw. */
+  snapshotId?: string;
 }
 
 export interface DoseEntry {
@@ -63,6 +65,8 @@ export interface DoseEntry {
   site: InjectionSite | null;
   note: string;
   atIso: string;
+  /** Optional link to a CalcSnapshot (immutable math) for this log. */
+  snapshotId?: string;
 }
 
 export interface Reminder {

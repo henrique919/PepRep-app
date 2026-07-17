@@ -2,9 +2,11 @@ import { Tabs } from "expo-router";
 import { BookOpenText, CalendarDays, History, Syringe, TestTubes } from "lucide-react-native";
 import React from "react";
 
-import { colors, fonts, hairlineWidth } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { fonts, hairlineWidth } from "@/src/theme/tokens";
 
 export default function TabLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       initialRouteName="today"

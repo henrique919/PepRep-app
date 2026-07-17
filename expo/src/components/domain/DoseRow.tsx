@@ -7,7 +7,8 @@ import type { DoseEntry } from "@/src/db/models";
 import { SITE_LABELS } from "@/src/db/models";
 import { fmt } from "@/src/engine";
 import { formatClock } from "@/src/engine/schedule";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface DoseRowProps {
   entry: DoseEntry;
@@ -17,6 +18,7 @@ interface DoseRowProps {
 }
 
 export default function DoseRow({ entry, deleteArmed, onDeletePress }: DoseRowProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.row}>
       <AppText variant="label" mono tone="faint" style={styles.time}>
@@ -52,7 +54,10 @@ export default function DoseRow({ entry, deleteArmed, onDeletePress }: DoseRowPr
       <Pressable
         onPress={onDeletePress}
         hitSlop={10}
-        style={[styles.deleteButton, deleteArmed && styles.deleteArmed]}
+        style={[
+          styles.deleteButton,
+          deleteArmed && { backgroundColor: colors.dangerBg, borderColor: colors.dangerBg },
+        ]}
         testID={`delete-dose-${entry.id}`}
       >
         {deleteArmed ? (
@@ -98,9 +103,5 @@ const styles = StyleSheet.create({
     borderWidth: hairlineWidth,
     borderColor: "transparent",
     paddingHorizontal: spacing.xs,
-  },
-  deleteArmed: {
-    backgroundColor: colors.dangerBg,
-    borderColor: colors.dangerBg,
   },
 });

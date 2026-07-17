@@ -3,7 +3,8 @@ import React from "react";
 import { Platform, Pressable, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 export interface SegmentOption<T extends string | number> {
   value: T;
@@ -26,6 +27,8 @@ export default function SegmentedControl<T extends string | number>({
   mono = false,
   testID,
 }: SegmentedControlProps<T>) {
+  const { colors } = useTheme();
+
   const select = (next: T) => {
     if (next === value) return;
     if (Platform.OS !== "web") {
@@ -35,17 +38,19 @@ export default function SegmentedControl<T extends string | number>({
   };
 
   return (
-    <View style={styles.track} testID={testID}>
+    <View style={[styles.track, { backgroundColor: colors.surfaceSunken }]} testID={testID}>
       {options.map((option) => {
         const active = option.value === value;
         return (
           <Pressable
             key={String(option.value)}
             onPress={() => select(option.value)}
-            style={({ pressed }) => [
+            style={[
               styles.segment,
-              active && styles.activeSegment,
-              pressed && styles.pressedSegment,
+              active && {
+                backgroundColor: colors.surface,
+                borderColor: colors.hairline,
+              },
             ]}
           >
             <AppText
@@ -66,29 +71,18 @@ export default function SegmentedControl<T extends string | number>({
 const styles = StyleSheet.create({
   track: {
     flexDirection: "row",
-    backgroundColor: colors.surfaceSunken,
     borderRadius: radius.md,
-    padding: spacing.xs,
-    gap: spacing.xs,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
+    padding: 3,
+    gap: 3,
   },
   segment: {
     flex: 1,
-    minHeight: 42,
-    borderRadius: radius.sm,
+    minHeight: 40,
+    borderRadius: radius.sm + 1,
     alignItems: "center",
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
     borderWidth: hairlineWidth,
     borderColor: "transparent",
-  },
-  activeSegment: {
-    backgroundColor: colors.surface,
-    borderColor: colors.hairline,
-  },
-  pressedSegment: {
-    opacity: 0.88,
-    transform: [{ scale: 0.985 }],
   },
 });

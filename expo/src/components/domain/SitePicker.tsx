@@ -6,7 +6,8 @@ import Svg, { Circle, Rect } from "react-native-svg";
 import AppText from "@/src/components/ui/AppText";
 import type { InjectionSite } from "@/src/db/models";
 import { SITE_LABELS } from "@/src/db/models";
-import { colors, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { spacing } from "@/src/theme/tokens";
 
 interface SitePickerProps {
   value: InjectionSite | null;
@@ -43,6 +44,7 @@ const SITE_POINTS: SitePoint[] = [
  * unsupported responder props to the DOM on web).
  */
 export default function SitePicker({ value, onChange, recentSites = [] }: SitePickerProps) {
+  const { colors } = useTheme();
   const lastUsed = recentSites.length > 0 ? recentSites[0] : undefined;
 
   const select = (site: InjectionSite) => {

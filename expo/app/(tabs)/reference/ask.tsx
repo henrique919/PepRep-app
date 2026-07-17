@@ -20,7 +20,9 @@ import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import { askQuestion, type AskOutcome } from "@/src/ask";
 import { useSettingsStore } from "@/src/store/settings";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 const CHIPS = [
   "What is BPC-157?",
@@ -37,6 +39,8 @@ function isProbablyOnline(): boolean {
 }
 
 export default function AskScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const askEnabled = useSettingsStore((state) => state.askEnabled);
 
@@ -212,7 +216,10 @@ export default function AskScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   flex: {
     flex: 1,
   },
@@ -268,3 +275,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
 });
+}

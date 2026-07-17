@@ -13,7 +13,9 @@ import type { Plan, ScheduleVersion } from "@/src/db/types";
 import { fmt } from "@/src/engine";
 import { dayKey, versionActiveOn } from "@/src/engine/schedule";
 import { selectActivePlans, usePlansStore } from "@/src/store/plans";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
@@ -27,6 +29,8 @@ function daysLabel(days: number[]): string {
 }
 
 export default function PlansScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const plans = usePlansStore(useShallow(selectActivePlans));
   const archivePlan = usePlansStore((state) => state.archivePlan);
@@ -124,7 +128,10 @@ export default function PlansScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -170,3 +177,4 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
 });
+}

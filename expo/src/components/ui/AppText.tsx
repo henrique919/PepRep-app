@@ -2,7 +2,8 @@ import React from "react";
 import { StyleSheet, Text } from "react-native";
 import type { TextProps, TextStyle } from "react-native";
 
-import { colors, fonts, fontSize, letterSpacing, lineHeight } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { fonts, fontSize, letterSpacing } from "@/src/theme/tokens";
 
 type Variant =
   | "display"
@@ -22,6 +23,7 @@ type Tone =
   | "onDark"
   | "onDarkSecondary"
   | "onAccent"
+  | "onSolid"
   | "warn"
   | "danger";
 type Weight = "regular" | "medium" | "semibold" | "bold";
@@ -33,18 +35,6 @@ interface AppTextProps extends TextProps {
   /** Numerals must always be mono (IBM Plex Mono, tabular by nature). */
   mono?: boolean;
 }
-
-const toneColor: Record<Tone, string> = {
-  ink: colors.ink,
-  secondary: colors.inkSecondary,
-  faint: colors.inkFaint,
-  accent: colors.accent,
-  onDark: colors.onDark,
-  onDarkSecondary: colors.onDarkSecondary,
-  onAccent: colors.onAccent,
-  warn: colors.warnInk,
-  danger: colors.dangerInk,
-};
 
 const uiFamily: Record<Weight, string> = {
   regular: fonts.ui,
@@ -69,6 +59,7 @@ export default function AppText({
   children,
   ...rest
 }: AppTextProps) {
+  const { colors } = useTheme();
   const defaultWeight: Weight =
     variant === "display" || variant === "title" || variant === "readout"
       ? "bold"
@@ -78,9 +69,23 @@ export default function AppText({
           ? "semibold"
           : "regular";
   const finalWeight = weight ?? defaultWeight;
-  const fontFamily = mono || variant === "readout" || variant === "gauge"
-    ? monoFamily[finalWeight]
-    : uiFamily[finalWeight];
+  const fontFamily =
+    mono || variant === "readout" || variant === "gauge"
+      ? monoFamily[finalWeight]
+      : uiFamily[finalWeight];
+
+  const toneColor: Record<Tone, string> = {
+    ink: colors.ink,
+    secondary: colors.inkSecondary,
+    faint: colors.inkFaint,
+    accent: colors.accent,
+    onDark: colors.onDark,
+    onDarkSecondary: colors.onDarkSecondary,
+    onAccent: colors.onAccent,
+    onSolid: colors.onSolid,
+    warn: colors.warnInk,
+    danger: colors.dangerInk,
+  };
 
   const composed: TextStyle = {
     ...styles[variant],
@@ -96,45 +101,27 @@ export default function AppText({
 }
 
 const styles = StyleSheet.create({
-  display: {
-    fontSize: fontSize.display,
-    lineHeight: lineHeight.display,
-  },
-  title: {
-    fontSize: fontSize.title,
-    lineHeight: lineHeight.title,
-  },
-  heading: {
-    fontSize: fontSize.heading,
-    lineHeight: lineHeight.heading,
-  },
-  body: {
-    fontSize: fontSize.body,
-    lineHeight: lineHeight.body,
-  },
-  label: {
-    fontSize: fontSize.label,
-    lineHeight: lineHeight.label,
-  },
-  caption: {
-    fontSize: fontSize.caption,
-    lineHeight: lineHeight.caption,
-  },
+  display: { fontSize: fontSize.display, lineHeight: 36 },
+  title: { fontSize: fontSize.title, lineHeight: 28 },
+  heading: { fontSize: fontSize.heading, lineHeight: 24 },
+  body: { fontSize: fontSize.body, lineHeight: 22 },
+  label: { fontSize: fontSize.label, lineHeight: 18 },
+  caption: { fontSize: fontSize.caption, lineHeight: 17 },
   overline: {
     fontSize: fontSize.overline,
-    lineHeight: lineHeight.overline,
+    lineHeight: 14,
     letterSpacing: letterSpacing.overline,
     textTransform: "uppercase",
   },
   readout: {
     fontSize: fontSize.readout,
-    lineHeight: lineHeight.readout,
+    lineHeight: 60,
     letterSpacing: letterSpacing.readout,
     fontVariant: ["tabular-nums"],
   },
   gauge: {
     fontSize: fontSize.gauge,
-    lineHeight: lineHeight.gauge,
+    lineHeight: 48,
     letterSpacing: letterSpacing.tight,
     fontVariant: ["tabular-nums"],
   },

@@ -7,7 +7,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   View,
 } from "react-native";
 import { useShallow } from "zustand/react/shallow";
@@ -21,10 +20,11 @@ import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import type { MassUnit } from "@/src/engine";
 import { fmt } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
-import { formatTimeOfDay } from "@/src/engine/schedule";
 import { usePlansStore } from "@/src/store/plans";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 const DAY_OPTIONS: { value: number; label: string }[] = [
   { value: 0, label: "Sun" },
@@ -36,10 +36,11 @@ const DAY_OPTIONS: { value: number; label: string }[] = [
   { value: 6, label: "Sat" },
 ];
 
-const HOURS: number[] = Array.from({ length: 24 }, (_, index) => index);
-const MINUTES: number[] = [0, 15, 30, 45];
+const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 export default function NewPlanScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const addPlan = usePlansStore((state) => state.addPlan);
   const vials = useVialsStore(useShallow(selectActiveVials));
@@ -50,18 +51,11 @@ export default function NewPlanScreen() {
   const [doseUnit, setDoseUnit] = useState<MassUnit>("mcg");
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
   const [timesLocal, setTimesLocal] = useState<string[]>([]);
-  const [hourText, setHourText] = useState<string>("8");
-  const [minute, setMinute] = useState<number>(0);
-  const [timeError, setTimeError] = useState<string | null>(null);
+  const [timeDraft, setTimeDraft] = useState<string>("");
   const [vialId, setVialId] = useState<string | undefined>(undefined);
-  const [remindMe, setRemindMe] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
-  const isWeb = Platform.OS === "web";
 
   const doseValue = parseNumeric(doseText);
-  const parsedHour = parseNumeric(hourText);
-  const hourValid =
-    parsedHour !== null && Number.isInteger(parsedHour) && HOURS.includes(parsedHour);
 
   const canSave = useMemo(() => {
     return (
@@ -80,17 +74,14 @@ export default function NewPlanScreen() {
   };
 
   const addTime = () => {
-    if (!hourValid || parsedHour === null) {
-      setTimeError("Enter an hour from 0 to 23.");
+    const trimmed = timeDraft.trim();
+    if (!TIME_PATTERN.test(trimmed)) return;
+    if (timesLocal.includes(trimmed)) {
+      setTimeDraft("");
       return;
     }
-    const normalised = formatTimeOfDay({ hour: parsedHour, minute });
-    if (timesLocal.includes(normalised)) {
-      setTimeError("That time is already added.");
-      return;
-    }
-    setTimesLocal((prev) => [...prev, normalised].sort());
-    setTimeError(null);
+    setTimesLocal((prev) => [...prev, trimmed].sort());
+    setTimeDraft("");
   };
 
   const removeTime = (time: string) => {
@@ -108,7 +99,6 @@ export default function NewPlanScreen() {
       daysOfWeek,
       timesLocal,
       vialId,
-      remindMe: !isWeb && remindMe,
     })
       .then(() => router.back())
       .catch((error) => {
@@ -216,67 +206,27 @@ export default function NewPlanScreen() {
 
           <View style={styles.section}>
             <AppText variant="overline" tone="faint">
-              Time(s)
+              Time(s) — HH:mm
             </AppText>
-            <View style={styles.pickerRow}>
-              <View style={styles.hourField}>
+            <View style={styles.timeRow}>
+              <View style={styles.timeField}>
                 <Field
-                  label="Hour (0–23)"
-                  value={hourText}
-                  onChangeText={(text) => {
-                    setHourText(text);
-                    if (timeError) setTimeError(null);
-                  }}
-                  suffix="h"
-                  placeholder="8"
-                  keyboardType="number-pad"
-                  testID="input-plan-time-hour"
+                  label="Add a time"
+                  value={timeDraft}
+                  onChangeText={setTimeDraft}
+                  placeholder="08:00"
+                  testID="input-plan-time"
                 />
               </View>
-              <View style={styles.minuteChips}>
-                <AppText variant="overline" tone="faint">
-                  Minute
-                </AppText>
-                <View style={styles.minuteChipRow}>
-                  {MINUTES.map((candidate) => {
-                    const active = minute === candidate;
-                    return (
-                      <Pressable
-                        key={candidate}
-                        onPress={() => {
-                          setMinute(candidate);
-                          if (timeError) setTimeError(null);
-                        }}
-                        style={[styles.minuteChip, active && styles.minuteChipActive]}
-                        testID={`plan-minute-${candidate}`}
-                      >
-                        <AppText
-                          variant="label"
-                          mono
-                          weight={active ? "semibold" : "regular"}
-                          tone={active ? "onAccent" : "secondary"}
-                        >
-                          {String(candidate).padStart(2, "0")}
-                        </AppText>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
+              <Button
+                label="Add"
+                tone="ghost"
+                compact
+                onPress={addTime}
+                icon={<Plus size={16} color={colors.ink} />}
+                testID="add-plan-time"
+              />
             </View>
-            <Button
-              label="Add time"
-              tone="ghost"
-              compact
-              onPress={addTime}
-              icon={<Plus size={16} color={colors.ink} />}
-              testID="add-plan-time"
-            />
-            {timeError !== null && (
-              <AppText variant="caption" tone="danger" testID="plan-time-error">
-                {timeError}
-              </AppText>
-            )}
             {timesLocal.length > 0 && (
               <View style={styles.chipsRow}>
                 {timesLocal.map((time) => (
@@ -328,30 +278,6 @@ export default function NewPlanScreen() {
             </View>
           )}
 
-          <View style={styles.section}>
-            <AppText variant="overline" tone="faint">
-              Reminders
-            </AppText>
-            {isWeb ? (
-              <AppText variant="label" tone="secondary" testID="plan-reminders-web-note">
-                Reminders use local notifications and are available in the mobile app.
-              </AppText>
-            ) : (
-              <View style={styles.remindRow}>
-                <AppText variant="body" weight="medium" style={styles.remindLabel}>
-                  Remind me for this plan
-                </AppText>
-                <Switch
-                  value={remindMe}
-                  onValueChange={setRemindMe}
-                  trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
-                  thumbColor={colors.surface}
-                  testID="plan-remind-me"
-                />
-              </View>
-            )}
-          </View>
-
           <Button
             label="Create plan"
             tone="accent"
@@ -370,7 +296,10 @@ export default function NewPlanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   flex: {
     flex: 1,
   },
@@ -434,49 +363,12 @@ const styles = StyleSheet.create({
   timeField: {
     flex: 1,
   },
-  pickerRow: {
-    flexDirection: "row",
-    gap: spacing.lg,
-  },
-  hourField: {
-    flex: 1,
-  },
-  minuteChips: {
-    flex: 1.4,
-    gap: spacing.xs + 2,
-  },
-  minuteChipRow: {
-    flexDirection: "row",
-    gap: spacing.xs,
-  },
-  minuteChip: {
-    minWidth: 44,
-    minHeight: 44,
-    borderRadius: radius.md,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  minuteChipActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
   unitToggle: {
     width: 118,
-  },
-  remindRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    minHeight: 44,
-  },
-  remindLabel: {
-    flex: 1,
   },
   hint: {
     textAlign: "center",
     paddingHorizontal: spacing.lg,
   },
 });
+}

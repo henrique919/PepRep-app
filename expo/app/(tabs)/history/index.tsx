@@ -15,7 +15,9 @@ import { compareIsoDesc, formatClock, formatDayHeading } from "@/src/engine/sche
 import { eventDayKey, siteLabel, statusLabel } from "@/src/history/display";
 import { useLedgerStore } from "@/src/store/ledger";
 import { useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface DayGroup {
   key: string;
@@ -24,6 +26,8 @@ interface DayGroup {
 }
 
 export default function HistoryTimelineScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const events = useLedgerStore((state) => state.events);
   const vials = useVialsStore((state) => state.vials);
@@ -164,7 +168,10 @@ export default function HistoryTimelineScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   content: {
     padding: spacing.lg,
     gap: spacing.lg,
@@ -241,3 +248,4 @@ const styles = StyleSheet.create({
     backgroundColor: colors.dangerBg,
   },
 });
+}

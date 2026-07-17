@@ -1,10 +1,42 @@
 /**
  * PepRep design tokens — the only source of colours, spacing, radii and type.
- * Aesthetic: precision instrument. Warm paper, warm near-black ink, one
- * signal-orange accent. Numerals are always IBM Plex Mono.
+ * Aesthetic: precision instrument. Warm-paper light is the default; dark is a
+ * designed warm charcoal counterpart (not a browser UA recolour).
  */
 
-export const colors = {
+export type ColorTokens = {
+  bg: string;
+  surface: string;
+  surfaceSunken: string;
+  panel: string;
+  panelRaised: string;
+  ink: string;
+  inkSecondary: string;
+  inkFaint: string;
+  onDark: string;
+  onDarkSecondary: string;
+  /** Solid control fill (primary buttons). Opposite of page text contrast. */
+  solid: string;
+  onSolid: string;
+  hairline: string;
+  hairlineDark: string;
+  accent: string;
+  accentPressed: string;
+  accentSoft: string;
+  onAccent: string;
+  /** Barrel fluid — accent with body so the column reads as liquid. */
+  fluid: string;
+  fluidOverflow: string;
+  shadow: string;
+  warnBg: string;
+  warnBorder: string;
+  warnInk: string;
+  dangerInk: string;
+  dangerBg: string;
+};
+
+/** Warm paper — default when the system scheme is unset or light. */
+export const lightColors: ColorTokens = {
   bg: "#F4F1EA",
   surface: "#FFFFFF",
   surfaceSunken: "#EBE7DD",
@@ -15,24 +47,59 @@ export const colors = {
   inkFaint: "#8F897C",
   onDark: "#F4F1EA",
   onDarkSecondary: "#B7B1A4",
+  solid: "#1C1B18",
+  onSolid: "#F4F1EA",
   hairline: "#E1DCD0",
   hairlineDark: "#3A372F",
   accent: "#E1580E",
   accentPressed: "#C44A09",
   accentSoft: "#FAE9DE",
   onAccent: "#FFFFFF",
-  /** Barrel fluid — accent with body so the column reads as liquid, not a wash. */
   fluid: "#E36A2A",
+  fluidOverflow: "#B85A4A",
+  shadow: "#1C1B18",
   warnBg: "#FAF3DF",
   warnBorder: "#E8D9A8",
   warnInk: "#7A5D10",
   dangerInk: "#9C3A2E",
   dangerBg: "#F8E9E5",
-  /** Overflow fluid — distinct from in-capacity accent liquid. */
+};
+
+/** Warm charcoal dark — same accent, inverted surfaces/ink. */
+export const darkColors: ColorTokens = {
+  bg: "#141311",
+  surface: "#1E1C18",
+  surfaceSunken: "#181612",
+  panel: "#2A2823",
+  panelRaised: "#34312B",
+  ink: "#F2EDE4",
+  inkSecondary: "#B7B1A4",
+  inkFaint: "#8F897C",
+  onDark: "#F2EDE4",
+  onDarkSecondary: "#B7B1A4",
+  solid: "#F2EDE4",
+  onSolid: "#141311",
+  hairline: "#3A372F",
+  hairlineDark: "#4A463C",
+  accent: "#E1580E",
+  accentPressed: "#C44A09",
+  accentSoft: "#3D2418",
+  onAccent: "#FFFFFF",
+  fluid: "#E36A2A",
   fluidOverflow: "#B85A4A",
-  /** Soft instrument shadow — warm ink, never pure black. */
-  shadow: "#1C1B18",
-} as const;
+  shadow: "#000000",
+  warnBg: "#3A3420",
+  warnBorder: "#5C4E28",
+  warnInk: "#E8D9A8",
+  dangerInk: "#E8A090",
+  dangerBg: "#3A2420",
+};
+
+/**
+ * Light palette alias for rare non-React call sites.
+ * UI must prefer `useTheme().colors` so dark mode is honoured.
+ */
+export const colors: ColorTokens = lightColors;
 
 export const spacing = {
   xs: 4,
@@ -41,7 +108,6 @@ export const spacing = {
   lg: 16,
   xl: 24,
   xxl: 32,
-  /** Section rhythm on the calculator — between major blocks. */
   section: 20,
 } as const;
 
@@ -61,22 +127,8 @@ export const fontSize = {
   heading: 17,
   title: 22,
   display: 30,
-  /** Secondary instrument numerals (stat cards). */
   gauge: 44,
-  /** Hero units / mL readout on the result panel. */
   readout: 56,
-} as const;
-
-export const lineHeight = {
-  overline: 14,
-  caption: 17,
-  label: 18,
-  body: 22,
-  heading: 24,
-  title: 28,
-  display: 36,
-  gauge: 48,
-  readout: 60,
 } as const;
 
 export const letterSpacing = {
@@ -96,24 +148,6 @@ export const fonts = {
 } as const;
 
 export const hairlineWidth = 1 as const;
-
-/** Quiet elevation for light panels on warm paper. */
-export const shadows = {
-  card: {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  result: {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.14,
-    shadowRadius: 18,
-    elevation: 6,
-  },
-} as const;
 
 /** Standard quiet disclaimer shown in the calculator footer and About. */
 export const DISCLAIMER =

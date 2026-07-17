@@ -38,6 +38,7 @@ export function doseEventFromEntry(dose: DoseEntry): DoseEvent {
     siteId: dose.site ?? undefined,
     occurredAt: dose.atIso,
     note: dose.note.length > 0 ? dose.note : undefined,
+    snapshotId: dose.snapshotId,
   };
 }
 

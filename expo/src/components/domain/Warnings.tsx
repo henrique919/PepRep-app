@@ -3,7 +3,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface WarningsProps {
   warnings: string[];
@@ -11,9 +12,15 @@ interface WarningsProps {
 
 /** Calm, factual verification notes from the engine. Never urgent copy. */
 export default function Warnings({ warnings }: WarningsProps) {
+  const { colors } = useTheme();
   if (warnings.length === 0) return null;
   return (
-    <View style={styles.wrap}>
+    <View
+      style={[
+        styles.wrap,
+        { backgroundColor: colors.warnBg, borderColor: colors.warnBorder },
+      ]}
+    >
       {warnings.map((warning) => (
         <View key={warning} style={styles.row}>
           <TriangleAlert size={16} color={colors.warnInk} style={styles.icon} />
@@ -28,8 +35,6 @@ export default function Warnings({ warnings }: WarningsProps) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: colors.warnBg,
-    borderColor: colors.warnBorder,
     borderWidth: hairlineWidth,
     borderRadius: radius.md,
     padding: spacing.md,

@@ -3,7 +3,8 @@ import { StyleSheet, TextInput, View } from "react-native";
 import type { KeyboardTypeOptions } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
-import { colors, fonts, fontSize, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { fonts, fontSize, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface FieldProps {
   label: string;
@@ -30,6 +31,7 @@ export default function Field({
   accessory,
   testID,
 }: FieldProps) {
+  const { colors } = useTheme();
   const [focused, setFocused] = useState<boolean>(false);
 
   return (
@@ -40,13 +42,21 @@ export default function Field({
         </AppText>
         {accessory}
       </View>
-      <View style={[styles.inputRow, focused && styles.focused]}>
+      <View
+        style={[
+          styles.inputRow,
+          {
+            backgroundColor: colors.surface,
+            borderColor: focused ? colors.accent : colors.hairline,
+          },
+        ]}
+      >
         <TextInput
           testID={testID}
           style={[
             styles.input,
+            { color: colors.ink, backgroundColor: colors.surface },
             mono ? styles.monoInput : styles.uiInput,
-            focused && styles.inputFocused,
           ]}
           value={value}
           onChangeText={onChangeText}
@@ -70,7 +80,7 @@ export default function Field({
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.sm,
+    gap: spacing.xs + 2,
   },
   labelRow: {
     flexDirection: "row",
@@ -81,27 +91,15 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    backgroundColor: colors.surfaceSunken,
     borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
     borderRadius: radius.md,
-    paddingHorizontal: spacing.lg,
-    minHeight: 52,
-  },
-  focused: {
-    borderColor: colors.accent,
-    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    minHeight: 50,
   },
   input: {
     flex: 1,
     fontSize: fontSize.heading,
-    color: colors.ink,
-    // Explicit fill so web UA dark-mode cannot hide ink (T0.3).
-    backgroundColor: colors.surfaceSunken,
     paddingVertical: spacing.sm,
-  },
-  inputFocused: {
-    backgroundColor: colors.surface,
   },
   monoInput: {
     fontFamily: fonts.monoMedium,

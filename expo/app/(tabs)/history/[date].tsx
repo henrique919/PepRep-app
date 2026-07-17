@@ -18,7 +18,9 @@ import { eventsOnDay, siteLabel, statusLabel } from "@/src/history/display";
 import { useLedgerStore } from "@/src/store/ledger";
 import { usePlansStore } from "@/src/store/plans";
 import { useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 function stringParam(value: string | string[] | undefined): string {
   if (typeof value === "string") return value;
@@ -29,6 +31,8 @@ function stringParam(value: string | string[] | undefined): string {
 const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 export default function HistoryDayScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams();
   const date = stringParam(params.date);
@@ -165,7 +169,10 @@ export default function HistoryDayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -211,3 +218,4 @@ const styles = StyleSheet.create({
     gap: 2,
   },
 });
+}

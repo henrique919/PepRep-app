@@ -15,7 +15,9 @@ import {
   NOT_ESTABLISHED,
   type Compound,
 } from "@/src/data/compounds";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 function stringParam(value: string | string[] | undefined): string {
   if (typeof value === "string") return value;
@@ -33,7 +35,17 @@ function weightFact(molecularWeightDa: string): string {
   return `${molecularWeightDa} Da`;
 }
 
-function FactRow({ label, value }: { label: string; value: string }) {
+type ScreenStyles = ReturnType<typeof createStyles>;
+
+function FactRow({
+  label,
+  value,
+  styles,
+}: {
+  label: string;
+  value: string;
+  styles: ScreenStyles;
+}) {
   return (
     <View style={styles.factRow}>
       <AppText variant="overline" tone="faint">
@@ -46,7 +58,15 @@ function FactRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function CompoundDetail({ compound }: { compound: Compound }) {
+function CompoundDetail({
+  compound,
+  styles,
+  inkFaint,
+}: {
+  compound: Compound;
+  styles: ScreenStyles;
+  inkFaint: string;
+}) {
   const router = useRouter();
 
   const openCitation = (url: string) => {
@@ -100,21 +120,21 @@ function CompoundDetail({ compound }: { compound: Compound }) {
       </Card>
 
       <Card padded={false}>
-        <FactRow label="Molecular weight" value={weightFact(compound.molecularWeightDa)} />
+        <FactRow styles={styles} label="Molecular weight" value={weightFact(compound.molecularWeightDa)} />
         <Hairline />
-        <FactRow label="Formula" value={factValue(compound.molecularFormula)} />
+        <FactRow styles={styles} label="Formula" value={factValue(compound.molecularFormula)} />
         <Hairline />
-        <FactRow label="PubChem CID" value={factValue(compound.pubchemCid)} />
+        <FactRow styles={styles} label="PubChem CID" value={factValue(compound.pubchemCid)} />
         <Hairline />
-        <FactRow label="Sequence length" value={factValue(compound.sequenceLength)} />
+        <FactRow styles={styles} label="Sequence length" value={factValue(compound.sequenceLength)} />
         <Hairline />
-        <FactRow label="Half-life" value={factValue(compound.halfLife)} />
+        <FactRow styles={styles} label="Half-life" value={factValue(compound.halfLife)} />
         <Hairline />
-        <FactRow label="Mass unit convention" value={factValue(compound.massUnitConvention)} />
+        <FactRow styles={styles} label="Mass unit convention" value={factValue(compound.massUnitConvention)} />
         <Hairline />
-        <FactRow label="Storage" value={factValue(compound.storageNotes)} />
+        <FactRow styles={styles} label="Storage" value={factValue(compound.storageNotes)} />
         <Hairline />
-        <FactRow label="Regulatory status" value={factValue(compound.regulatoryStatus)} />
+        <FactRow styles={styles} label="Regulatory status" value={factValue(compound.regulatoryStatus)} />
       </Card>
 
       <View style={styles.section}>
@@ -145,7 +165,7 @@ function CompoundDetail({ compound }: { compound: Compound }) {
                       {citation.url}
                     </AppText>
                   </View>
-                  <ExternalLink size={16} color={colors.inkFaint} />
+                  <ExternalLink size={16} color={inkFaint} />
                 </Pressable>
               </View>
             ))}
@@ -164,6 +184,8 @@ function CompoundDetail({ compound }: { compound: Compound }) {
 }
 
 export default function ReferenceDetailScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams();
   const slug = stringParam(params.slug);
@@ -197,14 +219,17 @@ export default function ReferenceDetailScreen() {
             }
           />
         ) : (
-          <CompoundDetail compound={compound} />
+          <CompoundDetail compound={compound} styles={styles} inkFaint={colors.inkFaint} />
         )}
       </ScrollView>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -279,3 +304,4 @@ const styles = StyleSheet.create({
     gap: 2,
   },
 });
+}

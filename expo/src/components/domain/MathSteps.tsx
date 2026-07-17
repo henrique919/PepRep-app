@@ -4,7 +4,8 @@ import { StyleSheet, View } from "react-native";
 import AppText from "@/src/components/ui/AppText";
 import Hairline from "@/src/components/ui/Hairline";
 import type { MathStep } from "@/src/engine";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { radius, spacing } from "@/src/theme/tokens";
 
 interface MathStepsProps {
   steps: MathStep[];
@@ -12,13 +13,14 @@ interface MathStepsProps {
 
 /** Renders the engine's worked arithmetic, step by step. Display only. */
 export default function MathSteps({ steps }: MathStepsProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
       {steps.map((step, index) => (
         <View key={step.label}>
           {index > 0 && <Hairline />}
           <View style={styles.step}>
-            <View style={styles.indexBadge}>
+            <View style={[styles.indexBadge, { backgroundColor: colors.accentSoft }]}>
               <AppText variant="caption" mono weight="semibold" tone="accent">
                 {String(index + 1)}
               </AppText>
@@ -44,31 +46,22 @@ export default function MathSteps({ steps }: MathStepsProps) {
 const styles = StyleSheet.create({
   wrap: {
     gap: 0,
-    backgroundColor: colors.surfaceSunken,
-    borderRadius: radius.md,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-    overflow: "hidden",
-    paddingHorizontal: spacing.lg,
   },
   step: {
     flexDirection: "row",
     gap: spacing.md,
-    paddingVertical: spacing.lg,
+    paddingVertical: spacing.md,
   },
   indexBadge: {
-    width: 28,
-    height: 28,
+    width: 26,
+    height: 26,
     borderRadius: radius.pill,
-    backgroundColor: colors.accentSoft,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: spacing.xs,
+    marginTop: 2,
   },
   stepBody: {
     flex: 1,
-    gap: spacing.xs,
+    gap: 3,
   },
 });

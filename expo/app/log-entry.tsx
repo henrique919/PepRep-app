@@ -18,15 +18,23 @@ import Card from "@/src/components/ui/Card";
 import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
-import type { InjectionSite } from "@/src/db/models";
-import type { MassUnit } from "@/src/engine";
-import { fmt, mgToMcg } from "@/src/engine";
+import { createId, type InjectionSite } from "@/src/db/models";
+import { snapshotsRepository } from "@/src/db/repositories";
+import { snapshotFromDraw } from "@/src/db/snapshot";
+import type { MassUnit, SyringeCapacity } from "@/src/engine";
+import { calculateDraw, fmt, mgToMcg } from "@/src/engine";
 import { formatDateTime } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
 import { useDosesStore } from "@/src/store/doses";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
-import { hapticTick } from "@/src/haptics";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+
+function capacityFromParam(value: string): SyringeCapacity {
+  if (value === "30" || value === "50" || value === "100") return Number(value) as SyringeCapacity;
+  return 100;
+}
 
 function stringParam(value: string | string[] | undefined): string {
   if (typeof value === "string") return value;
@@ -35,6 +43,8 @@ function stringParam(value: string | string[] | undefined): string {
 }
 
 export default function LogEntryScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams();
   const addDose = useDosesStore((state) => state.addDose);
@@ -42,16 +52,17 @@ export default function LogEntryScreen() {
   const vials = useVialsStore(useShallow(selectActiveVials));
 
   const prefillUnit: MassUnit = stringParam(params.doseUnit) === "mg" ? "mg" : "mcg";
-  const prefillCompound = stringParam(params.compoundName);
+  const prefillVialMg = parseNumeric(stringParam(params.vialMg));
+  const prefillDiluentMl = parseNumeric(stringParam(params.diluentMl));
+  const prefillCapacity = capacityFromParam(stringParam(params.syringeCapacity));
 
-  const [peptideName, setPeptideName] = useState<string>(prefillCompound);
+  const [peptideName, setPeptideName] = useState<string>(stringParam(params.compoundName));
   const [vialId, setVialId] = useState<string | null>(null);
   const [doseText, setDoseText] = useState<string>(stringParam(params.doseValue));
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefillUnit);
   const [unitsText, setUnitsText] = useState<string>(stringParam(params.units));
   const [site, setSite] = useState<InjectionSite | null>(null);
   const [note, setNote] = useState<string>("");
-  const [saved, setSaved] = useState<boolean>(false);
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
 
@@ -78,24 +89,45 @@ export default function LogEntryScreen() {
   };
 
   const save = () => {
-    if (doseValue === null || doseValue <= 0 || saved) return;
+    if (doseValue === null || doseValue <= 0) return;
     const name = peptideName.trim();
-    addDose({
-      vialId,
-      peptideName: name,
-      doseValue,
-      doseUnit,
-      doseMcg: doseUnit === "mg" ? mgToMcg(doseValue) : doseValue,
-      units,
-      volumeMl,
-      site,
-      note: note.trim(),
-      atIso: new Date().toISOString(),
-    })
-      .then(() => {
-        hapticTick();
-        setSaved(true);
-      })
+    const atIso = new Date().toISOString();
+
+    const persist = async () => {
+      let snapshotId: string | undefined;
+      if (prefillVialMg !== null && prefillDiluentMl !== null) {
+        const drawInput = {
+          vialMg: prefillVialMg,
+          diluentMl: prefillDiluentMl,
+          doseValue,
+          doseUnit,
+          syringeCapacityUnits: prefillCapacity,
+        };
+        const draw = calculateDraw(drawInput);
+        if (draw.ok) {
+          const snapshot = snapshotFromDraw(drawInput, draw, createId(), atIso);
+          await snapshotsRepository.append(snapshot);
+          snapshotId = snapshot.id;
+        }
+      }
+
+      await addDose({
+        vialId,
+        peptideName: name,
+        doseValue,
+        doseUnit,
+        doseMcg: doseUnit === "mg" ? mgToMcg(doseValue) : doseValue,
+        units,
+        volumeMl,
+        site,
+        note: note.trim(),
+        atIso,
+        snapshotId,
+      });
+    };
+
+    persist()
+      .then(() => router.back())
       .catch((error) => console.error("[log-entry] Failed to save dose", error));
   };
 
@@ -122,28 +154,6 @@ export default function LogEntryScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {saved ? (
-            <Card style={styles.formCard} testID="log-entry-saved">
-              <AppText variant="heading">Dose logged</AppText>
-              <AppText variant="body" tone="secondary">
-                Saved to your history
-                {peptideName.trim().length > 0 ? ` as ${peptideName.trim()}` : ""}.
-              </AppText>
-              <Button
-                label="View in History"
-                tone="accent"
-                onPress={() => router.replace("/history")}
-                testID="view-in-history"
-              />
-              <Button
-                label="Done"
-                tone="ghost"
-                onPress={() => router.back()}
-                testID="log-entry-done"
-              />
-            </Card>
-          ) : (
-            <>
           {vials.length > 0 && (
             <View style={styles.section}>
               <AppText variant="overline" tone="faint">
@@ -240,15 +250,16 @@ export default function LogEntryScreen() {
               meaningful.
             </AppText>
           )}
-            </>
-          )}
         </ScrollView>
       </KeyboardAvoidingView>
     </Screen>
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   flex: {
     flex: 1,
   },
@@ -314,3 +325,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
 });
+}

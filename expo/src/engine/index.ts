@@ -4,6 +4,9 @@
  * suggest what or how much to take.
  */
 
+/** Bumped only when CalcSnapshot output shape or arithmetic semantics change. */
+export const ENGINE_VERSION = "1";
+
 export type MassUnit = "mg" | "mcg";
 export type SyringeCapacity = 30 | 50 | 100;
 

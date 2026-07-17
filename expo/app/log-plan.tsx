@@ -23,7 +23,9 @@ import { formatDateTime } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
 import { useLedgerStore } from "@/src/store/ledger";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 function stringParam(value: string | string[] | undefined): string {
   if (typeof value === "string") return value;
@@ -42,6 +44,8 @@ function occurredAtFromLocal(day: string, timeLocal: string): string {
 }
 
 export default function LogPlanScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams();
   const logOccurrence = useLedgerStore((state) => state.logOccurrence);
@@ -217,7 +221,10 @@ export default function LogPlanScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   flex: {
     flex: 1,
   },
@@ -277,3 +284,4 @@ const styles = StyleSheet.create({
     width: 118,
   },
 });
+}

@@ -18,11 +18,15 @@ import AppText from "@/src/components/ui/AppText";
 import Screen from "@/src/components/ui/Screen";
 import { dayMarkers } from "@/src/history/display";
 import { useLedgerStore } from "@/src/store/ledger";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
 
 export default function HistoryCalendarScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const events = useLedgerStore((state) => state.events);
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
@@ -134,7 +138,10 @@ export default function HistoryCalendarScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -226,3 +233,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
 });
+}

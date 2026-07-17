@@ -30,7 +30,9 @@ import { useDosesStore } from "@/src/store/doses";
 import { useRemindersStore } from "@/src/store/reminders";
 import { useSettingsStore } from "@/src/store/settings";
 import { useVialsStore } from "@/src/store/vials";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 const HOURS: number[] = Array.from({ length: 24 }, (_, index) => index);
 const MINUTES: number[] = [0, 15, 30, 45];
@@ -43,6 +45,8 @@ function csvEscape(value: string): string {
 }
 
 export default function SettingsScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const doses = useDosesStore((state) => state.doses);
   const vials = useVialsStore((state) => state.vials);
@@ -440,7 +444,10 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   chrome: {
     flexDirection: "row",
     alignItems: "center",
@@ -570,3 +577,4 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
 });
+}

@@ -16,7 +16,9 @@ import { fmt } from "@/src/engine";
 import { dayKey, dueOnDay, versionActiveOn } from "@/src/engine/schedule";
 import { selectEventForOccurrence, useLedgerStore } from "@/src/store/ledger";
 import { selectActivePlans, usePlansStore } from "@/src/store/plans";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface DueOccurrence {
   plan: Plan;
@@ -27,6 +29,8 @@ interface DueOccurrence {
 }
 
 export default function TodayScreen() {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const now = new Date();
   const today = dayKey(now.toISOString());
@@ -221,7 +225,10 @@ export default function TodayScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
   content: {
     padding: spacing.lg,
     gap: spacing.lg,
@@ -276,3 +283,4 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
 });
+}

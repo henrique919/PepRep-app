@@ -2,7 +2,8 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 interface EmptyStateProps {
   icon: React.ReactNode;
@@ -12,9 +13,17 @@ interface EmptyStateProps {
 }
 
 export default function EmptyState({ icon, title, caption, action }: EmptyStateProps) {
+  const { colors } = useTheme();
   return (
     <View style={styles.wrap}>
-      <View style={styles.iconRing}>{icon}</View>
+      <View
+        style={[
+          styles.iconRing,
+          { borderColor: colors.hairline, backgroundColor: colors.surface },
+        ]}
+      >
+        {icon}
+      </View>
       <AppText variant="heading" style={styles.center}>
         {title}
       </AppText>
@@ -38,8 +47,6 @@ const styles = StyleSheet.create({
     height: 72,
     borderRadius: radius.pill,
     borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: spacing.xs,

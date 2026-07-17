@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { colors } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -12,14 +12,16 @@ interface ScreenProps {
 
 export default function Screen({ children, topInset = true }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
   return (
-    <View style={[styles.root, topInset && { paddingTop: insets.top }]}>{children}</View>
+    <View style={[styles.root, { backgroundColor: colors.bg }, topInset && { paddingTop: insets.top }]}>
+      {children}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.bg,
   },
 });

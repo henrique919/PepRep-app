@@ -15,7 +15,8 @@ import { vialConcentration } from "@/src/engine/inventory";
 import type { VialSummary, ConcentrationInfo } from "@/src/engine/inventory";
 import { selectTxnsForVial, useLedgerStore } from "@/src/store/ledger";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
-import { colors, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { spacing } from "@/src/theme/tokens";
 
 interface VialView {
   vial: Vial;
@@ -25,6 +26,7 @@ interface VialView {
 }
 
 export default function VialsScreen() {
+  const { colors } = useTheme();
   const router = useRouter();
   const vials = useVialsStore(useShallow(selectActiveVials));
   const removeVial = useVialsStore((state) => state.removeVial);
@@ -78,18 +80,6 @@ export default function VialsScreen() {
     disarmTimer.current = setTimeout(() => setArmedId(null), 3000);
   };
 
-  const handleCalculate = (vial: Vial) => {
-    router.push({
-      pathname: "/",
-      params: {
-        vialMg: String(vial.vialMg),
-        diluentMl: String(vial.diluentMl),
-        syringeCapacity: String(vial.syringeCapacityUnits),
-        compoundName: vial.name,
-      },
-    });
-  };
-
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -130,7 +120,6 @@ export default function VialsScreen() {
               nowIso={nowIso}
               deleteArmed={armedId === view.vial.id}
               onDeletePress={() => handleDeletePress(view.vial.id)}
-              onCalculate={() => handleCalculate(view.vial)}
             />
           ))
         )}

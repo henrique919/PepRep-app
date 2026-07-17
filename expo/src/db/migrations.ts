@@ -13,7 +13,7 @@ import {
   vialsRepository,
 } from "./repositories";
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 const VERSION_KEY = `${STORAGE_PREFIX}schemaVersion`;
 
@@ -42,10 +42,20 @@ async function migrateV1toV2(): Promise<void> {
   }
 }
 
+/**
+ * v2 → v3: additive optional `snapshotId` on Vial / DoseEntry / DoseEvent.
+ * Existing JSON rows are left untouched; missing fields simply mean "no
+ * linked CalcSnapshot". Loss-free by construction.
+ */
+async function migrateV2toV3(): Promise<void> {
+  return undefined;
+}
+
 const MIGRATIONS: { to: number; run: () => Promise<void> }[] = [
   // v0 → v1: initial schema; nothing to transform.
   { to: 1, run: async () => undefined },
   { to: 2, run: migrateV1toV2 },
+  { to: 3, run: migrateV2toV3 },
 ];
 
 export async function runMigrations(): Promise<void> {

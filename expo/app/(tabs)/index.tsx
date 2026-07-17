@@ -19,7 +19,103 @@ import { hapticTick } from "@/src/haptics";
 import type { DiluentOutcome, DrawOutcome, MassUnit, SyringeCapacity } from "@/src/engine";
 import { calculateDiluent, calculateDraw, fmt, SYRINGES } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
-import { colors, DISCLAIMER, hairlineWidth, letterSpacing, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import {
+  DISCLAIMER,
+  hairlineWidth,
+  letterSpacing,
+  radius,
+  spacing,
+  type ColorTokens,
+} from "@/src/theme/tokens";
+
+function createCalcStyles(colors: ColorTokens) {
+  return StyleSheet.create({
+    flex: { flex: 1 },
+    content: {
+      padding: spacing.lg,
+      gap: spacing.section,
+      paddingBottom: spacing.xxl,
+    },
+    header: {
+      gap: spacing.xs,
+      marginTop: spacing.sm,
+      marginBottom: spacing.xs,
+    },
+    modeBlock: { gap: spacing.sm },
+    modeHint: { paddingHorizontal: spacing.xs },
+    formCard: { gap: spacing.xl },
+    unitToggle: { width: 118 },
+    syringeRow: { gap: spacing.sm },
+    resultGroup: { gap: spacing.md },
+    resultCard: { gap: spacing.lg },
+    overlineBlock: { gap: spacing.xs },
+    redTick: {
+      width: 3,
+      height: 12,
+      backgroundColor: colors.accent,
+      borderRadius: 1,
+    },
+    bigNumberRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: spacing.sm,
+    },
+    unitSuffix: {
+      letterSpacing: letterSpacing.tight,
+      paddingBottom: spacing.xs,
+    },
+    gaugeWell: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: hairlineWidth,
+      borderColor: colors.hairlineDark,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.sm,
+    },
+    statsRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+    },
+    statCard: {
+      flexGrow: 1,
+      flexBasis: "47%",
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: hairlineWidth,
+      borderColor: colors.hairline,
+      paddingVertical: spacing.lg,
+      paddingHorizontal: spacing.lg,
+      gap: spacing.xs,
+    },
+    mathCard: { overflow: "hidden" },
+    mathToggle: {
+      borderWidth: 0,
+      borderRadius: 0,
+      backgroundColor: colors.surface,
+    },
+    mathBody: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.lg,
+      gap: spacing.md,
+      backgroundColor: colors.bg,
+    },
+    mathHairline: { marginHorizontal: -spacing.lg },
+    mathLabel: { marginTop: spacing.xs },
+    actionColumn: { gap: spacing.lg },
+    actionBlock: { gap: spacing.sm },
+    actionHint: {
+      textAlign: "center",
+      paddingHorizontal: spacing.md,
+    },
+    disclaimer: {
+      textAlign: "center",
+      paddingHorizontal: spacing.lg,
+      marginTop: spacing.sm,
+    },
+  });
+}
 
 type CalcMode = "draw" | "water";
 
@@ -42,6 +138,8 @@ function capacityFromParam(value: string): SyringeCapacity | null {
 export default function CalculatorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createCalcStyles(colors), [colors]);
 
   const prefilledName = stringParam(params.compoundName);
   const prefilledUnit = unitFromConvention(stringParam(params.massUnitConvention));
@@ -475,117 +573,3 @@ export default function CalculatorScreen() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  flex: {
-    flex: 1,
-  },
-  content: {
-    padding: spacing.lg,
-    gap: spacing.section,
-    paddingBottom: spacing.xxl,
-  },
-  header: {
-    gap: spacing.xs,
-    marginTop: spacing.sm,
-    marginBottom: spacing.xs,
-  },
-  modeBlock: {
-    gap: spacing.sm,
-  },
-  modeHint: {
-    paddingHorizontal: spacing.xs,
-  },
-  formCard: {
-    gap: spacing.xl,
-  },
-  unitToggle: {
-    width: 118,
-  },
-  syringeRow: {
-    gap: spacing.sm,
-  },
-  resultGroup: {
-    gap: spacing.md,
-  },
-  resultCard: {
-    gap: spacing.lg,
-  },
-  overlineBlock: {
-    gap: spacing.xs,
-  },
-  redTick: {
-    width: 3,
-    height: 12,
-    backgroundColor: colors.accent,
-    borderRadius: 1,
-  },
-  bigNumberRow: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    gap: spacing.sm,
-  },
-  unitSuffix: {
-    letterSpacing: letterSpacing.tight,
-    paddingBottom: spacing.xs,
-  },
-  gaugeWell: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairlineDark,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm,
-  },
-  statsRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  statCard: {
-    flexGrow: 1,
-    flexBasis: "47%",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-    paddingVertical: spacing.lg,
-    paddingHorizontal: spacing.lg,
-    gap: spacing.xs,
-  },
-  mathCard: {
-    overflow: "hidden",
-  },
-  mathToggle: {
-    borderWidth: 0,
-    borderRadius: 0,
-    backgroundColor: colors.surface,
-  },
-  mathBody: {
-    paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.lg,
-    gap: spacing.md,
-    backgroundColor: colors.bg,
-  },
-  mathHairline: {
-    marginHorizontal: -spacing.lg,
-  },
-  mathLabel: {
-    marginTop: spacing.xs,
-  },
-  actionColumn: {
-    gap: spacing.lg,
-  },
-  actionBlock: {
-    gap: spacing.sm,
-  },
-  actionHint: {
-    textAlign: "center",
-    paddingHorizontal: spacing.md,
-  },
-  disclaimer: {
-    textAlign: "center",
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.sm,
-  },
-});

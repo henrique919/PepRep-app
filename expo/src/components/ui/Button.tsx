@@ -4,7 +4,8 @@ import { Platform, Pressable, StyleSheet } from "react-native";
 import type { StyleProp, ViewStyle } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
-import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 type ButtonTone = "primary" | "accent" | "ghost" | "danger";
 
@@ -29,6 +30,8 @@ export default function Button({
   style,
   testID,
 }: ButtonProps) {
+  const { colors } = useTheme();
+
   const handlePress = () => {
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
@@ -36,7 +39,23 @@ export default function Button({
     onPress();
   };
 
-  const textTone = tone === "accent" || tone === "primary" ? "onAccent" : tone === "danger" ? "danger" : "ink";
+  const textTone =
+    tone === "accent"
+      ? "onAccent"
+      : tone === "primary"
+        ? "onSolid"
+        : tone === "danger"
+          ? "danger"
+          : "ink";
+
+  const toneStyle: ViewStyle =
+    tone === "primary"
+      ? { backgroundColor: colors.solid, borderColor: "transparent" }
+      : tone === "accent"
+        ? { backgroundColor: colors.accent, borderColor: "transparent" }
+        : tone === "ghost"
+          ? { backgroundColor: colors.surface, borderColor: colors.hairline }
+          : { backgroundColor: colors.dangerBg, borderColor: colors.dangerBg };
 
   return (
     <Pressable
@@ -46,7 +65,7 @@ export default function Button({
       style={({ pressed }) => [
         styles.base,
         compact ? styles.compact : styles.regular,
-        styles[tone],
+        toneStyle,
         pressed && styles.pressed,
         disabled && styles.disabled,
         style,
@@ -56,7 +75,7 @@ export default function Button({
       <AppText
         variant={compact ? "label" : "body"}
         weight="semibold"
-        tone={tone === "primary" ? "onDark" : textTone}
+        tone={textTone}
       >
         {label}
       </AppText>
@@ -72,7 +91,6 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     borderRadius: radius.md,
     borderWidth: hairlineWidth,
-    borderColor: "transparent",
   },
   regular: {
     minHeight: 50,
@@ -83,20 +101,6 @@ const styles = StyleSheet.create({
     minHeight: 44,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
-  },
-  primary: {
-    backgroundColor: colors.ink,
-  },
-  accent: {
-    backgroundColor: colors.accent,
-  },
-  ghost: {
-    backgroundColor: colors.surface,
-    borderColor: colors.hairline,
-  },
-  danger: {
-    backgroundColor: colors.dangerBg,
-    borderColor: colors.dangerBg,
   },
   pressed: {
     opacity: 0.82,
