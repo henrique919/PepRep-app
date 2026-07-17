@@ -1,7 +1,7 @@
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
-import { CalendarDays } from "lucide-react-native";
-import React, { useMemo } from "react";
+import { CalendarDays, Plus } from "lucide-react-native";
+import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 
@@ -11,6 +11,7 @@ import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Screen from "@/src/components/ui/Screen";
 import StatusPill from "@/src/components/ui/StatusPill";
+import Toast from "@/src/components/ui/Toast";
 import { occurrenceKey } from "@/src/db/occurrence";
 import type { DoseEvent, Plan, ScheduleVersion } from "@/src/db/types";
 import { fmt } from "@/src/engine";
@@ -19,7 +20,7 @@ import { selectEventForOccurrence, useLedgerStore } from "@/src/store/ledger";
 import { selectActivePlans, usePlansStore } from "@/src/store/plans";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
-import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { radius, spacing } from "@/src/theme/tokens";
 
 interface DueOccurrence {
   plan: Plan;
@@ -29,12 +30,19 @@ interface DueOccurrence {
   event: DoseEvent | undefined;
 }
 
+type ToastState = {
+  message: string;
+  actionLabel?: string;
+  onAction?: () => void;
+} | null;
+
 export default function TodayScreen() {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const now = new Date();
   const today = dayKey(now.toISOString());
+  const [toast, setToast] = useState<ToastState>(null);
 
   const plans = usePlansStore(useShallow(selectActivePlans));
   const events = useLedgerStore((state) => state.events);
@@ -62,6 +70,14 @@ export default function TodayScreen() {
     return rows.sort((a, b) => a.timeLocal.localeCompare(b.timeLocal));
   }, [plans, today, events]);
 
+  const dueCount = due.filter(
+    (row) =>
+      !(row.event?.status === "completed" && row.event.voidedAt === undefined) &&
+      !(row.event?.status === "skipped" && row.event.voidedAt === undefined),
+  ).length;
+
+  const dismissToast = useCallback(() => setToast(null), []);
+
   const openLog = (row: DueOccurrence) => {
     router.push({
       pathname: "/log-plan",
@@ -87,11 +103,26 @@ export default function TodayScreen() {
       compoundName: row.plan.compoundName,
       doseValue: row.version.doseValue,
       doseUnit: row.version.doseUnit,
-    }).catch((error) => console.error("[today] Failed to skip", error));
+    })
+      .then(() => {
+        setToast({
+          message: `Skipped ${row.plan.compoundName}`,
+          actionLabel: "Undo",
+          onAction: () => {
+            const event = selectEventForOccurrence(useLedgerStore.getState(), row.key);
+            if (event) {
+              void unlogEvent(event.id);
+            }
+          },
+        });
+      })
+      .catch((error) => console.error("[today] Failed to skip", error));
   };
 
-  const handleUnlog = (eventId: string) => {
-    unlogEvent(eventId).catch((error) => console.error("[today] Failed to un-log", error));
+  const handleUnlog = (eventId: string, compoundName: string) => {
+    unlogEvent(eventId)
+      .then(() => setToast({ message: `Un-logged ${compoundName}` }))
+      .catch((error) => console.error("[today] Failed to un-log", error));
   };
 
   return (
@@ -105,6 +136,7 @@ export default function TodayScreen() {
             <AppText variant="display">Today</AppText>
             <AppText variant="caption" tone="secondary">
               {format(now, "d MMMM yyyy")}
+              {dueCount > 0 ? ` · ${dueCount} due` : ""}
             </AppText>
           </View>
           <Pressable
@@ -174,7 +206,7 @@ export default function TodayScreen() {
                     label="Un-log"
                     tone="ghost"
                     compact
-                    onPress={() => handleUnlog(event.id)}
+                    onPress={() => handleUnlog(event.id, row.plan.compoundName)}
                     testID={`unlog-${row.key}`}
                   />
                 ) : isSkipped ? (
@@ -204,66 +236,80 @@ export default function TodayScreen() {
           })
         )}
       </ScrollView>
+
+      <Pressable
+        style={[styles.fab, { backgroundColor: colors.solid }]}
+        onPress={() => router.push("/(tabs)")}
+        testID="today-fab-calc"
+        accessibilityLabel="Open calculator"
+      >
+        <Plus size={22} color={colors.onSolid} strokeWidth={2.4} />
+      </Pressable>
+
+      {toast ? (
+        <Toast
+          message={toast.message}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          onDismiss={dismissToast}
+        />
+      ) : null}
     </Screen>
   );
 }
 
-
-
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
-  content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    marginTop: spacing.sm,
-  },
-  headerText: {
-    gap: spacing.xs,
-    flex: 1,
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  gearButton: {
-    minWidth: 44,
-    height: 44,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  card: {
-    gap: spacing.md,
-  },
-  cardTop: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.md,
-  },
-  cardText: {
-    flex: 1,
-    gap: 4,
-  },
-  statusPill: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-    borderRadius: radius.sm,
-    backgroundColor: colors.surfaceSunken,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: spacing.sm,
-  },
-});
+    content: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+      paddingBottom: 100,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      marginTop: spacing.sm,
+    },
+    headerText: {
+      gap: spacing.xs,
+      flex: 1,
+    },
+    gearButton: {
+      minWidth: 44,
+      height: 44,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    card: {
+      gap: spacing.md,
+    },
+    cardTop: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.md,
+    },
+    cardText: {
+      flex: 1,
+      gap: 4,
+    },
+    actions: {
+      flexDirection: "row",
+      gap: spacing.sm,
+    },
+    fab: {
+      position: "absolute",
+      right: spacing.xl,
+      bottom: spacing.xl,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 40,
+    },
+  });
 }

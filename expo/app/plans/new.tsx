@@ -119,7 +119,7 @@ export default function NewPlanScreen() {
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
         <View style={styles.chromeText}>
-          <AppText variant="heading">New plan</AppText>
+          <AppText variant="display">Schedule</AppText>
           <AppText variant="caption" tone="faint">
             Every value is yours — nothing is suggested
           </AppText>
@@ -194,7 +194,7 @@ export default function NewPlanScreen() {
                     <AppText
                       variant="label"
                       weight={active ? "semibold" : "medium"}
-                      tone={active ? "onAccent" : "secondary"}
+                      tone={active ? "onSolid" : "secondary"}
                     >
                       {day.label}
                     </AppText>
@@ -264,11 +264,11 @@ export default function NewPlanScreen() {
                       <AppText
                         variant="label"
                         weight={active ? "semibold" : "medium"}
-                        tone={active ? "onAccent" : "secondary"}
+                        tone={active ? "onSolid" : "secondary"}
                       >
                         {vial.name}
                       </AppText>
-                      <AppText variant="caption" mono tone={active ? "onAccent" : "faint"}>
+                      <AppText variant="caption" mono tone={active ? "onSolid" : "faint"}>
                         {fmt(vial.vialMg)} mg
                       </AppText>
                     </Pressable>
@@ -280,7 +280,7 @@ export default function NewPlanScreen() {
 
           <Button
             label="Create plan"
-            tone="accent"
+            tone="primary"
             onPress={save}
             disabled={!canSave || saving}
             testID="save-plan"

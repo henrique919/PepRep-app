@@ -64,8 +64,8 @@ export default function HistoryTimelineScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
-            <AppText variant="overline" tone="faint">
-              DoseEvents · newest first
+            <AppText variant="overline" tone="secondary">
+              Records · newest first
             </AppText>
             <AppText variant="display">History</AppText>
           </View>
@@ -80,10 +80,10 @@ export default function HistoryTimelineScreen() {
             </Pressable>
             <Button
               label="Log"
-              tone="accent"
+              tone="primary"
               compact
               onPress={() => router.push("/log-entry")}
-              icon={<Plus size={16} color={colors.onAccent} />}
+              icon={<Plus size={16} color={colors.onSolid} />}
               testID="open-log-entry"
             />
           </View>

@@ -10,9 +10,11 @@ import Warnings from "@/src/components/domain/Warnings";
 import AnimatedReadout from "@/src/components/ui/AnimatedReadout";
 import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
+import Callout from "@/src/components/ui/Callout";
 import Card from "@/src/components/ui/Card";
-import Hairline from "@/src/components/ui/Hairline";
 import Field from "@/src/components/ui/Field";
+import Hairline from "@/src/components/ui/Hairline";
+import QuickPicks from "@/src/components/ui/QuickPicks";
 import Screen from "@/src/components/ui/Screen";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import { hapticTick } from "@/src/haptics";
@@ -33,29 +35,25 @@ function createCalcStyles(colors: ColorTokens) {
   return StyleSheet.create({
     flex: { flex: 1 },
     content: {
-      padding: spacing.lg,
-      gap: spacing.section,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.sm,
+      gap: spacing.lg,
       paddingBottom: spacing.xxl,
     },
-    header: {
-      gap: spacing.xs,
-      marginTop: spacing.sm,
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
       marginBottom: spacing.xs,
     },
-    modeBlock: { gap: spacing.sm },
-    modeHint: { paddingHorizontal: spacing.xs },
+    modeSeg: { width: 168 },
     formCard: { gap: spacing.xl },
     unitToggle: { width: 118 },
-    syringeRow: { gap: spacing.sm },
+    fieldBlock: { gap: spacing.sm },
     resultGroup: { gap: spacing.md },
-    resultCard: { gap: spacing.lg },
+    resultCard: { gap: spacing.md, borderRadius: 22, padding: spacing.xl },
     overlineBlock: { gap: spacing.xs },
-    redTick: {
-      width: 3,
-      height: 12,
-      backgroundColor: colors.accent,
-      borderRadius: 1,
-    },
     bigNumberRow: {
       flexDirection: "row",
       alignItems: "baseline",
@@ -64,12 +62,11 @@ function createCalcStyles(colors: ColorTokens) {
     unitSuffix: {
       letterSpacing: letterSpacing.tight,
       paddingBottom: spacing.xs,
+      color: colors.accent,
     },
     gaugeWell: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.surfaceSunken,
       borderRadius: radius.md,
-      borderWidth: hairlineWidth,
-      borderColor: colors.hairlineDark,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.sm,
     },
@@ -82,7 +79,7 @@ function createCalcStyles(colors: ColorTokens) {
       flexGrow: 1,
       flexBasis: "47%",
       backgroundColor: colors.surface,
-      borderRadius: radius.md,
+      borderRadius: radius.lg,
       borderWidth: hairlineWidth,
       borderColor: colors.hairline,
       paddingVertical: spacing.lg,
@@ -151,12 +148,12 @@ export default function CalculatorScreen() {
 
   const [mode, setMode] = useState<CalcMode>("draw");
   const [compoundLabel, setCompoundLabel] = useState<string>(prefilledName);
-  const [vialText, setVialText] = useState<string>(prefilledVial);
-  const [waterText, setWaterText] = useState<string>(prefilledWater);
+  const [vialText, setVialText] = useState<string>(prefilledVial || "5");
+  const [waterText, setWaterText] = useState<string>(prefilledWater || "2");
   const [doseText, setDoseText] = useState<string>("");
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefilledUnit ?? "mcg");
   const [targetUnitsText, setTargetUnitsText] = useState<string>("");
-  const [capacity, setCapacity] = useState<SyringeCapacity>(prefilledCapacity ?? 100);
+  const [capacity, setCapacity] = useState<SyringeCapacity>(prefilledCapacity ?? 50);
   const [showMath, setShowMath] = useState<boolean>(false);
 
   useEffect(() => {
@@ -198,6 +195,7 @@ export default function CalculatorScreen() {
 
   const activeResult = mode === "draw" ? drawResult : waterResult;
   const hasOkResult = activeResult !== null && activeResult.ok;
+  const showUnitCallout = mode === "draw" && doseUnit === "mcg";
 
   const logThisDose = () => {
     if (drawResult === null || !drawResult.ok || doseValue === null) return;
@@ -243,56 +241,84 @@ export default function CalculatorScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
-            <AppText variant="overline" tone="faint">
-              PepRep · U-100 instrument
-            </AppText>
-            <AppText variant="display">Calculator</AppText>
-            {compoundLabel.length > 0 && (
-              <AppText variant="label" tone="secondary" testID="calc-compound-name">
-                {compoundLabel}
-              </AppText>
-            )}
+          <View style={styles.headerRow}>
+            <View style={{ flex: 1, gap: 2 }}>
+              <AppText variant="display">Calculator</AppText>
+              {compoundLabel.length > 0 ? (
+                <AppText variant="label" tone="secondary" testID="calc-compound-name">
+                  {compoundLabel}
+                </AppText>
+              ) : null}
+            </View>
+            <View style={styles.modeSeg}>
+              <SegmentedControl<CalcMode>
+                options={[
+                  { value: "draw", label: "Recon" },
+                  { value: "water", label: "Reverse" },
+                ]}
+                value={mode}
+                onChange={setMode}
+                testID="calc-mode"
+              />
+            </View>
           </View>
 
-          <View style={styles.modeBlock}>
-            <SegmentedControl<CalcMode>
-              options={[
-                { value: "draw", label: "How much do I draw?" },
-                { value: "water", label: "How much water do I add?" },
-              ]}
-              value={mode}
-              onChange={setMode}
-              testID="calc-mode"
-            />
-            <AppText variant="caption" tone="secondary" style={styles.modeHint}>
-              {mode === "draw"
-                ? "You've mixed your vial. Enter the water you added and your dose — see the units to draw."
-                : "Before you mix. Pick the dose and the draw size you want — see how much water to add."}
-            </AppText>
-          </View>
+          <AppText variant="caption" tone="secondary">
+            {mode === "draw"
+              ? "You've mixed your vial. Enter water and your dose — see units to draw."
+              : "Before you mix. Pick dose and draw size — see how much water to add."}
+          </AppText>
 
           <Card elevated style={styles.formCard}>
-            <Field
-              label="Peptide in vial"
-              value={vialText}
-              onChangeText={setVialText}
-              suffix="mg"
-              placeholder="5"
-              testID="input-vial"
-            />
-            {mode === "draw" ? (
+            <View style={styles.fieldBlock}>
               <Field
-                label="Bacteriostatic water added"
-                value={waterText}
-                onChangeText={setWaterText}
-                suffix="mL"
-                placeholder="2"
-                testID="input-water"
+                label="Peptide in vial"
+                hint="total content, not your dose"
+                value={vialText}
+                onChangeText={setVialText}
+                suffix="mg"
+                placeholder="5"
+                testID="input-vial"
               />
+              <QuickPicks
+                options={[
+                  { label: "2 mg", value: "2" },
+                  { label: "5 mg", value: "5" },
+                  { label: "10 mg", value: "10" },
+                  { label: "15 mg", value: "15" },
+                ]}
+                selected={vialText}
+                onSelect={setVialText}
+                testID="qp-vial"
+              />
+            </View>
+
+            {mode === "draw" ? (
+              <View style={styles.fieldBlock}>
+                <Field
+                  label="Bacteriostatic water"
+                  hint="mL only — not units"
+                  value={waterText}
+                  onChangeText={setWaterText}
+                  suffix="mL"
+                  placeholder="2"
+                  testID="input-water"
+                />
+                <QuickPicks
+                  options={[
+                    { label: "1 mL", value: "1" },
+                    { label: "2 mL", value: "2" },
+                    { label: "3 mL", value: "3" },
+                  ]}
+                  selected={waterText}
+                  onSelect={setWaterText}
+                  testID="qp-water"
+                />
+              </View>
             ) : (
               <Field
                 label="Units you want one dose to be"
+                hint="U-100 scale"
                 value={targetUnitsText}
                 onChangeText={setTargetUnitsText}
                 suffix="units"
@@ -300,8 +326,10 @@ export default function CalculatorScreen() {
                 testID="input-target-units"
               />
             )}
+
             <Field
-              label="Your dose"
+              label="Desired dose"
+              hint="your entry — not a recommendation"
               value={doseText}
               onChangeText={setDoseText}
               suffix={doseUnit}
@@ -317,53 +345,70 @@ export default function CalculatorScreen() {
                     value={doseUnit}
                     onChange={setDoseUnit}
                     mono
+                    appearance="solid"
                   />
                 </View>
               }
             />
+
             {mode === "draw" && (
-              <View style={styles.syringeRow}>
-                <AppText variant="overline" tone="faint">
-                  Syringe barrel
-                </AppText>
-                <SegmentedControl<SyringeCapacity>
+              <View style={styles.fieldBlock}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "baseline",
+                  }}
+                >
+                  <AppText variant="overline" tone="secondary">
+                    Syringe capacity
+                  </AppText>
+                  <AppText variant="caption" mono tone="faint">
+                    U-100 insulin scale
+                  </AppText>
+                </View>
+                <QuickPicks
+                  equal
                   options={SYRINGES.map((spec) => ({
-                    value: spec.capacityUnits,
-                    label: spec.label,
+                    label: `${spec.capacityMl} mL`,
+                    sublabel: `${spec.capacityUnits} units`,
+                    value: String(spec.capacityUnits),
                   }))}
-                  value={capacity}
-                  onChange={setCapacity}
-                  mono
+                  selected={String(capacity)}
+                  onSelect={(value) => {
+                    const next = capacityFromParam(value);
+                    if (next !== null) setCapacity(next);
+                  }}
                   testID="syringe-capacity"
                 />
               </View>
             )}
           </Card>
 
+          {showUnitCallout ? (
+            <Callout tone="warn" title="Unit check">
+              {`Dose is in mcg · vial is in mg. The result shows syringe units and mL separately so they cannot be confused.`}
+            </Callout>
+          ) : null}
+
           {activeResult === null && (
             <Card elevated style={styles.resultCard}>
-              <View style={styles.overlineBlock}>
-                <AppText variant="overline" tone="faint">
-                  {mode === "draw" ? "Exact draw" : "Water to add"}
-                </AppText>
-                <View style={styles.redTick} />
-              </View>
+              <AppText variant="overline" tone="secondary">
+                {mode === "draw" ? "Exact draw" : "Water to add"}
+              </AppText>
               <AppText variant="body" tone="secondary">
                 {mode === "draw"
-                  ? "Enter the vial amount, water volume and your dose. The draw appears here."
-                  : "Enter the vial amount, your dose and the draw size you want. The water volume appears here."}
+                  ? "Enter vial, water and your dose. The draw appears here."
+                  : "Enter vial, your dose and the draw size you want. Water volume appears here."}
               </AppText>
             </Card>
           )}
 
           {activeResult !== null && !activeResult.ok && (
             <Card elevated style={styles.resultCard}>
-              <View style={styles.overlineBlock}>
-                <AppText variant="overline" tone="faint">
-                  Check inputs
-                </AppText>
-                <View style={styles.redTick} />
-              </View>
+              <AppText variant="overline" tone="secondary">
+                Check inputs
+              </AppText>
               {activeResult.errors.map((error) => (
                 <AppText key={error} variant="label" tone="secondary">
                   {error}
@@ -379,13 +424,11 @@ export default function CalculatorScreen() {
                   <AppText variant="overline" tone="onDarkSecondary">
                     Exact draw
                   </AppText>
-                  <View style={styles.redTick} />
                 </View>
                 <View style={styles.bigNumberRow}>
                   <AnimatedReadout value={drawResult.units} decimals={1} testID="draw-units-readout" />
                   <AppText
                     variant="heading"
-                    tone="onDarkSecondary"
                     mono
                     weight="medium"
                     style={styles.unitSuffix}
@@ -412,30 +455,24 @@ export default function CalculatorScreen() {
                   <AppText variant="heading" mono weight="semibold">
                     {fmt(drawResult.concentrationMgPerMl, 3)} mg/mL
                   </AppText>
-                  <AppText variant="caption" tone="faint" mono>
-                    {fmt(drawResult.concentrationMcgPerMl)} mcg/mL
-                  </AppText>
                 </View>
                 <View style={styles.statCard}>
                   <AppText variant="overline" tone="faint">
-                    Volume per dose
+                    Volume / dose
                   </AppText>
                   <AppText variant="heading" mono weight="semibold">
                     {fmt(drawResult.volumeMl, 3)} mL
                   </AppText>
-                  <AppText variant="caption" tone="faint" mono>
-                    one injection
-                  </AppText>
                 </View>
                 <View style={styles.statCard}>
                   <AppText variant="overline" tone="faint">
-                    Doses in this vial
+                    Doses in vial
                   </AppText>
                   <AppText variant="heading" mono weight="semibold">
                     {String(drawResult.dosesPerVial)}
                   </AppText>
                   <AppText variant="caption" tone="faint" mono>
-                    at {fmt(drawResult.doseMcg)} mcg each
+                    at {fmt(drawResult.doseMcg)} mcg
                   </AppText>
                 </View>
               </View>
@@ -445,33 +482,19 @@ export default function CalculatorScreen() {
           {mode === "water" && waterResult !== null && waterResult.ok && targetUnits !== null && (
             <View style={styles.resultGroup}>
               <Card dark elevated style={styles.resultCard} testID="water-result">
-                <View style={styles.overlineBlock}>
-                  <AppText variant="overline" tone="onDarkSecondary">
-                    Water to add
-                  </AppText>
-                  <View style={styles.redTick} />
-                </View>
+                <AppText variant="overline" tone="onDarkSecondary">
+                  Water to add
+                </AppText>
                 <View style={styles.bigNumberRow}>
                   <AnimatedReadout value={waterResult.diluentMl} decimals={2} testID="water-ml-readout" />
-                  <AppText
-                    variant="heading"
-                    tone="onDarkSecondary"
-                    mono
-                    weight="medium"
-                    style={styles.unitSuffix}
-                  >
+                  <AppText variant="heading" mono weight="medium" style={styles.unitSuffix}>
                     mL
                   </AppText>
                 </View>
                 <AppText variant="label" tone="onDarkSecondary" mono>
                   bacteriostatic water · one-time mix
                 </AppText>
-
                 <Hairline dark />
-
-                <AppText variant="caption" tone="onDarkSecondary">
-                  Draw this water volume produces
-                </AppText>
                 <View style={styles.gaugeWell}>
                   <SyringeGauge units={targetUnits} capacity={100} />
                 </View>
@@ -485,19 +508,13 @@ export default function CalculatorScreen() {
                   <AppText variant="heading" mono weight="semibold">
                     {fmt(waterResult.concentrationMgPerMl, 3)} mg/mL
                   </AppText>
-                  <AppText variant="caption" tone="faint" mono>
-                    {fmt(waterResult.concentrationMcgPerMl)} mcg/mL
-                  </AppText>
                 </View>
                 <View style={styles.statCard}>
                   <AppText variant="overline" tone="faint">
-                    Doses in this vial
+                    Doses in vial
                   </AppText>
                   <AppText variant="heading" mono weight="semibold">
                     {String(waterResult.dosesPerVial)}
-                  </AppText>
-                  <AppText variant="caption" tone="faint" mono>
-                    full doses
                   </AppText>
                 </View>
               </View>
@@ -523,7 +540,10 @@ export default function CalculatorScreen() {
                 testID="toggle-math"
               />
               {showMath && (
-                <Animated.View entering={FadeInDown.duration(280).springify().damping(18)} style={styles.mathBody}>
+                <Animated.View
+                  entering={FadeInDown.duration(280).springify().damping(18)}
+                  style={styles.mathBody}
+                >
                   <View style={styles.mathHairline}>
                     <Hairline />
                   </View>
@@ -541,9 +561,9 @@ export default function CalculatorScreen() {
               <View style={styles.actionBlock}>
                 <Button
                   label="Save as vial"
-                  tone="accent"
+                  tone="primary"
                   onPress={saveAsVial}
-                  icon={<TestTubes size={17} color={colors.onAccent} />}
+                  icon={<TestTubes size={17} color={colors.onSolid} />}
                   testID="save-as-vial"
                 />
                 <AppText variant="caption" tone="faint" style={styles.actionHint}>
@@ -565,7 +585,7 @@ export default function CalculatorScreen() {
             </View>
           )}
 
-          <AppText variant="caption" tone="faint" style={styles.disclaimer}>
+          <AppText variant="caption" tone="secondary" style={styles.disclaimer}>
             {DISCLAIMER}
           </AppText>
         </ScrollView>

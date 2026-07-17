@@ -8,6 +8,8 @@ import { fonts, fontSize, hairlineWidth, radius, spacing } from "@/src/theme/tok
 
 interface FieldProps {
   label: string;
+  /** Secondary hint on the right of the label row (design field-label-hint). */
+  hint?: string;
   value: string;
   onChangeText: (text: string) => void;
   /** Unit suffix rendered inside the input ("mg", "mL", "units"). */
@@ -22,6 +24,7 @@ interface FieldProps {
 
 export default function Field({
   label,
+  hint,
   value,
   onChangeText,
   suffix,
@@ -37,9 +40,14 @@ export default function Field({
   return (
     <View style={styles.wrap}>
       <View style={styles.labelRow}>
-        <AppText variant="overline" tone="faint">
+        <AppText variant="overline" tone="secondary" style={styles.label}>
           {label}
         </AppText>
+        {hint ? (
+          <AppText variant="caption" mono tone="faint">
+            {hint}
+          </AppText>
+        ) : null}
         {accessory}
       </View>
       <View
@@ -47,7 +55,7 @@ export default function Field({
           styles.inputRow,
           {
             backgroundColor: colors.surface,
-            borderColor: focused ? colors.accent : colors.hairline,
+            borderColor: focused ? colors.ink : colors.hairline,
           },
         ]}
       >
@@ -69,7 +77,7 @@ export default function Field({
           autoCorrect={!mono}
         />
         {suffix !== undefined && (
-          <AppText variant="label" mono tone="faint">
+          <AppText variant="label" mono weight="semibold" tone="secondary">
             {suffix}
           </AppText>
         )}
@@ -80,25 +88,29 @@ export default function Field({
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.xs + 2,
+    gap: spacing.sm,
   },
   labelRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "baseline",
     justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  label: {
+    letterSpacing: 0.8,
   },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
     gap: spacing.sm,
-    borderWidth: hairlineWidth,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    minHeight: 50,
+    borderWidth: 1.5,
+    borderRadius: 14,
+    paddingHorizontal: spacing.lg,
+    minHeight: 56,
   },
   input: {
     flex: 1,
-    fontSize: fontSize.heading,
+    fontSize: 26,
     paddingVertical: spacing.sm,
   },
   monoInput: {

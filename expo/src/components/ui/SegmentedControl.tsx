@@ -17,6 +17,8 @@ interface SegmentedControlProps<T extends string | number> {
   onChange: (value: T) => void;
   /** Render labels in mono (for numeric options such as syringe sizes). */
   mono?: boolean;
+  /** `solid` = carbon fill + volt label (unit toggles). Default = surface chip. */
+  appearance?: "chip" | "solid";
   testID?: string;
 }
 
@@ -25,6 +27,7 @@ export default function SegmentedControl<T extends string | number>({
   value,
   onChange,
   mono = false,
+  appearance = "chip",
   testID,
 }: SegmentedControlProps<T>) {
   const { colors } = useTheme();
@@ -38,8 +41,18 @@ export default function SegmentedControl<T extends string | number>({
   };
 
   return (
-    <View style={[styles.track, { backgroundColor: colors.surfaceSunken }]} testID={testID}>
-      {options.map((option) => {
+    <View
+      style={[
+        styles.track,
+        {
+          backgroundColor: appearance === "solid" ? colors.surface : colors.surfaceSunken,
+          borderColor: colors.hairline,
+          borderWidth: appearance === "solid" ? hairlineWidth : 0,
+        },
+      ]}
+      testID={testID}
+    >
+      {options.map((option, index) => {
         const active = option.value === value;
         return (
           <Pressable
@@ -47,17 +60,23 @@ export default function SegmentedControl<T extends string | number>({
             onPress={() => select(option.value)}
             style={[
               styles.segment,
-              active && {
-                backgroundColor: colors.surface,
-                borderColor: colors.hairline,
-              },
+              appearance === "solid" && index > 0
+                ? { borderLeftWidth: hairlineWidth, borderLeftColor: colors.hairline }
+                : null,
+              active &&
+                (appearance === "solid"
+                  ? { backgroundColor: colors.solid, borderColor: "transparent" }
+                  : {
+                      backgroundColor: colors.surface,
+                      borderColor: colors.hairline,
+                    }),
             ]}
           >
             <AppText
               variant="label"
               mono={mono}
               weight={active ? "semibold" : "medium"}
-              tone={active ? "ink" : "secondary"}
+              tone={active ? (appearance === "solid" ? "onSolid" : "ink") : "secondary"}
             >
               {option.label}
             </AppText>
