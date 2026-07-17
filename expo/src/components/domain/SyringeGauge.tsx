@@ -1,6 +1,17 @@
-import React, { useMemo } from "react";
+import React, { useId, useMemo } from "react";
 import { StyleSheet, View } from "react-native";
-import Svg, { Line, Path, Rect, Text as SvgText } from "react-native-svg";
+import Svg, {
+  Circle,
+  ClipPath,
+  Defs,
+  G,
+  Line,
+  LinearGradient,
+  Path,
+  Rect,
+  Stop,
+  Text as SvgText,
+} from "react-native-svg";
 
 import type { SyringeCapacity } from "@/src/engine";
 import { fmt } from "@/src/engine";
@@ -12,160 +23,380 @@ interface SyringeGaugeProps {
   capacity: SyringeCapacity;
 }
 
-const VIEW_W = 360;
-const VIEW_H = 134;
-const BARREL_X = 58;
-const BARREL_W = 266;
-const BARREL_Y = 42;
-const BARREL_H = 46;
-const CY = BARREL_Y + BARREL_H / 2;
-const ROD_END_X = 338;
+/**
+ * Layout metrics for a true U-100 barrel silhouette. Capacity only changes
+ * the drawn barrel proportions — fill and ticks always come from the engine.
+ */
+function barrelLayout(capacity: SyringeCapacity) {
+  switch (capacity) {
+    case 30:
+      return { barrelW: 208, barrelH: 54, needleLen: 34 };
+    case 50:
+      return { barrelW: 248, barrelH: 48, needleLen: 38 };
+    case 100:
+      return { barrelW: 286, barrelH: 42, needleLen: 42 };
+  }
+}
+
+const VIEW_H = 148;
+const PAD_L = 6;
+const HUB_W = 20;
+const FLANGE_W = 10;
+const THUMB_W = 14;
+const ROD_END_PAD = 8;
 
 /**
- * A realistic horizontal U-100 syringe: needle on the left, plunger on the
- * right, pale liquid fill up to the draw with a red marker above it. All
- * geometry comes from the engine's gauge model — this component never
- * computes units or volumes itself.
+ * Signature horizontal U-100 syringe: needle → hub → barrel → plunger.
+ * All unit/volume geometry is engine-driven via `buildSyringeGauge`.
  */
 export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
+  const uid = useId().replace(/:/g, "");
   const model = useMemo(() => buildSyringeGauge(units, capacity), [units, capacity]);
 
-  const fillX = BARREL_X + BARREL_W * model.fillFraction;
-  const stopX = Math.max(fillX, BARREL_X + 8);
-  const markerX = Math.min(Math.max(fillX, BARREL_X), BARREL_X + BARREL_W);
-  const labelX = Math.min(Math.max(markerX, 30), VIEW_W - 30);
+  const layout = useMemo(() => {
+    const { barrelW, barrelH, needleLen } = barrelLayout(model.capacityUnits);
+    const needleX0 = PAD_L;
+    const hubX = needleX0 + needleLen;
+    const barrelX = hubX + HUB_W;
+    const flangeX = barrelX + barrelW;
+    const thumbX = flangeX + FLANGE_W + 52;
+    const viewW = thumbX + THUMB_W + ROD_END_PAD;
+    const barrelY = (VIEW_H - barrelH) / 2 + 4;
+    const cy = barrelY + barrelH / 2;
+    const fillX = barrelX + barrelW * model.fillFraction;
+    /** Stopper sits at the fluid meniscus; empty barrel parks it at the zero end. */
+    const stopX = model.fillFraction > 0 ? fillX : barrelX + 5;
+    const markerX = Math.min(Math.max(fillX, barrelX), barrelX + barrelW);
+    const labelX = Math.min(Math.max(markerX, 36), viewW - 36);
+
+    return {
+      barrelW,
+      barrelH,
+      needleLen,
+      needleX0,
+      hubX,
+      barrelX,
+      flangeX,
+      thumbX,
+      viewW,
+      barrelY,
+      cy,
+      fillX,
+      stopX,
+      markerX,
+      labelX,
+    };
+  }, [model.capacityUnits, model.fillFraction]);
+
+  const {
+    barrelW,
+    barrelH,
+    needleX0,
+    hubX,
+    barrelX,
+    flangeX,
+    thumbX,
+    viewW,
+    barrelY,
+    cy,
+    stopX,
+    markerX,
+    labelX,
+  } = layout;
+
   const labelTicks = model.ticks.filter((tick) => tick.major);
+  const fluidColor = model.overflow ? colors.fluidOverflow : colors.fluid;
+  const markerColor = model.overflow ? colors.dangerInk : colors.accent;
+  const showFill = model.fillFraction > 0;
+  const rodW = Math.max(thumbX - stopX - 4, 0);
+  const clipId = `barrel-bore-${uid}`;
+  const fluidGradId = `fluid-grad-${uid}`;
+  const glassGradId = `glass-grad-${uid}`;
 
   return (
-    <View style={styles.wrap}>
-      <Svg width="100%" height="100%" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}>
-        {/* needle */}
-        <Line x1={4} y1={CY} x2={40} y2={CY} stroke={colors.inkSecondary} strokeWidth={1.8} />
-        {/* needle hub */}
-        <Rect
-          x={40}
-          y={CY - 11}
-          width={18}
-          height={22}
-          rx={4}
+    <View style={[styles.wrap, { aspectRatio: viewW / VIEW_H }]}>
+      <Svg width="100%" height="100%" viewBox={`0 0 ${viewW} ${VIEW_H}`}>
+        <Defs>
+          <LinearGradient id={glassGradId} x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={colors.surface} stopOpacity={1} />
+            <Stop offset="0.45" stopColor={colors.surface} stopOpacity={1} />
+            <Stop offset="1" stopColor={colors.surfaceSunken} stopOpacity={1} />
+          </LinearGradient>
+          <LinearGradient id={fluidGradId} x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor={fluidColor} stopOpacity={0.55} />
+            <Stop offset="0.35" stopColor={fluidColor} stopOpacity={0.88} />
+            <Stop offset="1" stopColor={fluidColor} stopOpacity={0.72} />
+          </LinearGradient>
+          <ClipPath id={clipId}>
+            <Rect x={barrelX + 1} y={barrelY + 1} width={barrelW - 2} height={barrelH - 2} rx={7} />
+          </ClipPath>
+        </Defs>
+
+        {/* needle bevel + shaft */}
+        <Path
+          d={`M ${needleX0} ${cy} L ${hubX - 1} ${cy - 1.1} L ${hubX - 1} ${cy + 1.1} Z`}
+          fill={colors.inkSecondary}
+        />
+        <Line
+          x1={needleX0 + 2}
+          y1={cy}
+          x2={hubX}
+          y2={cy}
+          stroke={colors.ink}
+          strokeWidth={1.35}
+          strokeLinecap="round"
+        />
+
+        {/* hub / luer */}
+        <Path
+          d={[
+            `M ${hubX} ${cy - 7}`,
+            `L ${hubX + 6} ${cy - 12}`,
+            `L ${barrelX} ${cy - barrelH / 2 + 4}`,
+            `L ${barrelX} ${cy + barrelH / 2 - 4}`,
+            `L ${hubX + 6} ${cy + 12}`,
+            `L ${hubX} ${cy + 7}`,
+            "Z",
+          ].join(" ")}
           fill={colors.surfaceSunken}
           stroke={colors.hairline}
           strokeWidth={1}
         />
-        {/* barrel interior */}
         <Rect
-          x={BARREL_X}
-          y={BARREL_Y}
-          width={BARREL_W}
-          height={BARREL_H}
-          rx={8}
-          fill={colors.surface}
+          x={hubX + 3}
+          y={cy - 5}
+          width={4}
+          height={10}
+          rx={1}
+          fill={colors.inkFaint}
+          opacity={0.45}
         />
-        {/* liquid fill */}
-        {model.fillFraction > 0 && (
-          <Rect
-            x={BARREL_X + 1.5}
-            y={BARREL_Y + 1.5}
-            width={Math.max(stopX - BARREL_X - 3, 0)}
-            height={BARREL_H - 3}
-            rx={6}
-            fill={colors.accentSoft}
-            opacity={model.overflow ? 0.55 : 1}
-          />
-        )}
-        {/* plunger rod */}
+
+        {/* barrel glass body */}
         <Rect
-          x={stopX + 3}
-          y={CY - 4}
-          width={Math.max(ROD_END_X - stopX - 3, 0)}
-          height={8}
+          x={barrelX}
+          y={barrelY}
+          width={barrelW}
+          height={barrelH}
+          rx={8}
+          fill={`url(#${glassGradId})`}
+        />
+        {/* top glass highlight */}
+        <Rect
+          x={barrelX + 6}
+          y={barrelY + 3}
+          width={barrelW - 12}
+          height={3.5}
+          rx={1.5}
+          fill={colors.surface}
+          opacity={0.85}
+        />
+
+        {/* fluid column (clipped to bore) */}
+        {showFill && (
+          <G clipPath={`url(#${clipId})`}>
+            <Rect
+              x={barrelX + 1}
+              y={barrelY + 1}
+              width={Math.max(stopX - barrelX - 1, 0)}
+              height={barrelH - 2}
+              fill={`url(#${fluidGradId})`}
+            />
+            {/* meniscus glint */}
+            <Rect
+              x={Math.max(stopX - 5, barrelX + 1)}
+              y={barrelY + 2}
+              width={4}
+              height={barrelH - 4}
+              fill={colors.surface}
+              opacity={0.22}
+            />
+            {model.overflow && (
+              <>
+                {Array.from({ length: 7 }, (_, i) => {
+                  const x = barrelX + 10 + i * 14;
+                  return (
+                    <Line
+                      key={`hatch-${i}`}
+                      x1={x}
+                      y1={barrelY + 4}
+                      x2={x + 10}
+                      y2={barrelY + barrelH - 4}
+                      stroke={colors.dangerInk}
+                      strokeWidth={1.1}
+                      opacity={0.35}
+                    />
+                  );
+                })}
+              </>
+            )}
+          </G>
+        )}
+
+        {/* plunger rod (drawn under flange / outline) */}
+        <Rect
+          x={stopX + 2}
+          y={cy - 3.5}
+          width={rodW}
+          height={7}
+          rx={1.5}
           fill={colors.surfaceSunken}
           stroke={colors.hairline}
           strokeWidth={0.8}
         />
-        {/* plunger stopper */}
-        {model.fillFraction > 0 && (
+        <Line
+          x1={stopX + 6}
+          y1={cy}
+          x2={thumbX - 2}
+          y2={cy}
+          stroke={colors.inkFaint}
+          strokeWidth={0.7}
+          opacity={0.7}
+        />
+
+        {/* rubber stopper — sealing ribs */}
+        <G>
           <Rect
-            x={stopX - 3}
-            y={BARREL_Y + 4}
-            width={7}
-            height={BARREL_H - 8}
-            rx={2}
+            x={stopX - 4}
+            y={barrelY + 3}
+            width={8}
+            height={barrelH - 6}
+            rx={2.2}
             fill={colors.ink}
           />
-        )}
-        {/* thumb rest */}
-        <Rect
-          x={ROD_END_X + 4}
-          y={CY - 25}
-          width={10}
-          height={50}
-          rx={4}
+          <Rect
+            x={stopX - 5}
+            y={barrelY + 6}
+            width={10}
+            height={3}
+            rx={1}
+            fill={colors.panel}
+          />
+          <Rect
+            x={stopX - 5}
+            y={barrelY + barrelH - 9}
+            width={10}
+            height={3}
+            rx={1}
+            fill={colors.panel}
+          />
+          <Circle cx={stopX} cy={cy} r={1.4} fill={colors.inkFaint} opacity={0.5} />
+        </G>
+
+        {/* finger flange at open end of barrel */}
+        <Path
+          d={[
+            `M ${flangeX - 2} ${barrelY + 2}`,
+            `L ${flangeX + FLANGE_W} ${barrelY - 14}`,
+            `L ${flangeX + FLANGE_W + 3} ${barrelY - 14}`,
+            `L ${flangeX + FLANGE_W + 3} ${barrelY + barrelH + 14}`,
+            `L ${flangeX + FLANGE_W} ${barrelY + barrelH + 14}`,
+            `L ${flangeX - 2} ${barrelY + barrelH - 2}`,
+            "Z",
+          ].join(" ")}
           fill={colors.surfaceSunken}
           stroke={colors.hairline}
           strokeWidth={1}
         />
-        {/* tick marks hanging from the top of the barrel */}
+
+        {/* tick marks — engine fractions only */}
         {model.ticks.map((tick) => {
-          const x = BARREL_X + BARREL_W * tick.fraction;
-          const len = tick.major ? 13 : 8;
+          const x = barrelX + barrelW * tick.fraction;
+          const major = tick.major;
+          const len = major ? Math.min(barrelH * 0.42, 18) : Math.min(barrelH * 0.26, 11);
           return (
             <Line
               key={`tick-${tick.units}`}
               x1={x}
-              y1={BARREL_Y + 1}
+              y1={barrelY + 1.5}
               x2={x}
-              y2={BARREL_Y + 1 + len}
-              stroke={tick.major ? colors.inkSecondary : colors.inkFaint}
-              strokeWidth={tick.major ? 1.3 : 0.8}
-              opacity={tick.major ? 0.95 : 0.6}
+              y2={barrelY + 1.5 + len}
+              stroke={major ? colors.inkSecondary : colors.inkFaint}
+              strokeWidth={major ? 1.35 : 0.75}
+              opacity={major ? 0.95 : 0.55}
             />
           );
         })}
-        {/* barrel outline (on top so the rod appears inside the glass) */}
+
+        {/* barrel outline (above ticks / fluid for glass edge) */}
         <Rect
-          x={BARREL_X}
-          y={BARREL_Y}
-          width={BARREL_W}
-          height={BARREL_H}
+          x={barrelX}
+          y={barrelY}
+          width={barrelW}
+          height={barrelH}
           rx={8}
           fill="none"
-          stroke={colors.hairline}
-          strokeWidth={1.4}
+          stroke={model.overflow ? colors.dangerInk : colors.hairline}
+          strokeWidth={model.overflow ? 1.8 : 1.45}
+          strokeDasharray={model.overflow ? "5 3" : undefined}
         />
-        {/* draw marker */}
-        {model.fillFraction > 0 && (
-          <>
+
+        {/* thumb rest */}
+        <Rect
+          x={thumbX}
+          y={cy - 26}
+          width={THUMB_W}
+          height={52}
+          rx={5}
+          fill={colors.surfaceSunken}
+          stroke={colors.hairline}
+          strokeWidth={1.1}
+        />
+        <Rect
+          x={thumbX + 3}
+          y={cy - 22}
+          width={3}
+          height={44}
+          rx={1.5}
+          fill={colors.surface}
+          opacity={0.65}
+        />
+
+        {/* exact fill callout */}
+        {showFill && (
+          <G>
             <SvgText
               x={labelX}
-              y={16}
+              y={18}
               fontSize={13}
               fontFamily={fonts.monoSemiBold}
-              fill={colors.accent}
+              fill={markerColor}
               textAnchor="middle"
             >
               {`${fmt(units, 1)} u`}
             </SvgText>
             <Path
-              d={`M ${markerX - 5} 21 L ${markerX + 5} 21 L ${markerX} 29 Z`}
-              fill={colors.accent}
+              d={`M ${markerX - 5.5} 22 L ${markerX + 5.5} 22 L ${markerX} 30.5 Z`}
+              fill={markerColor}
             />
             <Line
               x1={markerX}
-              y1={29}
+              y1={30.5}
               x2={markerX}
-              y2={BARREL_Y + BARREL_H + 5}
-              stroke={colors.accent}
+              y2={barrelY + barrelH + 6}
+              stroke={markerColor}
               strokeWidth={2}
+              strokeLinecap="round"
             />
-          </>
+            {/* meniscus tick across the bore */}
+            <Line
+              x1={markerX}
+              y1={barrelY + 2}
+              x2={markerX}
+              y2={barrelY + barrelH - 2}
+              stroke={markerColor}
+              strokeWidth={1.25}
+              opacity={0.85}
+            />
+          </G>
         )}
+
         {/* scale labels under the barrel */}
         {labelTicks.map((tick) => (
           <SvgText
             key={`label-${tick.units}`}
-            x={BARREL_X + BARREL_W * tick.fraction}
-            y={BARREL_Y + BARREL_H + 24}
+            x={barrelX + barrelW * tick.fraction}
+            y={barrelY + barrelH + 22}
             fontSize={11}
             fontFamily={fonts.mono}
             fill={colors.inkSecondary}
@@ -182,6 +413,5 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
 const styles = StyleSheet.create({
   wrap: {
     alignSelf: "stretch",
-    aspectRatio: VIEW_W / VIEW_H,
   },
 });

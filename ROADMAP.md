@@ -274,7 +274,7 @@ required for market-ready, not optional.
   - Accept: a designer would call the calculator screen polished; nothing reads as a wireframe.
   - Note: extended tokens (readout/gauge type, letterSpacing, shadows, section rhythm); dark elevated result panel with mono readout; sunken fields; crafted math reveal; warm-paper brand retained.
 
-- [ ] **C.2 — The syringe as the signature object**
+- [x] **C.2 — The syringe as the signature object**
   - Files: `src/components/domain/SyringeGauge.tsx`
   - Do: make PepRep's syringe the most beautiful and most accurate syringe visual in the
     category — true U-100 proportions, crisp tick marks that match the selected barrel, the
@@ -283,6 +283,7 @@ required for market-ready, not optional.
   - Why it wins: every competitor ships a generic gauge. Ours should be unmistakably better
     and unmistakably *correct* (it already respects the capacity rule — make it look it).
   - Accept: the syringe is genuinely admirable at a glance and precisely correct on inspection.
+  - Note: rebuilt SyringeGauge as engine-driven U-100 anatomy (capacity-proportional barrel, accent fluid + overflow hatch, ribbed stopper/rod/thumb rest, exact fill callout); fluid/fluidOverflow tokens.
 
 - [ ] **C.3 — First-run onboarding (the anti-PeptidePal)**
   - Files: new `app/onboarding/*`, gate on a settings flag
