@@ -82,6 +82,9 @@ export default function CalculatorScreen() {
         doseUnit,
         units: String(drawResult.units),
         volumeMl: String(drawResult.volumeMl),
+        ...(compoundLabel.trim().length > 0
+          ? { compoundName: compoundLabel.trim() }
+          : {}),
       },
     });
   };

@@ -41,14 +41,16 @@ export default function LogEntryScreen() {
   const vials = useVialsStore(useShallow(selectActiveVials));
 
   const prefillUnit: MassUnit = stringParam(params.doseUnit) === "mg" ? "mg" : "mcg";
+  const prefillCompound = stringParam(params.compoundName);
 
-  const [peptideName, setPeptideName] = useState<string>("");
+  const [peptideName, setPeptideName] = useState<string>(prefillCompound);
   const [vialId, setVialId] = useState<string | null>(null);
   const [doseText, setDoseText] = useState<string>(stringParam(params.doseValue));
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefillUnit);
   const [unitsText, setUnitsText] = useState<string>(stringParam(params.units));
   const [site, setSite] = useState<InjectionSite | null>(null);
   const [note, setNote] = useState<string>("");
+  const [saved, setSaved] = useState<boolean>(false);
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
 
@@ -75,7 +77,7 @@ export default function LogEntryScreen() {
   };
 
   const save = () => {
-    if (doseValue === null || doseValue <= 0) return;
+    if (doseValue === null || doseValue <= 0 || saved) return;
     const name = peptideName.trim();
     addDose({
       vialId,
@@ -89,7 +91,7 @@ export default function LogEntryScreen() {
       note: note.trim(),
       atIso: new Date().toISOString(),
     })
-      .then(() => router.back())
+      .then(() => setSaved(true))
       .catch((error) => console.error("[log-entry] Failed to save dose", error));
   };
 
@@ -116,6 +118,28 @@ export default function LogEntryScreen() {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {saved ? (
+            <Card style={styles.formCard} testID="log-entry-saved">
+              <AppText variant="heading">Dose logged</AppText>
+              <AppText variant="body" tone="secondary">
+                Saved to your history
+                {peptideName.trim().length > 0 ? ` as ${peptideName.trim()}` : ""}.
+              </AppText>
+              <Button
+                label="View in History"
+                tone="accent"
+                onPress={() => router.replace("/history")}
+                testID="view-in-history"
+              />
+              <Button
+                label="Done"
+                tone="ghost"
+                onPress={() => router.back()}
+                testID="log-entry-done"
+              />
+            </Card>
+          ) : (
+            <>
           {vials.length > 0 && (
             <View style={styles.section}>
               <AppText variant="overline" tone="faint">
@@ -211,6 +235,8 @@ export default function LogEntryScreen() {
               A dose amount and either a peptide label or a vial are needed to keep the record
               meaningful.
             </AppText>
+          )}
+            </>
           )}
         </ScrollView>
       </KeyboardAvoidingView>

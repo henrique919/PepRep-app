@@ -82,7 +82,7 @@ not new architecture. Do not rebuild what works.
     every other input.
   - Note: Field TextInput gets colors.surface background; +html.tsx forces color-scheme light so web UA dark mode cannot hide ink text.
 
-- [ ] **T0.4 — Calculator "Log this dose" loses context and looks like it goes nowhere**
+- [x] **T0.4 — Calculator "Log this dose" loses context and looks like it goes nowhere**
   - Files: `expo/app/(tabs)/index.tsx` (`logThisDose`, ~L76), `expo/app/log-entry.tsx`
   - Root cause: `logThisDose` pushes to `/log-entry` **without** `compoundName`, even though
     the calculator holds `compoundLabel`. The log-entry opens with an empty peptide field,
@@ -94,6 +94,7 @@ not new architecture. Do not rebuild what works.
     History". Do not create a second store — the doses↔ledger dual-write is correct.
   - Accept: logging from the calculator arrives at log-entry with the compound name filled;
     after save the user sees confirmation and the entry appears in History.
+  - Note: calculator logThisDose passes compoundName; log-entry prefills peptide and shows saved confirmation with View in History.
 
 ---
 
