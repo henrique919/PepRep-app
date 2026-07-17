@@ -138,7 +138,7 @@ not new architecture. Do not rebuild what works.
     water volume.
   - Note: water-result card renders SyringeGauge at targetUnits/capacity 100 with caption "Draw this water volume produces".
 
-- [ ] **T1.4 — Make the two calculator modes newbie-legible**
+- [x] **T1.4 — Make the two calculator modes newbie-legible**
   - Files: `expo/app/(tabs)/index.tsx` (`SegmentedControl`, ~L112–120)
   - Root cause: labels "Dose → draw" / "Draw → water" are jargon.
   - Do: relabel and add a one-line subtitle under the segmented control that changes with mode:
@@ -148,6 +148,7 @@ not new architecture. Do not rebuild what works.
       Pick the dose and the draw size you want — see how much water to add."*
     - Keep the internal `CalcMode` values `draw`/`water` unchanged; change display text only.
   - Accept: a first-time reader can tell the two modes apart without knowing the jargon.
+  - Note: SegmentedControl labels + mode-dependent caption subtitle only; CalcMode draw/water unchanged.
 
 - [ ] **T1.5 — Plan reminders / "create alarm notification for doses"**
   - Files: `expo/app/plans/new.tsx`, `expo/src/store/reminders.ts`, `src/store/plans.ts`

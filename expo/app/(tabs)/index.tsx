@@ -152,15 +152,22 @@ export default function CalculatorScreen() {
             )}
           </View>
 
-          <SegmentedControl<CalcMode>
-            options={[
-              { value: "draw", label: "Dose → draw" },
-              { value: "water", label: "Draw → water" },
-            ]}
-            value={mode}
-            onChange={setMode}
-            testID="calc-mode"
-          />
+          <View style={styles.modeBlock}>
+            <SegmentedControl<CalcMode>
+              options={[
+                { value: "draw", label: "How much do I draw?" },
+                { value: "water", label: "How much water do I add?" },
+              ]}
+              value={mode}
+              onChange={setMode}
+              testID="calc-mode"
+            />
+            <AppText variant="caption" tone="secondary">
+              {mode === "draw"
+                ? "You've mixed your vial. Enter the water you added and your dose — see the units to draw."
+                : "Before you mix. Pick the dose and the draw size you want — see how much water to add."}
+            </AppText>
+          </View>
 
           <Card style={styles.formCard}>
             <Field
@@ -451,6 +458,9 @@ const styles = StyleSheet.create({
   header: {
     gap: spacing.xs,
     marginTop: spacing.sm,
+  },
+  modeBlock: {
+    gap: spacing.sm,
   },
   formCard: {
     gap: spacing.lg,
