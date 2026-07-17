@@ -100,7 +100,7 @@ not new architecture. Do not rebuild what works.
 
 ## TIER 1 — WIRING (make the pieces talk to each other)
 
-- [ ] **T1.1 — Calculator ↔ Vials: "Save as vial"**
+- [x] **T1.1 — Calculator ↔ Vials: "Save as vial"**
   - Files: `expo/app/(tabs)/index.tsx`, `expo/app/vial-new.tsx`
   - Root cause: the calculator can compute a draw but cannot persist it as a vial; `vial-new`
     accepts no prefill. The two never connect (your "creating a vial just sits there").
@@ -112,6 +112,7 @@ not new architecture. Do not rebuild what works.
     `CalcSnapshot` if the model supports it; if not, note it and skip (don't invent schema).
   - Accept: from a valid draw, "Save as vial" opens vial-new with fields filled; saving lands
     a vial in the Vials tab whose concentration matches the calculator.
+  - Note: draw result → Save as vial deep-links `/vial-new` with vialMg/diluentMl/syringeCapacity/compoundName prefill; CalcSnapshot exists in db/types + snapshotsRepository but Vial has no snapshotId — skipped (no schema invent; addVial unchanged).
 
 - [ ] **T1.2 — Vials → Calculator: "Calculate with this vial"**
   - Files: `expo/app/(tabs)/vials.tsx` or `src/components/domain/VialCard.tsx`,

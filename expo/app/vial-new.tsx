@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
@@ -23,14 +23,28 @@ import { parseNumeric } from "@/src/engine/parse";
 import { useVialsStore } from "@/src/store/vials";
 import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
+function stringParam(value: string | string[] | undefined): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") return value[0];
+  return "";
+}
+
+function capacityFromParam(value: string): SyringeCapacity {
+  if (value === "30" || value === "50" || value === "100") return Number(value) as SyringeCapacity;
+  return 100;
+}
+
 export default function NewVialScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams();
   const addVial = useVialsStore((state) => state.addVial);
 
-  const [name, setName] = useState<string>("");
-  const [vialText, setVialText] = useState<string>("");
-  const [waterText, setWaterText] = useState<string>("");
-  const [capacity, setCapacity] = useState<SyringeCapacity>(100);
+  const [name, setName] = useState<string>(stringParam(params.compoundName));
+  const [vialText, setVialText] = useState<string>(stringParam(params.vialMg));
+  const [waterText, setWaterText] = useState<string>(stringParam(params.diluentMl));
+  const [capacity, setCapacity] = useState<SyringeCapacity>(
+    capacityFromParam(stringParam(params.syringeCapacity)),
+  );
   const [note, setNote] = useState<string>("");
 
   const vialMg = parseNumeric(vialText);

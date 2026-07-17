@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronDown, ChevronUp, NotebookPen } from "lucide-react-native";
+import { ChevronDown, ChevronUp, NotebookPen, TestTubes } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 
@@ -82,6 +82,21 @@ export default function CalculatorScreen() {
         doseUnit,
         units: String(drawResult.units),
         volumeMl: String(drawResult.volumeMl),
+        ...(compoundLabel.trim().length > 0
+          ? { compoundName: compoundLabel.trim() }
+          : {}),
+      },
+    });
+  };
+
+  const saveAsVial = () => {
+    if (drawResult === null || !drawResult.ok || vialMg === null || diluentMl === null) return;
+    router.push({
+      pathname: "/vial-new",
+      params: {
+        vialMg: String(vialMg),
+        diluentMl: String(diluentMl),
+        syringeCapacity: String(capacity),
         ...(compoundLabel.trim().length > 0
           ? { compoundName: compoundLabel.trim() }
           : {}),
@@ -363,13 +378,24 @@ export default function CalculatorScreen() {
           )}
 
           {mode === "draw" && drawResult !== null && drawResult.ok && (
-            <Button
-              label="Log this dose"
-              tone="accent"
-              onPress={logThisDose}
-              icon={<NotebookPen size={17} color={colors.onAccent} />}
-              testID="log-this-dose"
-            />
+            <View style={styles.actionRow}>
+              <Button
+                label="Log this dose"
+                tone="accent"
+                onPress={logThisDose}
+                icon={<NotebookPen size={17} color={colors.onAccent} />}
+                testID="log-this-dose"
+                style={styles.actionButton}
+              />
+              <Button
+                label="Save as vial"
+                tone="primary"
+                onPress={saveAsVial}
+                icon={<TestTubes size={17} color={colors.onDark} />}
+                testID="save-as-vial"
+                style={styles.actionButton}
+              />
+            </View>
           )}
 
           <AppText variant="caption" tone="faint" style={styles.disclaimer}>
@@ -448,6 +474,12 @@ const styles = StyleSheet.create({
   mathBody: {
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.sm,
+  },
+  actionRow: {
+    gap: spacing.sm,
+  },
+  actionButton: {
+    alignSelf: "stretch",
   },
   disclaimer: {
     textAlign: "center",
