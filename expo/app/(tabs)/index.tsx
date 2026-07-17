@@ -31,29 +31,54 @@ function unitFromConvention(value: string): MassUnit | null {
   return null;
 }
 
+function capacityFromParam(value: string): SyringeCapacity | null {
+  if (value === "30" || value === "50" || value === "100") return Number(value) as SyringeCapacity;
+  return null;
+}
+
 export default function CalculatorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
   const prefilledName = stringParam(params.compoundName);
   const prefilledUnit = unitFromConvention(stringParam(params.massUnitConvention));
+  const prefilledVial = stringParam(params.vialMg);
+  const prefilledWater = stringParam(params.diluentMl);
+  const prefilledCapacity =
+    capacityFromParam(stringParam(params.syringeCapacity)) ??
+    capacityFromParam(stringParam(params.capacity));
 
   const [mode, setMode] = useState<CalcMode>("draw");
   const [compoundLabel, setCompoundLabel] = useState<string>(prefilledName);
-  const [vialText, setVialText] = useState<string>("");
-  const [waterText, setWaterText] = useState<string>("");
+  const [vialText, setVialText] = useState<string>(prefilledVial);
+  const [waterText, setWaterText] = useState<string>(prefilledWater);
   const [doseText, setDoseText] = useState<string>("");
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefilledUnit ?? "mcg");
   const [targetUnitsText, setTargetUnitsText] = useState<string>("");
-  const [capacity, setCapacity] = useState<SyringeCapacity>(100);
+  const [capacity, setCapacity] = useState<SyringeCapacity>(prefilledCapacity ?? 100);
   const [showMath, setShowMath] = useState<boolean>(false);
 
   useEffect(() => {
     const name = stringParam(params.compoundName);
     const unit = unitFromConvention(stringParam(params.massUnitConvention));
+    const vial = stringParam(params.vialMg);
+    const water = stringParam(params.diluentMl);
+    const nextCapacity =
+      capacityFromParam(stringParam(params.syringeCapacity)) ??
+      capacityFromParam(stringParam(params.capacity));
     if (name.length > 0) setCompoundLabel(name);
     if (unit !== null) setDoseUnit(unit);
-  }, [params.compoundName, params.massUnitConvention]);
+    if (vial.length > 0) setVialText(vial);
+    if (water.length > 0) setWaterText(water);
+    if (nextCapacity !== null) setCapacity(nextCapacity);
+  }, [
+    params.compoundName,
+    params.massUnitConvention,
+    params.vialMg,
+    params.diluentMl,
+    params.syringeCapacity,
+    params.capacity,
+  ]);
 
   const vialMg = parseNumeric(vialText);
   const diluentMl = parseNumeric(waterText);

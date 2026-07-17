@@ -78,6 +78,18 @@ export default function VialsScreen() {
     disarmTimer.current = setTimeout(() => setArmedId(null), 3000);
   };
 
+  const handleCalculate = (vial: Vial) => {
+    router.push({
+      pathname: "/",
+      params: {
+        vialMg: String(vial.vialMg),
+        diluentMl: String(vial.diluentMl),
+        syringeCapacity: String(vial.syringeCapacityUnits),
+        compoundName: vial.name,
+      },
+    });
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -118,6 +130,7 @@ export default function VialsScreen() {
               nowIso={nowIso}
               deleteArmed={armedId === view.vial.id}
               onDeletePress={() => handleDeletePress(view.vial.id)}
+              onCalculate={() => handleCalculate(view.vial)}
             />
           ))
         )}

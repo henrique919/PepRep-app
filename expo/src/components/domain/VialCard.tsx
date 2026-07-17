@@ -3,6 +3,7 @@ import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
+import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import Hairline from "@/src/components/ui/Hairline";
 import type { Vial } from "@/src/db/models";
@@ -21,6 +22,7 @@ interface VialCardProps {
   nowIso: string;
   deleteArmed: boolean;
   onDeletePress: () => void;
+  onCalculate: () => void;
 }
 
 export default function VialCard({
@@ -31,6 +33,7 @@ export default function VialCard({
   nowIso,
   deleteArmed,
   onDeletePress,
+  onCalculate,
 }: VialCardProps) {
   const age = daysSince(vial.reconstitutedAtIso, nowIso);
   const ageLabel = age === 0 ? "reconstituted today" : age === 1 ? "1 day ago" : `${age} days ago`;
@@ -100,6 +103,15 @@ export default function VialCard({
           {ageLabel}
           {vial.note.length > 0 ? ` · ${vial.note}` : ""}
         </AppText>
+
+        <Button
+          label="Calculate"
+          tone="ghost"
+          compact
+          onPress={onCalculate}
+          testID={`calculate-vial-${vial.id}`}
+          style={styles.calculateButton}
+        />
       </View>
     </Card>
   );
@@ -146,5 +158,9 @@ const styles = StyleSheet.create({
   },
   deleteArmed: {
     backgroundColor: colors.dangerBg,
+  },
+  calculateButton: {
+    alignSelf: "flex-start",
+    marginTop: spacing.xs,
   },
 });

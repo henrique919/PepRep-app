@@ -114,7 +114,7 @@ not new architecture. Do not rebuild what works.
     a vial in the Vials tab whose concentration matches the calculator.
   - Note: draw result → Save as vial deep-links `/vial-new` with vialMg/diluentMl/syringeCapacity/compoundName prefill; CalcSnapshot exists in db/types + snapshotsRepository but Vial has no snapshotId — skipped (no schema invent; addVial unchanged).
 
-- [ ] **T1.2 — Vials → Calculator: "Calculate with this vial"**
+- [x] **T1.2 — Vials → Calculator: "Calculate with this vial"**
   - Files: `expo/app/(tabs)/vials.tsx` or `src/components/domain/VialCard.tsx`,
     `expo/app/(tabs)/index.tsx`
   - Root cause: a saved vial can't send its numbers back into the calculator.
@@ -125,6 +125,7 @@ not new architecture. Do not rebuild what works.
     `useEffect`.
   - Accept: tapping Calculate on a vial opens the calculator pre-filled and showing that
     vial's draw immediately.
+  - Note: VialCard Calculate deep-links `/(tabs)/` with vialMg/diluentMl/syringeCapacity/compoundName; calculator useEffect + initial state populate vialText/waterText/capacity.
 
 - [ ] **T1.3 — Reverse mode ("Draw → water") has no syringe visual**
   - Files: `expo/app/(tabs)/index.tsx` (the `mode === "water"` result block, ~L286–333)
