@@ -127,7 +127,7 @@ not new architecture. Do not rebuild what works.
     vial's draw immediately.
   - Note: VialCard Calculate deep-links `/(tabs)/` with vialMg/diluentMl/syringeCapacity/compoundName; calculator useEffect + initial state populate vialText/waterText/capacity.
 
-- [ ] **T1.3 — Reverse mode ("Draw → water") has no syringe visual**
+- [x] **T1.3 — Reverse mode ("Draw → water") has no syringe visual**
   - Files: `expo/app/(tabs)/index.tsx` (the `mode === "water"` result block, ~L286–333)
   - Root cause: `SyringeGauge` is only rendered in the `draw` branch. The reverse result knows
     the target units the user asked for, so it can render the same gauge.
@@ -136,6 +136,7 @@ not new architecture. Do not rebuild what works.
     produces.
   - Accept: the reverse calculator shows a syringe filled to the target units alongside the
     water volume.
+  - Note: water-result card renders SyringeGauge at targetUnits/capacity 100 with caption "Draw this water volume produces".
 
 - [ ] **T1.4 — Make the two calculator modes newbie-legible**
   - Files: `expo/app/(tabs)/index.tsx` (`SegmentedControl`, ~L112–120)

@@ -326,7 +326,7 @@ export default function CalculatorScreen() {
             </View>
           )}
 
-          {mode === "water" && waterResult !== null && waterResult.ok && (
+          {mode === "water" && waterResult !== null && waterResult.ok && targetUnits !== null && (
             <View style={styles.resultGroup}>
               <Card style={styles.resultCard} testID="water-result">
                 <View style={styles.overlineBlock}>
@@ -346,6 +346,13 @@ export default function CalculatorScreen() {
                 <AppText variant="label" tone="secondary" mono>
                   bacteriostatic water · one-time mix
                 </AppText>
+
+                <Hairline />
+
+                <AppText variant="caption" tone="faint">
+                  Draw this water volume produces
+                </AppText>
+                <SyringeGauge units={targetUnits} capacity={100} />
               </Card>
 
               <View style={styles.statsRow}>
