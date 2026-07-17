@@ -20,6 +20,7 @@ import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import type { MassUnit } from "@/src/engine";
 import { fmt } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
+import { formatTimeOfDay } from "@/src/engine/schedule";
 import { usePlansStore } from "@/src/store/plans";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
 import { colors, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
@@ -34,7 +35,8 @@ const DAY_OPTIONS: { value: number; label: string }[] = [
   { value: 6, label: "Sat" },
 ];
 
-const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const HOURS: number[] = Array.from({ length: 24 }, (_, index) => index);
+const MINUTES: number[] = [0, 15, 30, 45];
 
 export default function NewPlanScreen() {
   const router = useRouter();
@@ -47,11 +49,16 @@ export default function NewPlanScreen() {
   const [doseUnit, setDoseUnit] = useState<MassUnit>("mcg");
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
   const [timesLocal, setTimesLocal] = useState<string[]>([]);
-  const [timeDraft, setTimeDraft] = useState<string>("");
+  const [hourText, setHourText] = useState<string>("8");
+  const [minute, setMinute] = useState<number>(0);
+  const [timeError, setTimeError] = useState<string | null>(null);
   const [vialId, setVialId] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState<boolean>(false);
 
   const doseValue = parseNumeric(doseText);
+  const parsedHour = parseNumeric(hourText);
+  const hourValid =
+    parsedHour !== null && Number.isInteger(parsedHour) && HOURS.includes(parsedHour);
 
   const canSave = useMemo(() => {
     return (
@@ -70,14 +77,17 @@ export default function NewPlanScreen() {
   };
 
   const addTime = () => {
-    const trimmed = timeDraft.trim();
-    if (!TIME_PATTERN.test(trimmed)) return;
-    if (timesLocal.includes(trimmed)) {
-      setTimeDraft("");
+    if (!hourValid || parsedHour === null) {
+      setTimeError("Enter an hour from 0 to 23.");
       return;
     }
-    setTimesLocal((prev) => [...prev, trimmed].sort());
-    setTimeDraft("");
+    const normalised = formatTimeOfDay({ hour: parsedHour, minute });
+    if (timesLocal.includes(normalised)) {
+      setTimeError("That time is already added.");
+      return;
+    }
+    setTimesLocal((prev) => [...prev, normalised].sort());
+    setTimeError(null);
   };
 
   const removeTime = (time: string) => {
@@ -202,27 +212,67 @@ export default function NewPlanScreen() {
 
           <View style={styles.section}>
             <AppText variant="overline" tone="faint">
-              Time(s) — HH:mm
+              Time(s)
             </AppText>
-            <View style={styles.timeRow}>
-              <View style={styles.timeField}>
+            <View style={styles.pickerRow}>
+              <View style={styles.hourField}>
                 <Field
-                  label="Add a time"
-                  value={timeDraft}
-                  onChangeText={setTimeDraft}
-                  placeholder="08:00"
-                  testID="input-plan-time"
+                  label="Hour (0–23)"
+                  value={hourText}
+                  onChangeText={(text) => {
+                    setHourText(text);
+                    if (timeError) setTimeError(null);
+                  }}
+                  suffix="h"
+                  placeholder="8"
+                  keyboardType="number-pad"
+                  testID="input-plan-time-hour"
                 />
               </View>
-              <Button
-                label="Add"
-                tone="ghost"
-                compact
-                onPress={addTime}
-                icon={<Plus size={16} color={colors.ink} />}
-                testID="add-plan-time"
-              />
+              <View style={styles.minuteChips}>
+                <AppText variant="overline" tone="faint">
+                  Minute
+                </AppText>
+                <View style={styles.minuteChipRow}>
+                  {MINUTES.map((candidate) => {
+                    const active = minute === candidate;
+                    return (
+                      <Pressable
+                        key={candidate}
+                        onPress={() => {
+                          setMinute(candidate);
+                          if (timeError) setTimeError(null);
+                        }}
+                        style={[styles.minuteChip, active && styles.minuteChipActive]}
+                        testID={`plan-minute-${candidate}`}
+                      >
+                        <AppText
+                          variant="label"
+                          mono
+                          weight={active ? "semibold" : "regular"}
+                          tone={active ? "onAccent" : "secondary"}
+                        >
+                          {String(candidate).padStart(2, "0")}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </View>
+              </View>
             </View>
+            <Button
+              label="Add time"
+              tone="ghost"
+              compact
+              onPress={addTime}
+              icon={<Plus size={16} color={colors.ink} />}
+              testID="add-plan-time"
+            />
+            {timeError !== null && (
+              <AppText variant="caption" tone="danger" testID="plan-time-error">
+                {timeError}
+              </AppText>
+            )}
             {timesLocal.length > 0 && (
               <View style={styles.chipsRow}>
                 {timesLocal.map((time) => (
@@ -355,6 +405,35 @@ const styles = StyleSheet.create({
   },
   timeField: {
     flex: 1,
+  },
+  pickerRow: {
+    flexDirection: "row",
+    gap: spacing.lg,
+  },
+  hourField: {
+    flex: 1,
+  },
+  minuteChips: {
+    flex: 1.4,
+    gap: spacing.xs + 2,
+  },
+  minuteChipRow: {
+    flexDirection: "row",
+    gap: spacing.xs,
+  },
+  minuteChip: {
+    minWidth: 44,
+    minHeight: 44,
+    borderRadius: radius.md,
+    borderWidth: hairlineWidth,
+    borderColor: colors.hairline,
+    backgroundColor: colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  minuteChipActive: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   unitToggle: {
     width: 118,

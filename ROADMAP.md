@@ -52,7 +52,7 @@ not new architecture. Do not rebuild what works.
   - Accept: `cd expo && bun run typecheck && bun run test` both run and pass.
   - Note: added typecheck/test scripts; fixed timezone-brittle schedule.test.ts so jest passes in non-UTC zones.
 
-- [ ] **T0.2 — New Plan: "Add time" does nothing → and so "Create plan" is permanently dead**
+- [x] **T0.2 — New Plan: "Add time" does nothing → and so "Create plan" is permanently dead**
   - Files: `expo/app/plans/new.tsx`
   - Root cause: `addTime()` requires the strict regex `^([01]\d|2[0-3]):([0-5]\d)$`, so
     typing `8:00`, `8`, `8am` (or anything without a leading zero) silently returns and
@@ -66,6 +66,7 @@ not new architecture. Do not rebuild what works.
     show an inline validation message on bad input — never fail silently.
   - Accept: entering a time with no leading zero adds a chip; once a compound, dose, ≥1 day
     and ≥1 time exist, "Create plan" enables and creates the plan; it then appears on Today.
+  - Note: replaced free-text HH:mm with hour 0–23 field + minute chips; normalises via formatTimeOfDay; inline errors on bad/duplicate times.
 
 - [ ] **T0.3 — Ask input text is invisible (dark-on-dark on web)**
   - Files: `expo/src/components/ui/Field.tsx`, and add `expo/app/+html.tsx` if absent.
