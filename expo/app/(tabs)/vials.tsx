@@ -8,6 +8,7 @@ import VialCard from "@/src/components/domain/VialCard";
 import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
 import EmptyState from "@/src/components/ui/EmptyState";
+import FilterChips from "@/src/components/ui/FilterChips";
 import Screen from "@/src/components/ui/Screen";
 import type { Vial } from "@/src/db/models";
 import { summaryFromTxns } from "@/src/db/vialBalance";
@@ -25,6 +26,10 @@ interface VialView {
   lastDoseMcg: number | null;
 }
 
+type VialFilter = "all" | "active" | "low";
+
+const LOW_THRESHOLD = 25;
+
 export default function VialsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
@@ -34,6 +39,7 @@ export default function VialsScreen() {
   const events = useLedgerStore((state) => state.events);
 
   const [armedId, setArmedId] = useState<string | null>(null);
+  const [filter, setFilter] = useState<VialFilter>("all");
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -58,16 +64,22 @@ export default function VialsScreen() {
       const lastDoseMcg = lastEvent?.doseMcg ?? null;
       return {
         vial,
-        summary: summaryFromTxns(
-          vial.vialMg,
-          vialTxns,
-          lastDoseMcg ?? undefined,
-        ),
+        summary: summaryFromTxns(vial.vialMg, vialTxns, lastDoseMcg ?? undefined),
         concentration: vialConcentration(vial.vialMg, vial.diluentMl),
         lastDoseMcg,
       };
     });
   }, [vials, txns, events]);
+
+  const filtered = useMemo(() => {
+    if (filter === "low") {
+      return views.filter((view) => view.summary.remainingPercent <= LOW_THRESHOLD);
+    }
+    if (filter === "active") {
+      return views.filter((view) => view.summary.remainingPercent > LOW_THRESHOLD);
+    }
+    return views;
+  }, [views, filter]);
 
   const handleDeletePress = (id: string) => {
     if (armedId === id) {
@@ -85,20 +97,36 @@ export default function VialsScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
-            <AppText variant="overline" tone="faint">
+            <AppText variant="overline" tone="secondary">
               What you have on hand
             </AppText>
             <AppText variant="display">Vials</AppText>
+            <AppText variant="caption" tone="secondary">
+              {views.length} active
+            </AppText>
           </View>
           <Button
             label="New"
-            tone="accent"
+            tone="primary"
             compact
             onPress={() => router.push("/vial-new")}
-            icon={<Plus size={16} color={colors.onAccent} />}
+            icon={<Plus size={16} color={colors.onSolid} />}
             testID="open-vial-new"
           />
         </View>
+
+        {views.length > 0 ? (
+          <FilterChips<VialFilter>
+            value={filter}
+            onChange={setFilter}
+            options={[
+              { value: "all", label: "All" },
+              { value: "active", label: "Active" },
+              { value: "low", label: "Low" },
+            ]}
+            testID="vial-filters"
+          />
+        ) : null}
 
         {views.length === 0 ? (
           <EmptyState
@@ -109,8 +137,15 @@ export default function VialsScreen() {
               <Button label="Add a vial" tone="primary" onPress={() => router.push("/vial-new")} />
             }
           />
+        ) : filtered.length === 0 ? (
+          <EmptyState
+            icon={<TestTubes size={28} color={colors.inkFaint} />}
+            title="Nothing in this filter"
+            caption="Try All or Active — Low only shows vials at or under 25% remaining."
+            action={<Button label="Show all" tone="primary" onPress={() => setFilter("all")} />}
+          />
         ) : (
-          views.map((view) => (
+          filtered.map((view) => (
             <Pressable
               key={view.vial.id}
               onPress={() => router.push(`/vial/${view.vial.id}` as Href)}
@@ -146,5 +181,6 @@ const styles = StyleSheet.create({
   },
   headerText: {
     gap: spacing.xs,
+    flex: 1,
   },
 });

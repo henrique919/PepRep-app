@@ -59,8 +59,10 @@ export default function ReferenceScreen() {
             <MessageCircleQuestion size={22} color={colors.onAccent} />
           </View>
           <View style={styles.askText}>
-            <AppText variant="heading">Ask</AppText>
-            <AppText variant="caption" tone="secondary">
+            <AppText variant="heading" tone="onDark">
+              Ask
+            </AppText>
+            <AppText variant="caption" tone="onDarkSecondary">
               Reference answers from PepRep&apos;s compound data
             </AppText>
           </View>

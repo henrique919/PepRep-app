@@ -4,6 +4,7 @@ import React from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
+import BoldTallyMark from "@/src/components/ui/BoldTallyMark";
 import Card from "@/src/components/ui/Card";
 import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
@@ -27,6 +28,7 @@ export default function AboutScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.hero}>
+          <BoldTallyMark size={48} />
           <AppText variant="overline" tone="faint">
             PepRep 1.0.0
           </AppText>

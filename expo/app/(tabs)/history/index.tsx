@@ -1,12 +1,13 @@
 import { useRouter } from "expo-router";
 import { CalendarDays, NotebookText, Plus } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
+import FilterChips from "@/src/components/ui/FilterChips";
 import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
 import StatusPill, { type ScheduleStatus } from "@/src/components/ui/StatusPill";
@@ -14,12 +15,6 @@ import type { DoseEvent } from "@/src/db/types";
 import { fmt } from "@/src/engine";
 import { compareIsoDesc, formatClock, formatDayHeading } from "@/src/engine/schedule";
 import { eventDayKey, siteLabel } from "@/src/history/display";
-
-function statusToPill(status: DoseEvent["status"]): ScheduleStatus {
-  if (status === "completed") return "logged";
-  if (status === "skipped") return "skipped";
-  return "missed";
-}
 import { useLedgerStore } from "@/src/store/ledger";
 import { useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
@@ -32,12 +27,19 @@ interface DayGroup {
   events: DoseEvent[];
 }
 
+function statusToPill(status: DoseEvent["status"]): ScheduleStatus {
+  if (status === "completed") return "logged";
+  if (status === "skipped") return "skipped";
+  return "missed";
+}
+
 export default function HistoryTimelineScreen() {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const events = useLedgerStore((state) => state.events);
   const vials = useVialsStore((state) => state.vials);
+  const [compoundFilter, setCompoundFilter] = useState<string>("all");
 
   const nowIso = new Date().toISOString();
 
@@ -46,9 +48,22 @@ export default function HistoryTimelineScreen() {
     [events],
   );
 
+  const compoundOptions = useMemo(() => {
+    const names = new Set<string>();
+    for (const event of sorted) {
+      if (event.compoundName.trim().length > 0) names.add(event.compoundName);
+    }
+    return ["all", ...[...names].sort((a, b) => a.localeCompare(b))];
+  }, [sorted]);
+
+  const filtered = useMemo(() => {
+    if (compoundFilter === "all") return sorted;
+    return sorted.filter((event) => event.compoundName === compoundFilter);
+  }, [sorted, compoundFilter]);
+
   const groups: DayGroup[] = useMemo(() => {
     const byDay = new Map<string, DoseEvent[]>();
-    for (const event of sorted) {
+    for (const event of filtered) {
       const key = eventDayKey(event);
       const bucket = byDay.get(key);
       if (bucket !== undefined) bucket.push(event);
@@ -59,7 +74,7 @@ export default function HistoryTimelineScreen() {
       heading: formatDayHeading(key, nowIso),
       events: dayEvents,
     }));
-  }, [sorted, nowIso]);
+  }, [filtered, nowIso]);
 
   const vialName = (vialId: string | undefined): string | null => {
     if (vialId === undefined) return null;
@@ -96,6 +111,18 @@ export default function HistoryTimelineScreen() {
           </View>
         </View>
 
+        {sorted.length > 0 && compoundOptions.length > 1 ? (
+          <FilterChips
+            value={compoundFilter}
+            onChange={setCompoundFilter}
+            options={compoundOptions.map((name) => ({
+              value: name,
+              label: name === "all" ? "All" : name,
+            }))}
+            testID="history-filters"
+          />
+        ) : null}
+
         {sorted.length === 0 ? (
           <EmptyState
             icon={<NotebookText size={28} color={colors.inkFaint} />}
@@ -103,6 +130,15 @@ export default function HistoryTimelineScreen() {
             caption="Logged, skipped, and missed doses appear here. Events are never deleted from storage."
             action={
               <Button label="Log a dose" tone="primary" onPress={() => router.push("/log-entry")} />
+            }
+          />
+        ) : groups.length === 0 ? (
+          <EmptyState
+            icon={<NotebookText size={28} color={colors.inkFaint} />}
+            title="No matching records"
+            caption="Try another compound filter or All."
+            action={
+              <Button label="Show all" tone="primary" onPress={() => setCompoundFilter("all")} />
             }
           />
         ) : (
@@ -131,7 +167,12 @@ export default function HistoryTimelineScreen() {
                         </AppText>
                         <View style={styles.body}>
                           <View style={styles.titleRow}>
-                            <AppText variant="body" weight="semibold" numberOfLines={1} style={styles.flex}>
+                            <AppText
+                              variant="body"
+                              weight="semibold"
+                              numberOfLines={1}
+                              style={styles.flex}
+                            >
                               {event.compoundName}
                             </AppText>
                             {voided ? (
@@ -141,9 +182,7 @@ export default function HistoryTimelineScreen() {
                                 </AppText>
                               </View>
                             ) : (
-                              <AppText variant="caption" tone="faint">
-                                {statusLabel(event.status)}
-                              </AppText>
+                              <StatusPill status={statusToPill(event.status)} />
                             )}
                           </View>
                           <View style={styles.metaRow}>
@@ -175,84 +214,82 @@ export default function HistoryTimelineScreen() {
   );
 }
 
-
-
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
-  content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    justifyContent: "space-between",
-    marginTop: spacing.sm,
-    gap: spacing.sm,
-  },
-  headerText: {
-    gap: spacing.xs,
-    flex: 1,
-  },
-  headerActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  iconButton: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    backgroundColor: colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-  },
-  group: {
-    gap: spacing.sm,
-  },
-  groupHeading: {
-    paddingHorizontal: spacing.xs,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: spacing.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-  },
-  rowVoided: {
-    opacity: 0.72,
-  },
-  time: {
-    marginTop: 3,
-    width: 44,
-  },
-  body: {
-    flex: 1,
-    gap: 2,
-  },
-  titleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  flex: {
-    flex: 1,
-  },
-  metaRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    alignItems: "center",
-    gap: spacing.xs,
-  },
-  voidBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: radius.sm,
-    backgroundColor: colors.dangerBg,
-  },
-});
+    content: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "flex-end",
+      justifyContent: "space-between",
+      marginTop: spacing.sm,
+      gap: spacing.sm,
+    },
+    headerText: {
+      gap: spacing.xs,
+      flex: 1,
+    },
+    headerActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    iconButton: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.pill,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: hairlineWidth,
+      borderColor: colors.hairline,
+    },
+    group: {
+      gap: spacing.sm,
+    },
+    groupHeading: {
+      paddingHorizontal: spacing.xs,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.md,
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.md,
+    },
+    rowVoided: {
+      opacity: 0.55,
+    },
+    time: {
+      width: 52,
+      paddingTop: 2,
+    },
+    body: {
+      flex: 1,
+      gap: 4,
+    },
+    titleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    flex: {
+      flex: 1,
+    },
+    metaRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      gap: 2,
+    },
+    voidBadge: {
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 2,
+      borderRadius: radius.pill,
+      backgroundColor: colors.dangerBg,
+    },
+  });
 }
