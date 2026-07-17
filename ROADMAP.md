@@ -150,7 +150,7 @@ not new architecture. Do not rebuild what works.
   - Accept: a first-time reader can tell the two modes apart without knowing the jargon.
   - Note: SegmentedControl labels + mode-dependent caption subtitle only; CalcMode draw/water unchanged.
 
-- [ ] **T1.5 — Plan reminders / "create alarm notification for doses"**
+- [x] **T1.5 — Plan reminders / "create alarm notification for doses"**
   - Files: `expo/app/plans/new.tsx`, `expo/src/store/reminders.ts`, `src/store/plans.ts`
   - Root cause: `reminders.ts` schedules real local notifications but only a single **daily**
     time, is a standalone store, and is **not connected to plans**. Plans carry
@@ -164,6 +164,7 @@ not new architecture. Do not rebuild what works.
     the Settings screen already uses; never render a dead toggle on web.
   - Accept: creating a plan with the reminder on schedules a notification per day/time on
     device; deleting the plan cancels them; web shows the info note, not a broken control.
+  - Note: scheduleWeekly + cancel helper; Plan.reminderNotificationIds; addPlan remindMe schedules day×time weekly copy; archivePlan cancels; native toggle / web info note.
 
 - [ ] **T1.6 — [NEEDS-INPUT] Ask: restore a real system role + fix truncation + brevity**
   - Files: `expo/app/(tabs)/reference/ask.tsx` (~L57–68), `expo/src/ask/client.ts`,

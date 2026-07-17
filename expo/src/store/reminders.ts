@@ -23,17 +23,21 @@ async function ensurePermission(): Promise<boolean> {
   return requested.granted;
 }
 
+async function ensureAndroidChannel(): Promise<void> {
+  if (Platform.OS === "android") {
+    await Notifications.setNotificationChannelAsync("reminders", {
+      name: "Reminders",
+      importance: Notifications.AndroidImportance.DEFAULT,
+    });
+  }
+}
+
 async function scheduleDaily(reminder: Reminder): Promise<string | null> {
   if (Platform.OS === "web") return null;
   try {
     const granted = await ensurePermission();
     if (!granted) return null;
-    if (Platform.OS === "android") {
-      await Notifications.setNotificationChannelAsync("reminders", {
-        name: "Reminders",
-        importance: Notifications.AndroidImportance.DEFAULT,
-      });
-    }
+    await ensureAndroidChannel();
     return await Notifications.scheduleNotificationAsync({
       content: {
         title: reminder.label.length > 0 ? reminder.label : "PepRep reminder",
@@ -52,13 +56,54 @@ async function scheduleDaily(reminder: Reminder): Promise<string | null> {
   }
 }
 
-async function cancelScheduled(notificationId: string | null): Promise<void> {
-  if (notificationId === null || Platform.OS === "web") return;
+export type WeeklyReminderInput = {
+  /** Expo weekday: 1 = Sunday … 7 = Saturday (JS dayOfWeek + 1). */
+  weekday: number;
+  hour: number;
+  minute: number;
+  title: string;
+  body: string;
+};
+
+/** Schedule a weekly local notification. Returns null on web / denied / failure. */
+export async function scheduleWeekly(input: WeeklyReminderInput): Promise<string | null> {
+  if (Platform.OS === "web") return null;
+  try {
+    const granted = await ensurePermission();
+    if (!granted) return null;
+    await ensureAndroidChannel();
+    return await Notifications.scheduleNotificationAsync({
+      content: {
+        title: input.title,
+        body: input.body,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday: input.weekday,
+        hour: input.hour,
+        minute: input.minute,
+        channelId: Platform.OS === "android" ? "reminders" : undefined,
+      },
+    });
+  } catch (error) {
+    console.error("[reminders] Failed to schedule weekly notification", error);
+    return null;
+  }
+}
+
+export async function cancelScheduledNotification(
+  notificationId: string | null | undefined,
+): Promise<void> {
+  if (notificationId == null || Platform.OS === "web") return;
   try {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
   } catch (error) {
     console.error("[reminders] Failed to cancel notification", error);
   }
+}
+
+async function cancelScheduled(notificationId: string | null): Promise<void> {
+  await cancelScheduledNotification(notificationId);
 }
 
 interface RemindersState {

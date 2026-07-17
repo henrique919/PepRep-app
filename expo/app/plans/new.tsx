@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   View,
 } from "react-native";
 import { useShallow } from "zustand/react/shallow";
@@ -53,7 +54,9 @@ export default function NewPlanScreen() {
   const [minute, setMinute] = useState<number>(0);
   const [timeError, setTimeError] = useState<string | null>(null);
   const [vialId, setVialId] = useState<string | undefined>(undefined);
+  const [remindMe, setRemindMe] = useState<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
+  const isWeb = Platform.OS === "web";
 
   const doseValue = parseNumeric(doseText);
   const parsedHour = parseNumeric(hourText);
@@ -105,6 +108,7 @@ export default function NewPlanScreen() {
       daysOfWeek,
       timesLocal,
       vialId,
+      remindMe: !isWeb && remindMe,
     })
       .then(() => router.back())
       .catch((error) => {
@@ -324,6 +328,30 @@ export default function NewPlanScreen() {
             </View>
           )}
 
+          <View style={styles.section}>
+            <AppText variant="overline" tone="faint">
+              Reminders
+            </AppText>
+            {isWeb ? (
+              <AppText variant="label" tone="secondary" testID="plan-reminders-web-note">
+                Reminders use local notifications and are available in the mobile app.
+              </AppText>
+            ) : (
+              <View style={styles.remindRow}>
+                <AppText variant="body" weight="medium" style={styles.remindLabel}>
+                  Remind me for this plan
+                </AppText>
+                <Switch
+                  value={remindMe}
+                  onValueChange={setRemindMe}
+                  trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
+                  thumbColor={colors.surface}
+                  testID="plan-remind-me"
+                />
+              </View>
+            )}
+          </View>
+
           <Button
             label="Create plan"
             tone="accent"
@@ -437,6 +465,15 @@ const styles = StyleSheet.create({
   },
   unitToggle: {
     width: 118,
+  },
+  remindRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    minHeight: 44,
+  },
+  remindLabel: {
+    flex: 1,
   },
   hint: {
     textAlign: "center",

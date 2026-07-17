@@ -66,6 +66,8 @@ export interface Plan {
   createdAt: string;
   /** Delete = archive. History is never removed. */
   archivedAt?: string;
+  /** Local weekly notification ids scheduled for this plan (native only). */
+  reminderNotificationIds?: string[];
   versions: ScheduleVersion[];
 }
 
