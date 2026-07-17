@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "PepRep",
-    "slug": "fdbzggh0h14wkaztx609o",
+    "slug": "peprep-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -25,6 +25,7 @@
       "package": "app.rork.fdbzggh0h14wkaztx609o"
     },
     "web": {
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -40,6 +41,15 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {
+        "origin": "https://rork.com/"
+      },
+      "eas": {
+        "projectId": "d5833765-055d-4ee7-98e3-895ce3f66766"
+      }
+    },
+    "owner": "henrique919"
   }
 }
