@@ -10,11 +10,16 @@ import {
   nextDailyOccurrence,
 } from "../schedule";
 
-const NOW = "2026-07-17T10:00:00.000Z";
+/** Local-calendar anchors — date-fns day helpers use the host timezone. */
+const NOW = new Date(2026, 6, 17, 10, 0, 0).toISOString();
+const DAY_KEY_TODAY = "2026-07-17";
 
 describe("log grouping", () => {
   it("produces a stable day key", () => {
-    expect(dayKey("2026-07-17T08:30:00.000Z")).toBe(dayKey("2026-07-17T23:59:00.000Z"));
+    const morning = new Date(2026, 6, 17, 8, 30, 0).toISOString();
+    const evening = new Date(2026, 6, 17, 23, 59, 0).toISOString();
+    expect(dayKey(morning)).toBe(dayKey(evening));
+    expect(dayKey(morning)).toBe(DAY_KEY_TODAY);
   });
 
   it("labels today and yesterday", () => {
@@ -24,30 +29,33 @@ describe("log grouping", () => {
   });
 
   it("sorts newest first", () => {
-    const isos = ["2026-07-15T08:00:00.000Z", "2026-07-17T08:00:00.000Z", "2026-07-16T08:00:00.000Z"];
-    const sorted = [...isos].sort(compareIsoDesc);
-    expect(sorted[0]).toBe("2026-07-17T08:00:00.000Z");
-    expect(sorted[2]).toBe("2026-07-15T08:00:00.000Z");
+    const a = new Date(2026, 6, 15, 8, 0, 0).toISOString();
+    const b = new Date(2026, 6, 17, 8, 0, 0).toISOString();
+    const c = new Date(2026, 6, 16, 8, 0, 0).toISOString();
+    const sorted = [a, b, c].sort(compareIsoDesc);
+    expect(sorted[0]).toBe(b);
+    expect(sorted[2]).toBe(a);
   });
 
   it("counts entries in a rolling window of calendar days", () => {
     const isos = [
-      "2026-07-17T08:00:00.000Z",
-      "2026-07-15T08:00:00.000Z",
-      "2026-07-11T08:00:00.000Z",
-      "2026-06-01T08:00:00.000Z",
+      new Date(2026, 6, 17, 8, 0, 0).toISOString(),
+      new Date(2026, 6, 15, 8, 0, 0).toISOString(),
+      new Date(2026, 6, 11, 8, 0, 0).toISOString(),
+      new Date(2026, 5, 1, 8, 0, 0).toISOString(),
     ];
     expect(countInLastDays(isos, NOW, 7)).toBe(3);
     expect(countInLastDays(isos, NOW, 1)).toBe(1);
   });
 
   it("computes whole days since a timestamp", () => {
-    expect(daysSince("2026-07-14T23:00:00.000Z", NOW)).toBe(3);
+    const threeDaysAgo = new Date(2026, 6, 14, 23, 0, 0).toISOString();
+    expect(daysSince(threeDaysAgo, NOW)).toBe(3);
     expect(daysSince(NOW, NOW)).toBe(0);
   });
 
   it("formats clock strings", () => {
-    expect(formatClock("2026-07-17T08:05:00.000Z")).toMatch(/^\d{2}:\d{2}$/);
+    expect(formatClock(new Date(2026, 6, 17, 8, 5, 0).toISOString())).toMatch(/^\d{2}:\d{2}$/);
   });
 });
 
