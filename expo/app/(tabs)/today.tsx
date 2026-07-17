@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
-import { CalendarDays, Settings2 } from "lucide-react-native";
+import { CalendarDays } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useShallow } from "zustand/react/shallow";
@@ -10,6 +10,7 @@ import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Screen from "@/src/components/ui/Screen";
+import StatusPill from "@/src/components/ui/StatusPill";
 import { occurrenceKey } from "@/src/db/occurrence";
 import type { DoseEvent, Plan, ScheduleVersion } from "@/src/db/types";
 import { fmt } from "@/src/engine";
@@ -98,31 +99,24 @@ export default function TodayScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.headerRow}>
           <View style={styles.headerText}>
-            <AppText variant="overline" tone="faint">
+            <AppText variant="overline" tone="secondary">
               {format(now, "EEEE")}
             </AppText>
-            <AppText variant="title">{format(now, "d MMMM yyyy")}</AppText>
+            <AppText variant="display">Today</AppText>
+            <AppText variant="caption" tone="secondary">
+              {format(now, "d MMMM yyyy")}
+            </AppText>
           </View>
-          <View style={styles.headerActions}>
-            <Pressable
-              onPress={() => router.push("/plans")}
-              hitSlop={8}
-              style={styles.gearButton}
-              testID="open-plans"
-            >
-              <AppText variant="caption" weight="semibold">
-                Plans
-              </AppText>
-            </Pressable>
-            <Pressable
-              onPress={() => router.push("/settings")}
-              hitSlop={8}
-              style={styles.gearButton}
-              testID="open-settings"
-            >
-              <Settings2 size={20} color={colors.ink} />
-            </Pressable>
-          </View>
+          <Pressable
+            onPress={() => router.push("/plans")}
+            hitSlop={8}
+            style={styles.gearButton}
+            testID="open-plans"
+          >
+            <AppText variant="caption" weight="semibold">
+              Plans
+            </AppText>
+          </Pressable>
         </View>
 
         {plans.length === 0 ? (
@@ -170,20 +164,9 @@ export default function TodayScreen() {
                       {fmt(row.version.doseValue)} {row.version.doseUnit}
                     </AppText>
                   </View>
-                  {isCompleted && (
-                    <View style={styles.statusPill}>
-                      <AppText variant="caption" weight="semibold" tone="secondary">
-                        Logged
-                      </AppText>
-                    </View>
-                  )}
-                  {isSkipped && (
-                    <View style={styles.statusPill}>
-                      <AppText variant="caption" weight="semibold" tone="faint">
-                        Skipped
-                      </AppText>
-                    </View>
-                  )}
+                  {isCompleted ? <StatusPill status="logged" /> : null}
+                  {isSkipped ? <StatusPill status="skipped" /> : null}
+                  {!isCompleted && !isSkipped ? <StatusPill status="due" /> : null}
                 </View>
 
                 {isCompleted && event !== undefined ? (
@@ -202,7 +185,7 @@ export default function TodayScreen() {
                   <View style={styles.actions}>
                     <Button
                       label="Log"
-                      tone="accent"
+                      tone="primary"
                       compact
                       onPress={() => openLog(row)}
                       testID={`log-${row.key}`}

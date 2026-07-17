@@ -69,10 +69,15 @@ export default function AppText({
           ? "semibold"
           : "regular";
   const finalWeight = weight ?? defaultWeight;
+  const isDisplay = variant === "display" || variant === "title";
   const fontFamily =
     mono || variant === "readout" || variant === "gauge"
       ? monoFamily[finalWeight]
-      : uiFamily[finalWeight];
+      : isDisplay
+        ? finalWeight === "bold" || finalWeight === "semibold"
+          ? fonts.display
+          : fonts.displaySemi
+        : uiFamily[finalWeight];
 
   const toneColor: Record<Tone, string> = {
     ink: colors.ink,
@@ -91,6 +96,7 @@ export default function AppText({
     ...styles[variant],
     fontFamily,
     color: toneColor[tone],
+    ...(isDisplay ? { letterSpacing: letterSpacing.tight } : null),
   };
 
   return (

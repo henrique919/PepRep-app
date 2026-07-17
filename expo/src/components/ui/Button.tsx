@@ -39,6 +39,7 @@ export default function Button({
     onPress();
   };
 
+  // Mineral: primary = carbon fill + volt label; accent = volt fill + dark label.
   const textTone =
     tone === "accent"
       ? "onAccent"

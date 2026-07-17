@@ -1,7 +1,7 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { Plus, TestTubes } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 
 import VialCard from "@/src/components/domain/VialCard";
@@ -88,7 +88,7 @@ export default function VialsScreen() {
             <AppText variant="overline" tone="faint">
               What you have on hand
             </AppText>
-            <AppText variant="title">Vials</AppText>
+            <AppText variant="display">Vials</AppText>
           </View>
           <Button
             label="New"
@@ -111,16 +111,20 @@ export default function VialsScreen() {
           />
         ) : (
           views.map((view) => (
-            <VialCard
+            <Pressable
               key={view.vial.id}
-              vial={view.vial}
-              summary={view.summary}
-              concentration={view.concentration}
-              lastDoseMcg={view.lastDoseMcg}
-              nowIso={nowIso}
-              deleteArmed={armedId === view.vial.id}
-              onDeletePress={() => handleDeletePress(view.vial.id)}
-            />
+              onPress={() => router.push(`/vial/${view.vial.id}` as Href)}
+            >
+              <VialCard
+                vial={view.vial}
+                summary={view.summary}
+                concentration={view.concentration}
+                lastDoseMcg={view.lastDoseMcg}
+                nowIso={nowIso}
+                deleteArmed={armedId === view.vial.id}
+                onDeletePress={() => handleDeletePress(view.vial.id)}
+              />
+            </Pressable>
           ))
         )}
       </ScrollView>

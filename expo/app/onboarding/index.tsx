@@ -4,6 +4,7 @@ import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native"
 
 import SyringeGauge from "@/src/components/domain/SyringeGauge";
 import AppText from "@/src/components/ui/AppText";
+import BoldTallyMark from "@/src/components/ui/BoldTallyMark";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import Screen from "@/src/components/ui/Screen";
@@ -12,7 +13,9 @@ import {
   CURRENT_SAFETY_ACK_VERSION,
   useSettingsStore,
 } from "@/src/store/settings";
-import { colors, DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { useTheme } from "@/src/theme";
+import type { ColorTokens } from "@/src/theme/tokens";
+import { DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
 type Step = "intro" | "safety" | "draw";
 
@@ -26,6 +29,8 @@ const DEMO = {
 };
 
 export default function OnboardingScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const completeOnboarding = useSettingsStore((state) => state.completeOnboarding);
   const [step, setStep] = useState<Step>("intro");
@@ -62,13 +67,16 @@ export default function OnboardingScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <AppText variant="overline" tone="faint">
-          PepRep · first run
-        </AppText>
+        <View style={styles.brandRow}>
+          <BoldTallyMark size={36} />
+          <AppText variant="overline" tone="secondary">
+            PepRep · first run
+          </AppText>
+        </View>
 
         {step === "intro" && (
           <View style={styles.block} testID="onboarding-intro">
-            <AppText variant="title">A measurement instrument,{"\n"}not an advisor.</AppText>
+            <AppText variant="display">A measurement instrument,{"\n"}not an advisor.</AppText>
             <AppText variant="body" tone="secondary">
               You enter every number. PepRep does the reconstitution arithmetic, shows the
               working, and keeps an auditable record of what you actually did.
@@ -84,7 +92,7 @@ export default function OnboardingScreen() {
             </Card>
             <Button
               label="Continue"
-              tone="accent"
+              tone="primary"
               onPress={() => setStep("safety")}
               testID="onboarding-continue-intro"
             />
@@ -93,7 +101,7 @@ export default function OnboardingScreen() {
 
         {step === "safety" && (
           <View style={styles.block} testID="onboarding-safety">
-            <AppText variant="title">One acknowledgement</AppText>
+            <AppText variant="display">One acknowledgement</AppText>
             <AppText variant="body" tone="secondary">
               {DISCLAIMER}
             </AppText>
@@ -115,7 +123,7 @@ export default function OnboardingScreen() {
             </Pressable>
             <Button
               label="Continue"
-              tone="accent"
+              tone="primary"
               onPress={() => setStep("draw")}
               disabled={!acked}
               testID="onboarding-continue-safety"
@@ -130,7 +138,7 @@ export default function OnboardingScreen() {
 
         {step === "draw" && draw.ok && (
           <View style={styles.block} testID="onboarding-draw">
-            <AppText variant="title">Your first draw</AppText>
+            <AppText variant="display">Your first draw</AppText>
             <AppText variant="body" tone="secondary">
               Example only — replace these with your own vial numbers later. Same math the
               calculator uses.
@@ -161,7 +169,7 @@ export default function OnboardingScreen() {
             </View>
             <Button
               label="Enter PepRep"
-              tone="accent"
+              tone="primary"
               onPress={finish}
               disabled={finishing}
               testID="onboarding-finish"
@@ -175,7 +183,7 @@ export default function OnboardingScreen() {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <View style={styles.row}>
+    <View style={rowStyles.row}>
       <AppText variant="caption" tone="faint">
         {label}
       </AppText>
@@ -186,68 +194,78 @@ function Row({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-    paddingBottom: spacing.xxl,
-  },
-  block: {
-    gap: spacing.lg,
-  },
-  card: {
-    gap: spacing.sm,
-  },
-  ackRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    padding: spacing.md,
-    borderRadius: radius.md,
-    borderWidth: hairlineWidth,
-    borderColor: colors.hairline,
-    backgroundColor: colors.surface,
-  },
-  ackRowActive: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accentSoft,
-  },
-  checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: radius.sm,
-    borderWidth: hairlineWidth,
-    borderColor: colors.inkFaint,
-    backgroundColor: colors.surface,
-  },
-  checkboxActive: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
-  },
-  ackText: {
-    flex: 1,
-  },
-  hint: {
-    textAlign: "center",
-  },
-  inputsCard: {
-    gap: spacing.md,
-  },
+const rowStyles = StyleSheet.create({
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  resultPanel: {
-    backgroundColor: colors.panel,
-    borderRadius: radius.xl,
-    padding: spacing.xl,
-    gap: spacing.md,
-    alignItems: "center",
-  },
-  readout: {
-    fontSize: 56,
-    lineHeight: 60,
-    letterSpacing: -1.6,
-  },
 });
+
+function createStyles(colors: ColorTokens) {
+  return StyleSheet.create({
+    content: {
+      padding: spacing.lg,
+      gap: spacing.lg,
+      paddingBottom: spacing.xxl,
+    },
+    brandRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+    },
+    block: {
+      gap: spacing.lg,
+    },
+    card: {
+      gap: spacing.sm,
+    },
+    ackRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      borderWidth: hairlineWidth,
+      borderColor: colors.hairline,
+      backgroundColor: colors.surface,
+    },
+    ackRowActive: {
+      borderColor: colors.ink,
+      backgroundColor: colors.accentSoft,
+    },
+    checkbox: {
+      width: 22,
+      height: 22,
+      borderRadius: radius.sm,
+      borderWidth: hairlineWidth,
+      borderColor: colors.inkFaint,
+      backgroundColor: colors.surface,
+    },
+    checkboxActive: {
+      backgroundColor: colors.accent,
+      borderColor: colors.ink,
+    },
+    ackText: {
+      flex: 1,
+    },
+    hint: {
+      textAlign: "center",
+    },
+    inputsCard: {
+      gap: spacing.md,
+    },
+    resultPanel: {
+      backgroundColor: colors.panel,
+      borderRadius: radius.xl,
+      padding: spacing.xl,
+      gap: spacing.md,
+      alignItems: "center",
+    },
+    readout: {
+      fontSize: 56,
+      lineHeight: 60,
+      letterSpacing: -1.6,
+    },
+  });
+}

@@ -1,5 +1,11 @@
 import { Tabs } from "expo-router";
-import { BookOpenText, CalendarDays, History, Syringe, TestTubes } from "lucide-react-native";
+import {
+  CalendarDays,
+  ClipboardList,
+  EllipsisVertical,
+  History,
+  TestTubes,
+} from "lucide-react-native";
 import React from "react";
 
 import { useTheme } from "@/src/theme";
@@ -12,7 +18,7 @@ export default function TabLayout() {
       initialRouteName="today"
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.accent,
+        tabBarActiveTintColor: colors.ink,
         tabBarInactiveTintColor: colors.inkFaint,
         tabBarStyle: {
           backgroundColor: colors.surface,
@@ -20,8 +26,8 @@ export default function TabLayout() {
           borderTopWidth: hairlineWidth,
         },
         tabBarLabelStyle: {
-          fontFamily: fonts.uiMedium,
-          fontSize: 11,
+          fontFamily: fonts.uiSemiBold,
+          fontSize: 10,
         },
       }}
     >
@@ -29,35 +35,41 @@ export default function TabLayout() {
         name="today"
         options={{
           title: "Today",
-          tabBarIcon: ({ color }) => <CalendarDays size={22} color={color} />,
+          tabBarIcon: ({ color }) => <CalendarDays size={22} color={color} strokeWidth={1.6} />,
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: "Calculate",
-          tabBarIcon: ({ color }) => <Syringe size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="reference"
-        options={{
-          title: "Reference",
-          tabBarIcon: ({ color }) => <BookOpenText size={22} color={color} />,
+          title: "Calc",
+          tabBarIcon: ({ color }) => <ClipboardList size={22} color={color} strokeWidth={1.6} />,
         }}
       />
       <Tabs.Screen
         name="vials"
         options={{
           title: "Vials",
-          tabBarIcon: ({ color }) => <TestTubes size={22} color={color} />,
+          tabBarIcon: ({ color }) => <TestTubes size={22} color={color} strokeWidth={1.6} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
           title: "History",
-          tabBarIcon: ({ color }) => <History size={22} color={color} />,
+          tabBarIcon: ({ color }) => <History size={22} color={color} strokeWidth={1.6} />,
+        }}
+      />
+      <Tabs.Screen
+        name="more"
+        options={{
+          title: "More",
+          tabBarIcon: ({ color }) => <EllipsisVertical size={22} color={color} strokeWidth={1.6} />,
+        }}
+      />
+      <Tabs.Screen
+        name="reference"
+        options={{
+          href: null,
         }}
       />
     </Tabs>

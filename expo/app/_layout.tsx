@@ -1,16 +1,21 @@
 import "react-native-reanimated";
 
 import {
+  DMSans_400Regular,
+  DMSans_500Medium,
+  DMSans_600SemiBold,
+  DMSans_700Bold,
+} from "@expo-google-fonts/dm-sans";
+import {
   IBMPlexMono_400Regular,
   IBMPlexMono_500Medium,
   IBMPlexMono_600SemiBold,
 } from "@expo-google-fonts/ibm-plex-mono";
 import {
-  Inter_400Regular,
-  Inter_500Medium,
-  Inter_600SemiBold,
-  Inter_700Bold,
-} from "@expo-google-fonts/inter";
+  Syne_600SemiBold,
+  Syne_700Bold,
+  Syne_800ExtraBold,
+} from "@expo-google-fonts/syne";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 import { Redirect, Stack, useSegments, type Href } from "expo-router";
@@ -74,6 +79,9 @@ function RootLayoutNav() {
       <Stack.Screen name="log-plan" options={{ presentation: "modal" }} />
       <Stack.Screen name="vial-new" options={{ presentation: "modal" }} />
       <Stack.Screen name="about" options={{ presentation: "modal" }} />
+      <Stack.Screen name="progress" />
+      <Stack.Screen name="sites" />
+      <Stack.Screen name="vial/[id]" />
     </Stack>
   );
 }
@@ -90,10 +98,13 @@ function ThemedShell() {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Inter_400Regular,
-    Inter_500Medium,
-    Inter_600SemiBold,
-    Inter_700Bold,
+    DMSans_400Regular,
+    DMSans_500Medium,
+    DMSans_600SemiBold,
+    DMSans_700Bold,
+    Syne_600SemiBold,
+    Syne_700Bold,
+    Syne_800ExtraBold,
     IBMPlexMono_400Regular,
     IBMPlexMono_500Medium,
     IBMPlexMono_600SemiBold,

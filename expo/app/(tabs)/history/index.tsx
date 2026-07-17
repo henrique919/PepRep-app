@@ -67,7 +67,7 @@ export default function HistoryTimelineScreen() {
             <AppText variant="overline" tone="faint">
               DoseEvents · newest first
             </AppText>
-            <AppText variant="title">History</AppText>
+            <AppText variant="display">History</AppText>
           </View>
           <View style={styles.headerActions}>
             <Pressable

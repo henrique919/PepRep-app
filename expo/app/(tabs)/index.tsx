@@ -247,7 +247,7 @@ export default function CalculatorScreen() {
             <AppText variant="overline" tone="faint">
               PepRep · U-100 instrument
             </AppText>
-            <AppText variant="title">Reconstitution</AppText>
+            <AppText variant="display">Calculator</AppText>
             {compoundLabel.length > 0 && (
               <AppText variant="label" tone="secondary" testID="calc-compound-name">
                 {compoundLabel}
