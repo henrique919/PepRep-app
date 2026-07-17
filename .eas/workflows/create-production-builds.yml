@@ -1,0 +1,14 @@
+name: Create Production Builds
+
+# Android APK + iOS Simulator — no Apple Developer Program required.
+jobs:
+  build_android:
+    type: build
+    params:
+      platform: android
+      profile: production
+  build_ios:
+    type: build
+    params:
+      platform: ios
+      profile: production
