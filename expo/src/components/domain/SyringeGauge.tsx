@@ -1,10 +1,11 @@
 import React, { useEffect, useId, useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withTiming,
-  Easing,
 } from "react-native-reanimated";
 import Svg, {
   Circle,
@@ -59,18 +60,25 @@ const ROD_END_PAD = 8;
 export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
   const uid = useId().replace(/:/g, "");
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
   const model = useMemo(() => buildSyringeGauge(units, capacity), [units, capacity]);
-  const [fillProgress, setFillProgress] = useState(0);
-  const appear = useSharedValue(0);
+  const [fillProgress, setFillProgress] = useState(() => model.fillFraction);
+  const appear = useSharedValue(1);
 
   useEffect(() => {
+    const target = model.fillFraction;
+    if (reduceMotion) {
+      appear.value = 1;
+      setFillProgress(target);
+      return;
+    }
+
     appear.value = 0;
     appear.value = withTiming(1, {
       duration: 380,
       easing: Easing.out(Easing.cubic),
     });
 
-    const target = model.fillFraction;
     const start = performance.now();
     const duration = 520;
     let frame = 0;
@@ -83,7 +91,7 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [model.fillFraction, units, capacity, appear]);
+  }, [model.fillFraction, units, capacity, appear, reduceMotion]);
 
   const shellStyle = useAnimatedStyle(() => ({
     opacity: 0.55 + appear.value * 0.45,
