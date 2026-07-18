@@ -148,8 +148,9 @@ export default function CalculatorScreen() {
 
   const [mode, setMode] = useState<CalcMode>("draw");
   const [compoundLabel, setCompoundLabel] = useState<string>(prefilledName);
-  const [vialText, setVialText] = useState<string>(prefilledVial || "5");
-  const [waterText, setWaterText] = useState<string>(prefilledWater || "2");
+  // Empty by default — never prefill demo vial/water that could read as a suggested setup.
+  const [vialText, setVialText] = useState<string>(prefilledVial);
+  const [waterText, setWaterText] = useState<string>(prefilledWater);
   const [doseText, setDoseText] = useState<string>("");
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefilledUnit ?? "mcg");
   const [targetUnitsText, setTargetUnitsText] = useState<string>("");

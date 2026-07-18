@@ -108,7 +108,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
 
 ## P1 — durability, retention, honest inventory, optional backup
 
-- [ ] **T1.1 — Onboarding ends on a real saved vial (+ optional plan/reminder)**
+- [x] **T1.1 — Onboarding ends on a real saved vial (+ optional plan/reminder)**
   Evidence: `app/onboarding/` exists; `app/(tabs)/index.tsx:151–152` still defaults
   vial=5/water=2. Outcome: first run ends with the user's own saved vial, not a demo. Scope:
   onboarding walks user-entered vial → save; optional user-entered plan/reminder; drop or
@@ -116,6 +116,9 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   data. Files: `app/onboarding/*`, calculator prefill. Accept: completing onboarding creates a
   persisted vial owned by the user; Today reflects it. Tests: onboarding persistence test.
   Manual: fresh install → finish → relaunch → vial persists. Gate: none.
+  **Done 2026-07-18:** Replaced demo draw with user-entered vial save (`parseOnboardingVialDraft`
+  + `addVial` before completeOnboarding). Calculator vial/water defaults cleared (no 5/2).
+  Tests: `src/onboarding/__tests__/vialDraft.test.ts`. Optional plan/reminder deferred to T1.4.
 
 - [ ] **T1.2 — Retention loop verified end-to-end**
   Evidence: dual-write `doses`↔`ledger` exists; earlier gaps: no "Save as vial" on calc, no
@@ -204,7 +207,8 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **T0.6:** SyringeGauge + AnimatedReadout gate decorative motion on `useReducedMotion()`.
 - **T0.2:** Ask default OFF + JIT consent; OD-1/T3.1 still gate enabling for real users.
 - **T0.3:** Partial a11y on Field/Button/FilterChips; device sweep still required.
-- **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1.
+- **T1.1:** Onboarding saves user vial; calc 5/2 prefill removed.
+- **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1. T0.3 device sweep open.
 
 ## Definition of complete (program)
 - Every P0 checked; `bun x tsc --noEmit` clean; `bun x jest` green.

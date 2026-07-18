@@ -2,61 +2,73 @@ import { useRouter } from "expo-router";
 import React, { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
-import SyringeGauge from "@/src/components/domain/SyringeGauge";
 import AppText from "@/src/components/ui/AppText";
 import BoldTallyMark from "@/src/components/ui/BoldTallyMark";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
+import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
-import { calculateDraw, fmt } from "@/src/engine";
+import SegmentedControl from "@/src/components/ui/SegmentedControl";
+import type { SyringeCapacity } from "@/src/engine";
+import { fmt, SYRINGES } from "@/src/engine";
+import { vialConcentration } from "@/src/engine/inventory";
+import { parseOnboardingVialDraft } from "@/src/onboarding/vialDraft";
 import {
   CURRENT_SAFETY_ACK_VERSION,
   useSettingsStore,
 } from "@/src/store/settings";
+import { useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
 import { DISCLAIMER, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
 
-type Step = "intro" | "safety" | "draw";
-
-/** Fixed demo inputs — a clean 10-unit draw on a U-100 barrel. */
-const DEMO = {
-  vialMg: 5,
-  diluentMl: 2,
-  doseValue: 250,
-  doseUnit: "mcg" as const,
-  syringeCapacityUnits: 100 as const,
-};
+type Step = "intro" | "safety" | "vial";
 
 export default function OnboardingScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const completeOnboarding = useSettingsStore((state) => state.completeOnboarding);
+  const addVial = useVialsStore((state) => state.addVial);
+
   const [step, setStep] = useState<Step>("intro");
   const [acked, setAcked] = useState<boolean>(false);
   const [finishing, setFinishing] = useState<boolean>(false);
+  const [name, setName] = useState<string>("");
+  const [vialText, setVialText] = useState<string>("");
+  const [waterText, setWaterText] = useState<string>("");
+  const [capacity, setCapacity] = useState<SyringeCapacity>(50);
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const draw = useMemo(
-    () =>
-      calculateDraw({
-        vialMg: DEMO.vialMg,
-        diluentMl: DEMO.diluentMl,
-        doseValue: DEMO.doseValue,
-        doseUnit: DEMO.doseUnit,
-        syringeCapacityUnits: DEMO.syringeCapacityUnits,
-      }),
-    [],
+  const parsed = useMemo(
+    () => parseOnboardingVialDraft({ name, vialText, waterText, capacity }),
+    [name, vialText, waterText, capacity],
   );
 
+  const concentration =
+    parsed.ok ? vialConcentration(parsed.vial.vialMg, parsed.vial.diluentMl) : null;
+
   const finish = () => {
-    if (finishing || !draw.ok) return;
+    if (finishing) return;
+    const draft = parseOnboardingVialDraft({ name, vialText, waterText, capacity });
+    if (!draft.ok) {
+      setFormError(draft.errors[0] ?? "Enter your vial details to continue.");
+      return;
+    }
+    setFormError(null);
     setFinishing(true);
-    completeOnboarding(CURRENT_SAFETY_ACK_VERSION)
+    const reconstitutedAtIso = new Date().toISOString();
+    addVial({
+      ...draft.vial,
+      reconstitutedAtIso,
+      archivedAtIso: null,
+    })
+      .then(() => completeOnboarding(CURRENT_SAFETY_ACK_VERSION))
       .then(() => router.replace("/(tabs)"))
       .catch((error) => {
         console.error("[onboarding] Failed to complete", error);
         setFinishing(false);
+        setFormError("Could not save your vial. Try again.");
       });
   };
 
@@ -114,6 +126,9 @@ export default function OnboardingScreen() {
             <Pressable
               onPress={() => setAcked((prev) => !prev)}
               style={[styles.ackRow, acked && styles.ackRowActive]}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: acked }}
+              accessibilityLabel="I understand — PepRep does not recommend doses."
               testID="onboarding-ack"
             >
               <View style={[styles.checkbox, acked && styles.checkboxActive]} />
@@ -124,7 +139,7 @@ export default function OnboardingScreen() {
             <Button
               label="Continue"
               tone="primary"
-              onPress={() => setStep("draw")}
+              onPress={() => setStep("vial")}
               disabled={!acked}
               testID="onboarding-continue-safety"
             />
@@ -136,42 +151,73 @@ export default function OnboardingScreen() {
           </View>
         )}
 
-        {step === "draw" && draw.ok && (
-          <View style={styles.block} testID="onboarding-draw">
-            <AppText variant="display">Your first draw</AppText>
+        {step === "vial" && (
+          <View style={styles.block} testID="onboarding-vial">
+            <AppText variant="display">Save your first vial</AppText>
             <AppText variant="body" tone="secondary">
-              Example only — replace these with your own vial numbers later. Same math the
-              calculator uses.
+              Enter the vial you already reconstituted. PepRep stores these exact numbers — it
+              does not suggest a setup.
             </AppText>
-            <Card style={styles.inputsCard}>
-              <Row label="Vial" value={`${fmt(DEMO.vialMg)} mg`} />
-              <Row label="Water added" value={`${fmt(DEMO.diluentMl)} mL`} />
-              <Row label="Dose" value={`${fmt(DEMO.doseValue)} mcg`} />
-            </Card>
-            <View style={styles.resultPanel}>
-              <AppText variant="overline" tone="onDarkSecondary">
-                Draw
+            <Field
+              label="Label"
+              value={name}
+              onChangeText={setName}
+              mono={false}
+              keyboardType="default"
+              placeholder="Your name for this vial"
+              testID="onboarding-vial-name"
+            />
+            <Field
+              label="Vial contents"
+              value={vialText}
+              onChangeText={setVialText}
+              suffix="mg"
+              placeholder="0"
+              testID="onboarding-vial-mg"
+            />
+            <Field
+              label="Water added"
+              value={waterText}
+              onChangeText={setWaterText}
+              suffix="mL"
+              placeholder="0"
+              testID="onboarding-vial-water"
+            />
+            <View style={styles.capacityBlock}>
+              <AppText variant="overline" tone="secondary">
+                Syringe barrel (volume only)
               </AppText>
-              <AppText
-                variant="display"
+              <SegmentedControl
+                options={SYRINGES.map((s) => ({
+                  value: s.capacityUnits,
+                  label: `${s.capacityUnits} U`,
+                }))}
+                value={capacity}
+                onChange={setCapacity}
                 mono
-                weight="bold"
-                tone="onDark"
-                style={styles.readout}
-                testID="onboarding-units"
-              >
-                {fmt(draw.units)}
-              </AppText>
-              <AppText variant="label" mono tone="onDarkSecondary">
-                units · {fmt(draw.volumeMl, 3)} mL
-              </AppText>
-              <SyringeGauge units={draw.units} capacity={DEMO.syringeCapacityUnits} />
+                testID="onboarding-capacity"
+              />
             </View>
+            {concentration !== null && (
+              <Card style={styles.card}>
+                <AppText variant="overline" tone="faint">
+                  From your numbers
+                </AppText>
+                <AppText variant="label" mono tone="secondary">
+                  {fmt(concentration.mcgPerMl)} mcg/mL · {fmt(concentration.mgPerMl, 3)} mg/mL
+                </AppText>
+              </Card>
+            )}
+            {formError !== null && (
+              <AppText variant="caption" tone="danger" accessibilityRole="alert">
+                {formError}
+              </AppText>
+            )}
             <Button
-              label="Enter PepRep"
+              label={finishing ? "Saving…" : "Save vial and enter PepRep"}
               tone="primary"
               onPress={finish}
-              disabled={finishing}
+              disabled={finishing || !parsed.ok}
               testID="onboarding-finish"
             />
           </View>
@@ -180,27 +226,6 @@ export default function OnboardingScreen() {
     </Screen>
   );
 }
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={rowStyles.row}>
-      <AppText variant="caption" tone="faint">
-        {label}
-      </AppText>
-      <AppText variant="label" mono weight="medium">
-        {value}
-      </AppText>
-    </View>
-  );
-}
-
-const rowStyles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-});
 
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({
@@ -220,6 +245,9 @@ function createStyles(colors: ColorTokens) {
     card: {
       gap: spacing.sm,
     },
+    capacityBlock: {
+      gap: spacing.sm,
+    },
     ackRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -229,6 +257,7 @@ function createStyles(colors: ColorTokens) {
       borderWidth: hairlineWidth,
       borderColor: colors.hairline,
       backgroundColor: colors.surface,
+      minHeight: 44,
     },
     ackRowActive: {
       borderColor: colors.ink,
@@ -251,21 +280,6 @@ function createStyles(colors: ColorTokens) {
     },
     hint: {
       textAlign: "center",
-    },
-    inputsCard: {
-      gap: spacing.md,
-    },
-    resultPanel: {
-      backgroundColor: colors.panel,
-      borderRadius: radius.xl,
-      padding: spacing.xl,
-      gap: spacing.md,
-      alignItems: "center",
-    },
-    readout: {
-      fontSize: 56,
-      lineHeight: 60,
-      letterSpacing: -1.6,
     },
   });
 }
