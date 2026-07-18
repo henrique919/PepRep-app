@@ -6,6 +6,9 @@
   "scripts": {
     "start": "expo start",
     "start:clear": "expo start -c",
+    "start:tunnel": "expo start --tunnel -c",
+    "build:preview:android": "eas build --profile preview --platform android --non-interactive",
+    "build:preview:ios": "eas build --profile preview --platform ios --non-interactive",
     "start-web": "expo start --web",
     "start-web-dev": "expo start --web",
     "lint": "expo lint",
