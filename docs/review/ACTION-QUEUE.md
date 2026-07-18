@@ -37,7 +37,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   `src/engine/__tests__/atomic-readout.test.ts`. Manual screen recording still recommended
   on device.
 
-- [ ] **T0.2 — Ask defaults OFF + explicit just-in-time consent (or remove for v1)**
+- [x] **T0.2 — Ask defaults OFF + explicit just-in-time consent (or remove for v1)**
   Evidence: `src/store/settings.ts:30,42` `askEnabled:true`. Outcome: no question text leaves
   the device without a deliberate, informed opt-in. Scope: default `askEnabled:false`; first
   use shows a JIT consent sheet naming provider (Rork AI Cloud), purpose, what is/ isn't sent,
@@ -50,8 +50,12 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   off (exists). Manual: fresh install → Ask off; consent flow enables; offline/exhausted
   states intact. Rollback: flag. Gate: **owner decision** (keep vs remove) + T3 red-team.
   Evidence: test + flow recording.
+  **Done 2026-07-18 (keep-with-consent path):** default OFF; legacy ON without consent forced
+  OFF; JIT `AskConsentCard` in Settings + Ask; `acceptAskConsent` only enable path; tests in
+  `src/store/__tests__/askConsent.test.ts` + existing disabled client test. **Still gated for
+  shipping Ask to users:** OD-1 (keep vs remove) + T3.1 human red-team sign-off.
 
-- [ ] **T0.3 — Accessibility blockers**
+- [ ] **T0.3 — Accessibility blockers** *(partial — code landed, device sweep open)*
   Evidence: only 3 files use a11y props; `src/components/ui/Field.tsx` binds no
   `accessibilityLabel` to its `TextInput`. Outcome: usable with screen readers + large type.
   Scope: bind visible label → input (`accessibilityLabel`/`aria-label`), roles/states on
@@ -63,6 +67,10 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   accessible name for key inputs/buttons. Manual: VoiceOver (iOS) + TalkBack (Android) sweep
   of Calculate, Today log, New plan, Settings. Rollback: per-component. Gate: none. Evidence:
   screen-reader recording + notes.
+  **Progress 2026-07-18:** `Field` binds `accessibilityLabel` (+ optional error alert);
+  `Button` role/label/state; `FilterChips` selected state + 44pt; Ask Switch labeled;
+  reduced-motion via T0.6. Remaining: icon-only Pressables, Dynamic Type clip audit, RTL
+  accessible-name tests, VoiceOver/TalkBack recordings — leave unchecked until device sweep.
 
 - [ ] **T0.4 — PepRep-owned store identity**
   Evidence: `app.json` `scheme:"rork-app"`, ids `app.rork.fdbzggh0h14wkaztx609o`, router
@@ -194,6 +202,9 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
   contract test (RTL mount test deferred — Jest is node/engine-only).
 - **T0.5:** Corrected false "fully offline / no network" claims in README + adapter docstring.
 - **T0.6:** SyringeGauge + AnimatedReadout gate decorative motion on `useReducedMotion()`.
+- **T0.2:** Ask default OFF + JIT consent; OD-1/T3.1 still gate enabling for real users.
+- **T0.3:** Partial a11y on Field/Button/FilterChips; device sweep still required.
+- **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1.
 
 ## Definition of complete (program)
 - Every P0 checked; `bun x tsc --noEmit` clean; `bun x jest` green.

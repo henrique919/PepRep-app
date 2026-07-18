@@ -16,6 +16,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
 import AppText from "@/src/components/ui/AppText";
+import AskConsentCard from "@/src/components/ui/AskConsentCard";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import Field from "@/src/components/ui/Field";
@@ -55,6 +56,7 @@ export default function SettingsScreen() {
   const reminders = useRemindersStore((state) => state.reminders);
   const askEnabled = useSettingsStore((state) => state.askEnabled);
   const setAskEnabled = useSettingsStore((state) => state.setAskEnabled);
+  const acceptAskConsent = useSettingsStore((state) => state.acceptAskConsent);
   const addReminder = useRemindersStore((state) => state.addReminder);
   const setEnabled = useRemindersStore((state) => state.setEnabled);
   const removeReminder = useRemindersStore((state) => state.removeReminder);
@@ -66,6 +68,8 @@ export default function SettingsScreen() {
   const [minute, setMinute] = useState<number>(0);
   const [eraseArmed, setEraseArmed] = useState<boolean>(false);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [showAskConsent, setShowAskConsent] = useState<boolean>(false);
+  const [askConsentBusy, setAskConsentBusy] = useState<boolean>(false);
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -409,15 +413,39 @@ export default function SettingsScreen() {
               <Switch
                 value={askEnabled}
                 onValueChange={(next) => {
-                  setAskEnabled(next).catch((error) =>
+                  if (next) {
+                    setShowAskConsent(true);
+                    return;
+                  }
+                  setShowAskConsent(false);
+                  setAskEnabled(false).catch((error) =>
                     console.error("[settings] Toggle Ask failed", error),
                   );
                 }}
                 trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
                 thumbColor={colors.surface}
+                accessibilityLabel="Ask"
+                accessibilityState={{ checked: askEnabled }}
                 testID="toggle-ask"
               />
             </View>
+            {showAskConsent && !askEnabled ? (
+              <View style={styles.privacyCopy}>
+                <AskConsentCard
+                  busy={askConsentBusy}
+                  onDecline={() => setShowAskConsent(false)}
+                  onAccept={() => {
+                    setAskConsentBusy(true);
+                    acceptAskConsent()
+                      .then(() => setShowAskConsent(false))
+                      .catch((error) =>
+                        console.error("[settings] Ask consent failed", error),
+                      )
+                      .finally(() => setAskConsentBusy(false));
+                  }}
+                />
+              </View>
+            ) : null}
           </Card>
         </View>
 

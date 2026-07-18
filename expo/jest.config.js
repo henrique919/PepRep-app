@@ -1,6 +1,6 @@
 /**
- * Jest runs pure TypeScript under src/engine, src/db, src/ask, and src/data —
- * no React, no React Native, no live network.
+ * Jest runs pure TypeScript under src/engine, src/db, src/ask, src/data, and
+ * src/store — no React, no React Native, no live network.
  */
 module.exports = {
   testEnvironment: "node",
@@ -9,6 +9,7 @@ module.exports = {
     "<rootDir>/src/db",
     "<rootDir>/src/ask",
     "<rootDir>/src/data",
+    "<rootDir>/src/store",
   ],
   moduleFileExtensions: ["ts", "js"],
   transform: {

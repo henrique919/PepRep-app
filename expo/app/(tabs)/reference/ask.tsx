@@ -13,6 +13,7 @@ import {
 } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
+import AskConsentCard from "@/src/components/ui/AskConsentCard";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
@@ -44,10 +45,13 @@ export default function AskScreen() {
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const askEnabled = useSettingsStore((state) => state.askEnabled);
+  const acceptAskConsent = useSettingsStore((state) => state.acceptAskConsent);
 
   const [question, setQuestion] = useState<string>("");
   const [busy, setBusy] = useState<boolean>(false);
   const [outcome, setOutcome] = useState<AskOutcome | null>(null);
+  const [showConsent, setShowConsent] = useState<boolean>(false);
+  const [consentBusy, setConsentBusy] = useState<boolean>(false);
 
   const runAsk = async (text: string) => {
     const trimmed = text.trim();
@@ -104,18 +108,32 @@ export default function AskScreen() {
           </AppText>
 
           {!askEnabled ? (
-            <EmptyState
-              icon={<MessageCircleQuestion size={28} color={colors.inkFaint} />}
-              title="Ask is turned off"
-              caption="You can turn Ask on in Settings → Privacy. The calculator and your records are unaffected."
-              action={
-                <Button
-                  label="Open Settings"
-                  tone="primary"
-                  onPress={() => router.push("/settings")}
-                />
-              }
-            />
+            showConsent ? (
+              <AskConsentCard
+                busy={consentBusy}
+                onDecline={() => setShowConsent(false)}
+                onAccept={() => {
+                  setConsentBusy(true);
+                  acceptAskConsent()
+                    .catch((error) => console.error("[ask] consent failed", error))
+                    .finally(() => setConsentBusy(false));
+                }}
+              />
+            ) : (
+              <EmptyState
+                icon={<MessageCircleQuestion size={28} color={colors.inkFaint} />}
+                title="Ask is turned off"
+                caption="Ask is off by default. Enabling it sends question text to Rork AI Cloud. Your vials, doses and history never leave this device."
+                action={
+                  <Button
+                    label="Review and enable Ask"
+                    tone="primary"
+                    onPress={() => setShowConsent(true)}
+                    testID="ask-show-consent"
+                  />
+                }
+              />
+            )
           ) : (
             <>
               <Field
