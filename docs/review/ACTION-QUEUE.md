@@ -144,7 +144,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   `vial-new`; factual warnings on `VialCard`; Low filter uses per-vial threshold.
   Tests: `vialWarnings.test.ts`, `normaliseVial.test.ts`. tsc clean; 143 tests green.
 
-- [ ] **T1.4 — Plan → reminder wiring + per-weekday scheduling + privacy previews**
+- [x] **T1.4 — Plan → reminder wiring + per-weekday scheduling + privacy previews**
   Evidence: `reminders.ts` is daily-only, standalone, unconnected to plans. Outcome: a plan can
   schedule per (day×time) local notifications; previews don't leak compound/dose. Scope: add
   weekly-per-day scheduling; a plan "remind me" toggle; a privacy mode hiding compound/dose in
@@ -152,6 +152,10 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   `reminders.ts`, `plans/new.tsx`, `plans/[id]`. Accept: N notifications for N day×time combos;
   delete cancels; privacy-mode body is generic. Tests: schedule-count logic. Manual: device
   notification fires; preview respects privacy mode. Gate: none.
+  **Done 2026-07-18:** `planReminders` pure helpers; privacy-safe weekly scheduling from
+  `addPlan`/`appendVersion`; cancel on archive/edit; New Plan Remind me + Private toggles +
+  preview; web note. No `plans/[id]` route — archive on plans list cancels. Tests:
+  `planReminders.test.ts`. 146 green.
 
 - [ ] **T1.5 — Export warnings + protected sharing**
   Evidence: CSV/JSON export in Settings. Outcome: user understands exports are unencrypted
@@ -216,6 +220,7 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **T1.1:** Onboarding saves user vial; calc 5/2 prefill removed.
 - **T1.2:** Calculate-with-vial + Today snooze wired; save-as-vial already present.
 - **T1.3:** Vial expiry/lot/low-stock + schema v4 normalisation; 143 tests green.
+- **T1.4:** Plan weekly reminders with privacy preview; cancel on edit/archive; 146 tests.
 - **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1. T0.3 device sweep open.
 
 ## Definition of complete (program)

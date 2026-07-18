@@ -7,6 +7,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   View,
 } from "react-native";
 import { useShallow } from "zustand/react/shallow";
@@ -19,6 +20,7 @@ import Screen from "@/src/components/ui/Screen";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import type { MassUnit } from "@/src/engine";
 import { fmt } from "@/src/engine";
+import { countPlanReminderSlots, planReminderCopy } from "@/src/engine/planReminders";
 import { parseNumeric } from "@/src/engine/parse";
 import { usePlansStore } from "@/src/store/plans";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
@@ -53,9 +55,18 @@ export default function NewPlanScreen() {
   const [timesLocal, setTimesLocal] = useState<string[]>([]);
   const [timeDraft, setTimeDraft] = useState<string>("");
   const [vialId, setVialId] = useState<string | undefined>(undefined);
+  const [remindMe, setRemindMe] = useState<boolean>(false);
+  const [privacyMode, setPrivacyMode] = useState<boolean>(true);
   const [saving, setSaving] = useState<boolean>(false);
 
   const doseValue = parseNumeric(doseText);
+  const reminderSlots = countPlanReminderSlots(daysOfWeek, timesLocal);
+  const previewCopy = planReminderCopy({
+    privacyMode,
+    compoundName: compoundName.trim().length > 0 ? compoundName : "your plan",
+    timeLocal: timesLocal[0] ?? "08:00",
+  });
+  const isWeb = Platform.OS === "web";
 
   const canSave = useMemo(() => {
     return (
@@ -99,6 +110,8 @@ export default function NewPlanScreen() {
       daysOfWeek,
       timesLocal,
       vialId,
+      remindMe: remindMe && !isWeb,
+      privacyMode,
     })
       .then(() => router.back())
       .catch((error) => {
@@ -278,6 +291,59 @@ export default function NewPlanScreen() {
             </View>
           )}
 
+          <Card style={styles.formCard}>
+            <View style={styles.toggleRow}>
+              <View style={styles.toggleText}>
+                <AppText variant="body" weight="medium">
+                  Remind me
+                </AppText>
+                <AppText variant="caption" tone="faint">
+                  {isWeb
+                    ? "Local notifications are available in the mobile app."
+                    : reminderSlots > 0
+                      ? `${reminderSlots} weekly alert${reminderSlots === 1 ? "" : "s"} (one per day×time)`
+                      : "Add days and times to schedule alerts"}
+                </AppText>
+              </View>
+              <Switch
+                value={remindMe && !isWeb}
+                disabled={isWeb}
+                onValueChange={setRemindMe}
+                trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
+                thumbColor={colors.surface}
+                accessibilityLabel="Remind me"
+                accessibilityState={{ checked: remindMe && !isWeb, disabled: isWeb }}
+                testID="toggle-plan-remind"
+              />
+            </View>
+            {remindMe && !isWeb ? (
+              <>
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleText}>
+                    <AppText variant="body" weight="medium">
+                      Private notifications
+                    </AppText>
+                    <AppText variant="caption" tone="faint">
+                      Hide compound name on the lock screen
+                    </AppText>
+                  </View>
+                  <Switch
+                    value={privacyMode}
+                    onValueChange={setPrivacyMode}
+                    trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
+                    thumbColor={colors.surface}
+                    accessibilityLabel="Private notifications"
+                    accessibilityState={{ checked: privacyMode }}
+                    testID="toggle-plan-privacy"
+                  />
+                </View>
+                <AppText variant="caption" tone="secondary" testID="plan-reminder-preview">
+                  Preview: “{previewCopy.title}” — {previewCopy.body}
+                </AppText>
+              </>
+            ) : null}
+          </Card>
+
           <Button
             label="Create plan"
             tone="primary"
@@ -369,6 +435,15 @@ function createStyles(colors: ColorTokens) {
   hint: {
     textAlign: "center",
     paddingHorizontal: spacing.lg,
+  },
+  toggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  toggleText: {
+    flex: 1,
+    gap: 2,
   },
 });
 }
