@@ -243,12 +243,37 @@ Release hygiene only (no new features). Engineering feature-freeze assumed.
   **Done 2026-07-18:** `RootErrorBoundary` wraps the tree in `app/_layout.tsx`; calm
   PepRep-branded fallback + Try again; no stack traces to users.
 
-- [ ] **R3 — Version + build numbers**
-- [ ] **R4 — Permissions + iOS usage strings audit**
-- [ ] **R5 — Icon/splash store-spec verification**
-- [ ] **R6 — Privacy policy + support content (draft)**
-- [ ] **R7 — First-run disclaimer / safety acknowledgement**
-- [ ] **R8 — Compliance copy sweep + store-listing draft**
+- [x] **R3 — Version + build numbers**
+  **Done 2026-07-18:** `version` 1.0.0; `ios.buildNumber` "1"; `android.versionCode` 1.
+  `eas.json` production: iOS `simulator: false`, Android `app-bundle`. No build/submit run.
+
+- [x] **R4 — Permissions + iOS usage strings audit**
+  **Done 2026-07-18:** Declared Android POST_NOTIFICATIONS / boot / vibrate / exact-alarm;
+  blocked camera/mic/location/contacts/legacy storage. Removed unused `expo-image-picker` +
+  `expo-location`. iOS: no privacy usage strings required for local notifications,
+  document-picker, or share-sheet (no camera/location/mic). Notifications plugin set with
+  `enableBackgroundRemoteNotifications: false`.
+  **Permissions rationale (store forms):** reminders = local notifications only; export/
+  backup/restore = user-initiated Files/share/document picker; no PepRep network data
+  collection in v1.
+
+- [x] **R5 — Icon/splash store-spec verification**
+  **Done 2026-07-18:** Verified PNGs: icon / adaptive-icon / splash-icon / favicon are each
+  1024×1024, RGB, no tRNS/alpha. `app.json` paths resolve. No art redesign.
+
+- [x] **R6 — Privacy policy + support content (draft)**
+  **Done 2026-07-18:** `docs/legal/PRIVACY-POLICY.md`, `docs/legal/SUPPORT.md` — truthful to
+  v1 (local-first, no account/analytics, Ask off, local notifications, user-controlled
+  encrypted backups, erase). Owner TODO: host + paste URLs (no URL invented).
+
+- [x] **R7 — First-run disclaimer / safety acknowledgement**
+  **Done 2026-07-18:** `CURRENT_SAFETY_ACK_VERSION` already existed; gate now re-prompts
+  onboarding safety step when ack version is stale (`_layout` + `reackOnly` path). Disclaimer
+  mirrored in About via `DISCLAIMER` token.
+
+- [x] **R8 — Compliance copy sweep + store-listing draft**
+  **Done 2026-07-18:** Softened Sites arm hints (“Optional zone to record”). Core screens /
+  About use measurement-only framing. Draft: `docs/store/LISTING-DRAFT.md`.
 
 ---
 
@@ -275,8 +300,11 @@ Release hygiene only (no new features). Engineering feature-freeze assumed.
 - **T0.4 / T1.7:** Store identity + encrypted backup create/restore shipped in Settings.
 - **T0.3 code slice:** shared + screen a11y labels/roles + Dynamic Type minHeight fixes;
   device VoiceOver/TalkBack sweep still required before checking T0.3.
-- **Blocked / open:** T0.3 device sweep; OD-3 store posture; OD-5 before sync; T3.1 if Ask
-  returns.
+- **Release R1–R8:** store-prep hygiene complete (AI SDK out, error boundary, build numbers,
+  permissions, icon verify, legal drafts, safety re-ack, listing draft).
+- **Blocked / open (owner):** T0.3 device a11y sweep; OD-3 medical pack; host privacy/support
+  URLs; store metadata/screenshots; production EAS build → TestFlight/Play → submit; OD-5
+  before sync; T3.1 if Ask returns.
 
 ## Definition of complete (program)
 - Every P0 checked; `bun x tsc --noEmit` clean; `bun x jest` green.
