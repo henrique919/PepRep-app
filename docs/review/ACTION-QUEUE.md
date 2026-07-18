@@ -70,8 +70,19 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   screen-reader recording + notes.
   **Progress 2026-07-18:** `Field` binds `accessibilityLabel` (+ optional error alert);
   `Button` role/label/state; `FilterChips` selected state + 44pt; Ask Switch labeled;
-  reduced-motion via T0.6. Remaining: icon-only Pressables, Dynamic Type clip audit, RTL
-  accessible-name tests, VoiceOver/TalkBack recordings — leave unchecked until device sweep.
+  reduced-motion via T0.6.
+  **Code slice 2026-07-18 (device sweep still pending — leave unchecked):**
+  Shared: SegmentedControl, Toast, QuickPicks, DoseRow, VialCard. Screens: history
+  calendar/day/event/list, today FAB + Plans, vials, more rows, reference (incl. Ask UI
+  labels only), settings, plans, log-entry/log-plan, vial-new/vial detail, about,
+  progress, sites. Dynamic Type: Today Plans chip + Field input row use minHeight/padding
+  so labels/numerals can grow (no `allowFontScaling={false}`). Optional RTL suite skipped
+  (Jest remains engine/node).
+  **Manual device checklist (owner):** VoiceOver iOS + TalkBack Android on Calculate,
+  Today (log/snooze/skip/FAB), New plan (day/time chips), Settings (reminders, export,
+  encrypted backup), Vial detail, History calendar (month arrows + day cells). Confirm
+  every control announces a name; largest Dynamic Type does not clip safety numerals or
+  primary labels. Keep T0.3 unchecked until this sweep is done.
 
 - [x] **T0.4 — PepRep-owned store identity**
   Evidence: `app.json` `scheme:"rork-app"`, ids `app.rork.fdbzggh0h14wkaztx609o`, router
@@ -237,8 +248,10 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **OD-2 decided:** `com.henrique919.peprep` / scheme `peprep` / owner `henrique919` (T0.4).
 - **OD-4 decided:** A now (encrypted backup files), B later (Supabase sync) — T1.7 done.
 - **T0.4 / T1.7:** Store identity + encrypted backup create/restore shipped in Settings.
-- **Blocked / open:** T0.3 device VoiceOver; OD-5 inventory before any sync DDL; T3.1 if Ask
-  returns; OD-3 store posture.
+- **T0.3 code slice:** shared + screen a11y labels/roles + Dynamic Type minHeight fixes;
+  device VoiceOver/TalkBack sweep still required before checking T0.3.
+- **Blocked / open:** T0.3 device sweep; OD-3 store posture; OD-5 before sync; T3.1 if Ask
+  returns.
 
 ## Definition of complete (program)
 - Every P0 checked; `bun x tsc --noEmit` clean; `bun x jest` green.
