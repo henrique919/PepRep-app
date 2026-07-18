@@ -34,7 +34,10 @@ import { useDosesStore } from "@/src/store/doses";
 import { useLedgerStore } from "@/src/store/ledger";
 import { usePlansStore } from "@/src/store/plans";
 import { useRemindersStore } from "@/src/store/reminders";
-import { useSettingsStore } from "@/src/store/settings";
+import {
+  CURRENT_SAFETY_ACK_VERSION,
+  useSettingsStore,
+} from "@/src/store/settings";
 import { useVialsStore } from "@/src/store/vials";
 import { ThemeProvider, useTheme } from "@/src/theme";
 
@@ -55,13 +58,16 @@ function RootLayoutNav() {
   const { colors } = useTheme();
   const hydrated = useSettingsStore((state) => state.hydrated);
   const onboardingComplete = useSettingsStore((state) => state.onboardingComplete);
+  const safetyAckVersion = useSettingsStore((state) => state.safetyAckVersion);
   const segments = useSegments();
   const inOnboarding = (segments as string[])[0] === "onboarding";
+  const safetyAckCurrent = safetyAckVersion === CURRENT_SAFETY_ACK_VERSION;
+  const needsOnboardingGate = !onboardingComplete || !safetyAckCurrent;
 
-  if (hydrated && !onboardingComplete && !inOnboarding) {
+  if (hydrated && needsOnboardingGate && !inOnboarding) {
     return <Redirect href={"/onboarding" as Href} />;
   }
-  if (hydrated && onboardingComplete && inOnboarding) {
+  if (hydrated && !needsOnboardingGate && inOnboarding) {
     return <Redirect href={"/(tabs)" as Href} />;
   }
 

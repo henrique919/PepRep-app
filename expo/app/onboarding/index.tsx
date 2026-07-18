@@ -29,9 +29,14 @@ export default function OnboardingScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
   const completeOnboarding = useSettingsStore((state) => state.completeOnboarding);
+  const onboardingComplete = useSettingsStore((state) => state.onboardingComplete);
+  const safetyAckVersion = useSettingsStore((state) => state.safetyAckVersion);
   const addVial = useVialsStore((state) => state.addVial);
+  /** Returning users when safety copy version bumps — ack only, skip vial setup. */
+  const reackOnly =
+    onboardingComplete && safetyAckVersion !== CURRENT_SAFETY_ACK_VERSION;
 
-  const [step, setStep] = useState<Step>("intro");
+  const [step, setStep] = useState<Step>(reackOnly ? "safety" : "intro");
   const [acked, setAcked] = useState<boolean>(false);
   const [finishing, setFinishing] = useState<boolean>(false);
   const [name, setName] = useState<string>("");
@@ -85,7 +90,7 @@ export default function OnboardingScreen() {
         <View style={styles.brandRow}>
           <BoldTallyMark size={36} />
           <AppText variant="overline" tone="secondary">
-            PepRep · first run
+            {reackOnly ? "PepRep · updated acknowledgement" : "PepRep · first run"}
           </AppText>
         </View>
 
@@ -140,9 +145,20 @@ export default function OnboardingScreen() {
               </AppText>
             </Pressable>
             <Button
-              label="Continue"
+              label={reackOnly ? "Continue to PepRep" : "Continue"}
               tone="primary"
-              onPress={() => setStep("vial")}
+              onPress={() => {
+                if (!acked) return;
+                if (reackOnly) {
+                  completeOnboarding(CURRENT_SAFETY_ACK_VERSION)
+                    .then(() => router.replace("/(tabs)"))
+                    .catch((error) =>
+                      console.error("[onboarding] Failed to persist safety ack", error),
+                    );
+                  return;
+                }
+                setStep("vial");
+              }}
               disabled={!acked}
               testID="onboarding-continue-safety"
             />
