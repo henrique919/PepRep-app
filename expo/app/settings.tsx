@@ -135,20 +135,30 @@ export default function SettingsScreen() {
       setStatusMessage("Export is available in the mobile app.");
       return;
     }
+    const directory = FileSystem.cacheDirectory;
+    if (directory === null || directory.length === 0) {
+      throw new Error("No writable cache directory on this device.");
+    }
+    const uri = `${directory}${fileName}`;
+    await FileSystem.writeAsStringAsync(uri, contents, {
+      encoding: FileSystem.EncodingType.UTF8,
+    });
+    const canShare = await Sharing.isAvailableAsync();
+    if (!canShare) {
+      setStatusMessage(`Saved to app storage as ${fileName}.`);
+      return;
+    }
     try {
-      const directory = FileSystem.cacheDirectory ?? "";
-      const uri = `${directory}${fileName}`;
-      await FileSystem.writeAsStringAsync(uri, contents);
-      const canShare = await Sharing.isAvailableAsync();
-      if (canShare) {
-        await Sharing.shareAsync(uri, { mimeType });
-        setStatusMessage(null);
-      } else {
-        setStatusMessage(`Saved to app storage as ${fileName}.`);
-      }
+      await Sharing.shareAsync(uri, { mimeType, dialogTitle: fileName });
+      setStatusMessage(null);
     } catch (error) {
-      console.error("[settings] Export failed", error);
-      setStatusMessage("Export failed — please try again.");
+      const message = error instanceof Error ? error.message : String(error);
+      // Dismissing the iOS share sheet is not a failure.
+      if (/cancel|dismiss|abort/i.test(message)) {
+        setStatusMessage(`Backup file ready (${fileName}). Share was dismissed.`);
+        return;
+      }
+      throw error;
     }
   };
 
@@ -216,15 +226,30 @@ export default function SettingsScreen() {
       const fileName = encryptedBackupFileName(nowIso.slice(0, 10));
       shareFile(fileName, serializeBackupFile(file), "application/json")
         .then(() => {
-          setStatusMessage("Encrypted backup ready to save to Files / Drive.");
+          setStatusMessage((current) =>
+            current === null || current.length === 0
+              ? "Encrypted backup ready to save to Files / Drive."
+              : current,
+          );
           setBackupPassword("");
           setBackupPasswordConfirm("");
         })
-        .catch((error) => console.error("[settings] Encrypted backup failed", error))
+        .catch((error) => {
+          console.error("[settings] Encrypted backup failed", error);
+          setStatusMessage(
+            error instanceof Error
+              ? `Encrypted backup failed: ${error.message}`
+              : "Could not create encrypted backup.",
+          );
+        })
         .finally(() => setBackupBusy(false));
     } catch (error) {
       console.error("[settings] Encrypted backup failed", error);
-      setStatusMessage("Could not create encrypted backup.");
+      setStatusMessage(
+        error instanceof Error
+          ? `Encrypted backup failed: ${error.message}`
+          : "Could not create encrypted backup.",
+      );
       setBackupBusy(false);
     }
   };
@@ -569,8 +594,9 @@ export default function SettingsScreen() {
           <Card style={styles.exportWarnCard} testID="encrypted-backup-card">
             <AppText variant="heading">Encrypted backup (local file)</AppText>
             <AppText variant="label" tone="secondary">
-              Password-protect a full copy, then save it to Files, iCloud Drive, or similar. This
-              path does not upload to PepRep. You will need the password to restore.
+              Password-protect a full copy, then save it to Files, iCloud Drive, or similar. No
+              email or account — only a password you choose. This path does not upload to PepRep.
+              You will need the password to restore.
             </AppText>
             {isWeb ? (
               <AppText variant="caption" tone="faint">

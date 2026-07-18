@@ -67,8 +67,9 @@ export default function AboutScreen() {
               What it never does
             </AppText>
             <AppText variant="label" tone="secondary">
-              No dose suggestions, ranges or protocols · no accounts or sign-in · no analytics or
-              telemetry. Records stay on this device.
+              No dose suggestions, ranges or protocols · no analytics or telemetry. Records stay
+              on this device by default. Optional cloud backup (if enabled in this build) is
+              opt-in ciphertext only.
             </AppText>
           </View>
           <Hairline />

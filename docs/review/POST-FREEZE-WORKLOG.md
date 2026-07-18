@@ -51,17 +51,17 @@ Release series R1–R8 + a11y T0.3 on main — intended PepRep work only. No Cle
 ## STEP 6 — Supabase encrypted cloud backup
 
 ### Supabase skill actions
-- `search_docs` for Auth OTP / Storage RLS patterns
-- `list_organizations` → PepRep org `jvshsjadaxqxcvsznlnu` (0 projects in MCP scope)
-- `list_projects` → `[]` — **cannot** reach `opbqlsmwljqkkdvguojh`
+- Project-scoped MCP (`?project_ref=opbqlsmwljqkkdvguojh`) authenticated
+- Migration `peprep_encrypted_backups` **applied** on live project; table + private bucket verified
+- Advisors: leaked-password WARN only (non-blocking for OTP/magic-link-only)
 - **Did not** create a new project; **did not** touch CleanRun
-- Migration + client landed in repo; remote apply **OWNER-BLOCKED** (`docs/supabase/REMOTE-APPLY.md`)
 
-### Delivered in repo
-- `supabase/migrations/20260718120000_peprep_encrypted_backups.sql` (RLS + GRANTs + private bucket + storage policies with SELECT/INSERT/UPDATE/DELETE)
-- `expo/src/cloudBackup/*` (config guard, SecureStore session, OTP, upload/list/download/delete)
-- Settings `CloudBackupPanel` (only if env configured)
-- Unit tests: config project-ref guard + path ownership
+### Delivered in repo + remote
+- Migration + `expo/src/cloudBackup/*` + Settings panel + EAS/`expo/.env` wiring
+- Magic-link deep link (`auth/callback`) + rate-limit messaging
+- Local backup RNG via `expo-crypto` (Hermes)
+- Privacy & safety screen (`/privacy`)
+- Docs: `REMOTE-APPLY.md`, `AUTH-REDIRECTS.md`, `EXPO-ENV.md`
 
 ## STEP 7 — Device checklist
 
@@ -74,11 +74,9 @@ Release series R1–R8 + a11y T0.3 on main — intended PepRep work only. No Cle
 
 ## STEP 9 — Handoff
 
-Pending: final commit(s) + push this branch. Do not merge to main from agent.
+Branch pushed with cloud-auth + backup fixes. Do not merge to main from agent.
 
 ### Owner next actions
-1. Re-auth Supabase MCP/CLI scoped to `opbqlsmwljqkkdvguojh`
-2. Read-only inventory (SUPABASE-SAFETY-INVENTORY §2)
-3. Apply migration; run advisors
-4. Set `EXPO_PUBLIC_SUPABASE_*` for builds that should show cloud backup
-5. Device checklist + OD-3 legal review + store submit
+1. Pull / reload Expo on device; smoke local encrypted backup (share sheet)
+2. Cloud: email sign-in link on phone → upload → list (watch rate limit)
+3. Device checklist + OD-3 legal review + store submit
