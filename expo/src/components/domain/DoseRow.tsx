@@ -54,6 +54,8 @@ export default function DoseRow({ entry, deleteArmed, onDeletePress }: DoseRowPr
       <Pressable
         onPress={onDeletePress}
         hitSlop={10}
+        accessibilityRole="button"
+        accessibilityLabel={deleteArmed ? "Confirm delete dose" : "Delete dose"}
         style={[
           styles.deleteButton,
           deleteArmed && { backgroundColor: colors.dangerBg, borderColor: colors.dangerBg },

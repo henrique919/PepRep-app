@@ -58,6 +58,9 @@ export default function SegmentedControl<T extends string | number>({
           <Pressable
             key={String(option.value)}
             onPress={() => select(option.value)}
+            accessibilityRole="button"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected: active }}
             style={[
               styles.segment,
               appearance === "solid" && index > 0

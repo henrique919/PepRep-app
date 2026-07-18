@@ -59,6 +59,12 @@ export default function VialCard({
         <Pressable
           onPress={onDeletePress}
           hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={
+            deleteArmed
+              ? `Confirm delete vial ${vial.name}`
+              : `Delete vial ${vial.name}`
+          }
           style={[styles.deleteButton, deleteArmed && { backgroundColor: colors.dangerBg }]}
           testID={`delete-vial-${vial.id}`}
         >

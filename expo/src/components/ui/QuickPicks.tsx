@@ -37,6 +37,11 @@ export default function QuickPicks({
           <Pressable
             key={option.value}
             onPress={() => onSelect(option.value)}
+            accessibilityRole="button"
+            accessibilityLabel={
+              option.sublabel ? `${option.label}, ${option.sublabel}` : option.label
+            }
+            accessibilityState={{ selected: on }}
             style={[
               styles.chip,
               equal && styles.chipEqual,

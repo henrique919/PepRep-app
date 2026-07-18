@@ -44,6 +44,8 @@ export default function Toast({
             onDismiss();
           }}
           hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={actionLabel}
         >
           <AppText variant="label" weight="bold" style={{ color: colors.accent }}>
             {actionLabel}
