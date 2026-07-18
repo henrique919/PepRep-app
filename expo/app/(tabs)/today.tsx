@@ -18,9 +18,12 @@ import { fmt } from "@/src/engine";
 import { dayKey, dueOnDay, versionActiveOn } from "@/src/engine/schedule";
 import { selectEventForOccurrence, useLedgerStore } from "@/src/store/ledger";
 import { selectActivePlans, usePlansStore } from "@/src/store/plans";
+import { scheduleSnoozeMinutes } from "@/src/store/reminders";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
 import { radius, spacing } from "@/src/theme/tokens";
+
+const SNOOZE_MINUTES = 30;
 
 interface DueOccurrence {
   plan: Plan;
@@ -125,6 +128,22 @@ export default function TodayScreen() {
       .catch((error) => console.error("[today] Failed to un-log", error));
   };
 
+  const handleSnooze = () => {
+    scheduleSnoozeMinutes(SNOOZE_MINUTES)
+      .then((notificationId) => {
+        if (notificationId === null) {
+          setToast({
+            message: "Snooze needs notification permission (unavailable on web).",
+          });
+          return;
+        }
+        setToast({
+          message: `Reminder in ${SNOOZE_MINUTES} min (no compound or dose in the alert)`,
+        });
+      })
+      .catch((error) => console.error("[today] Failed to snooze", error));
+  };
+
   return (
     <Screen>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -221,6 +240,13 @@ export default function TodayScreen() {
                       compact
                       onPress={() => openLog(row)}
                       testID={`log-${row.key}`}
+                    />
+                    <Button
+                      label="Snooze"
+                      tone="ghost"
+                      compact
+                      onPress={handleSnooze}
+                      testID={`snooze-${row.key}`}
                     />
                     <Button
                       label="Skip"

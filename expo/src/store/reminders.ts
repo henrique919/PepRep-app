@@ -102,6 +102,34 @@ export async function cancelScheduledNotification(
   }
 }
 
+/**
+ * One-shot snooze. Privacy-safe body — never includes compound or dose.
+ * Returns notification id, or null on web / denied / failure.
+ */
+export async function scheduleSnoozeMinutes(minutes: number): Promise<string | null> {
+  if (Platform.OS === "web") return null;
+  if (!Number.isFinite(minutes) || minutes <= 0) return null;
+  try {
+    const granted = await ensurePermission();
+    if (!granted) return null;
+    await ensureAndroidChannel();
+    return await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "PepRep reminder",
+        body: "You asked to be reminded.",
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: Math.round(minutes * 60),
+        channelId: Platform.OS === "android" ? "reminders" : undefined,
+      },
+    });
+  } catch (error) {
+    console.error("[reminders] Failed to schedule snooze", error);
+    return null;
+  }
+}
+
 async function cancelScheduled(notificationId: string | null): Promise<void> {
   await cancelScheduledNotification(notificationId);
 }

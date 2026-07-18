@@ -104,8 +104,24 @@ export default function VialDetailScreen() {
         </View>
 
         <Button
-          label="Log a dose from this vial"
+          label="Calculate with this vial"
           tone="primary"
+          onPress={() =>
+            router.push({
+              pathname: "/(tabs)",
+              params: {
+                compoundName: vial.name,
+                vialMg: String(vial.vialMg),
+                diluentMl: String(vial.diluentMl),
+                syringeCapacity: String(vial.syringeCapacityUnits),
+              },
+            })
+          }
+          testID="calculate-with-vial"
+        />
+        <Button
+          label="Log a dose from this vial"
+          tone="ghost"
           onPress={() =>
             router.push({
               pathname: "/log-entry",
@@ -115,6 +131,7 @@ export default function VialDetailScreen() {
               },
             })
           }
+          testID="log-from-vial"
         />
       </ScrollView>
     </Screen>

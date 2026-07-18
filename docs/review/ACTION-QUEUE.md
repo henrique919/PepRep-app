@@ -120,7 +120,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   + `addVial` before completeOnboarding). Calculator vial/water defaults cleared (no 5/2).
   Tests: `src/onboarding/__tests__/vialDraft.test.ts`. Optional plan/reminder deferred to T1.4.
 
-- [ ] **T1.2 — Retention loop verified end-to-end**
+- [x] **T1.2 — Retention loop verified end-to-end**
   Evidence: dual-write `doses`↔`ledger` exists; earlier gaps: no "Save as vial" on calc, no
   "Calculate with vial" from a vial. Outcome: calc → Save vial → Create plan → Today →
   Log/Skip/Snooze → remaining + history update, unbroken. Scope: add the two missing wires;
@@ -128,6 +128,9 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   `plans/*`, `today.tsx`. Accept: the full loop works and survives relaunch; un-log restores
   remaining exactly. Tests: ledger round-trip (exists) + wiring tests. Manual: full loop on
   device. Gate: none.
+  **Done 2026-07-18:** Save-as-vial already on calc; added Calculate-with-vial on vial detail;
+  Today Snooze via privacy-safe local one-shot (`scheduleSnoozeMinutes`). Wiring test:
+  `vial-calc-params.test.ts`. Manual device loop still recommended.
 
 - [ ] **T1.3 — Inventory fields: expiry/BUD, lot, low-stock**
   Evidence: `models.ts` has `reconstitutedAtIso` + `archivedAtIso`; **no expiry/BUD, lot,
