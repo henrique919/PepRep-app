@@ -9,16 +9,17 @@ PepRep completes sign-in when that link deep-links into the app at `…/auth/cal
 
 Open project `opbqlsmwljqkkdvguojh` → **Authentication → URL Configuration**.
 
-**Owner updated 2026-07-19** (redirect / login URLs). Confirm these remain set:
+**Verified via Management API 2026-07-19:**
 
-1. **Site URL** (mobile-first):
-   - `peprep://auth/callback`
-2. **Additional Redirect URLs**:
-   - `peprep://**`
-   - `exp://**`
-   - `http://localhost:8081/**` / `http://localhost:8082/**` (optional, web/dev)
+| Setting | Value |
+|---|---|
+| Site URL | `peprep://auth/callback` |
+| Additional redirects | `peprep://**`, `exp://**` |
+| Email provider | enabled |
+| `mailer_autoconfirm` | **true** (set 2026-07-19 — new users skip separate confirm email) |
+| Email send rate limit | **2/hour** (Supabase default mail; cannot raise without custom SMTP) |
 
-Without these, the email link falls back to `http://localhost:3000` and shows a **blank page**.
+Without the redirect allow-list, email links fall back to `http://localhost:3000` (blank page).
 
 ## App flow
 
