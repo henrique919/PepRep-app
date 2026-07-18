@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import type { KeyboardTypeOptions } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
 import { useTheme } from "@/src/theme";
-import { fonts, fontSize, hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { fonts, fontSize, spacing } from "@/src/theme/tokens";
 
 interface FieldProps {
   label: string;
@@ -19,6 +19,8 @@ interface FieldProps {
   /** Numeric fields render in IBM Plex Mono. */
   mono?: boolean;
   accessory?: React.ReactNode;
+  /** Optional error text announced to assistive tech. */
+  error?: string;
   testID?: string;
 }
 
@@ -32,15 +34,20 @@ export default function Field({
   keyboardType = "decimal-pad",
   mono = true,
   accessory,
+  error,
   testID,
 }: FieldProps) {
   const { colors } = useTheme();
   const [focused, setFocused] = useState<boolean>(false);
+  const reactId = useId();
+  const inputId = `field-${reactId.replace(/:/g, "")}`;
+  const accessibilityLabel =
+    suffix !== undefined && suffix.length > 0 ? `${label}, ${suffix}` : label;
 
   return (
     <View style={styles.wrap}>
       <View style={styles.labelRow}>
-        <AppText variant="overline" tone="secondary" style={styles.label}>
+        <AppText variant="overline" tone="secondary" style={styles.label} nativeID={`${inputId}-label`}>
           {label}
         </AppText>
         {hint ? (
@@ -55,12 +62,16 @@ export default function Field({
           styles.inputRow,
           {
             backgroundColor: colors.surface,
-            borderColor: focused ? colors.ink : colors.hairline,
+            borderColor: error ? colors.dangerInk : focused ? colors.ink : colors.hairline,
           },
         ]}
       >
         <TextInput
           testID={testID}
+          nativeID={inputId}
+          accessibilityLabel={accessibilityLabel}
+          accessibilityHint={hint}
+          accessibilityState={{ disabled: false }}
           style={[
             styles.input,
             { color: colors.ink, backgroundColor: colors.surface },
@@ -77,11 +88,22 @@ export default function Field({
           autoCorrect={!mono}
         />
         {suffix !== undefined && (
-          <AppText variant="label" mono weight="semibold" tone="secondary">
+          <AppText variant="label" mono weight="semibold" tone="secondary" importantForAccessibility="no">
             {suffix}
           </AppText>
         )}
       </View>
+      {error !== undefined && error.length > 0 ? (
+        <AppText
+          variant="caption"
+          tone="danger"
+          accessibilityRole="alert"
+          accessibilityLiveRegion="polite"
+          testID={testID !== undefined ? `${testID}-error` : undefined}
+        >
+          {error}
+        </AppText>
+      ) : null}
     </View>
   );
 }

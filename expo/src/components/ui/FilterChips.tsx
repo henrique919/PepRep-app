@@ -38,11 +38,15 @@ export default function FilterChips<T extends string>({
           <Pressable
             key={option.value}
             onPress={() => onChange(option.value)}
+            accessibilityRole="button"
+            accessibilityLabel={option.label}
+            accessibilityState={{ selected: on }}
             style={[
               styles.chip,
               {
                 backgroundColor: on ? colors.solid : colors.surface,
                 borderColor: on ? colors.solid : colors.hairline,
+                minHeight: 44,
               },
             ]}
           >

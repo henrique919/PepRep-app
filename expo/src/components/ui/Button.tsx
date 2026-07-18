@@ -63,6 +63,9 @@ export default function Button({
       testID={testID}
       onPress={handlePress}
       disabled={disabled}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => [
         styles.base,
         compact ? styles.compact : styles.regular,
