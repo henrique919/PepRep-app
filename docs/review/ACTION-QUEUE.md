@@ -227,6 +227,28 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 
 ---
 
+## RELEASE — v1 store prep
+
+Release hygiene only (no new features). Engineering feature-freeze assumed.
+
+- [x] **R1 — Remove dead AI SDK from v1 bundle**
+  **Done 2026-07-18:** All generateText access via `src/ask/generateTextTransport.ts`
+  (stub when Ask off; no static SDK import). Removed `@rork-ai/toolkit-sdk` dep + Metro
+  wrapper. Ask UI/policy/corpus kept. Grep of `src`/`app`/`package.json`/`metro.config.js`
+  for the toolkit package name is empty. Network at rest: no fetch/axios to cloud from app
+  code paths; Ask returns `disabled`; notifications local; export/backup are user-initiated
+  file share only.
+
+- [ ] **R2 — Root error boundary**
+- [ ] **R3 — Version + build numbers**
+- [ ] **R4 — Permissions + iOS usage strings audit**
+- [ ] **R5 — Icon/splash store-spec verification**
+- [ ] **R6 — Privacy policy + support content (draft)**
+- [ ] **R7 — First-run disclaimer / safety acknowledgement**
+- [ ] **R8 — Compliance copy sweep + store-listing draft**
+
+---
+
 ## Work log
 
 ### 2026-07-18 — implementation loop

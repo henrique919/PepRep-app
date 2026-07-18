@@ -1,4 +1,3 @@
-import { generateText } from "@rork-ai/toolkit-sdk";
 import { useRouter } from "expo-router";
 import { ChevronLeft, MessageCircleQuestion } from "lucide-react-native";
 import React, { useState } from "react";
@@ -21,6 +20,7 @@ import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import { askQuestion, type AskOutcome } from "@/src/ask";
 import { ASK_V1_ENABLED } from "@/src/ask/feature";
+import { resolveGenerateText } from "@/src/ask/generateTextTransport";
 import { callRorkGenerateText } from "@/src/ask/rorkTransport";
 import { useSettingsStore } from "@/src/store/settings";
 import { useTheme } from "@/src/theme";
@@ -61,6 +61,7 @@ export default function AskScreen() {
     setOutcome(null);
     setQuestion(trimmed);
     try {
+      const generateText = await resolveGenerateText();
       const result = await askQuestion(trimmed, {
         askEnabled,
         online: isProbablyOnline(),

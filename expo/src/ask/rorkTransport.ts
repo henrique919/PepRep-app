@@ -1,14 +1,13 @@
 /**
- * Bridge Ask messages to Rork generateText.
+ * Bridge Ask messages to a generateText function (cloud transport optional).
  *
- * SDK types only declare user|assistant, but the runtime POSTs `messages`
- * unchanged to /llm/text. We send a real system role on the wire so the
- * guardrail is not folded into the injection-prone user turn.
+ * When a cloud SDK is restored post T3.1, keep sending a real system role on the
+ * wire so the guardrail is not folded into the injection-prone user turn.
  */
 
 import type { AskMessage } from "./payload";
 
-/** Shape accepted by @rork-ai/toolkit-sdk generateText at the type level. */
+/** Wire shape for generateText message lists (user|assistant at the type level). */
 export type RorkGenerateTextMessage = {
   role: "user" | "assistant";
   content: string;
