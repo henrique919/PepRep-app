@@ -6,7 +6,7 @@ import {
   serializeBackupFile,
 } from "../codec";
 import { encryptUtf8With, sha256Hex } from "../crypto";
-import { BACKUP_MAGIC } from "../types";
+import { BACKUP_MAGIC, BACKUP_MAX_FILE_BYTES } from "../types";
 
 describe("encrypted backup round-trip", () => {
   it("encrypts and restores an identical payload", () => {
@@ -70,6 +70,55 @@ describe("encrypted backup round-trip", () => {
 
   it("uses a PII-free backup filename", () => {
     expect(encryptedBackupFileName("2026-07-18")).toBe("peprep-backup-2026-07-18.peprep.json");
+  });
+
+  it("rejects oversized envelopes before parse work", () => {
+    const huge = "x".repeat(BACKUP_MAX_FILE_BYTES + 1);
+    const result = decryptAndValidateBackup(huge, "pw");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("oversized");
+  });
+
+  it("rejects truncated / invalid JSON", () => {
+    const result = decryptAndValidateBackup("{not-json", "pw");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("invalid-json");
+  });
+
+  it("rejects unsupported future format versions", () => {
+    const payload = buildBackupPayload({
+      vials: [],
+      doses: [],
+      doseEvents: [],
+      inventoryTxns: [],
+      plans: [],
+      reminders: [],
+      exportedAtIso: "2026-07-18T12:00:00.000Z",
+    });
+    const file = createEncryptedBackup(payload, "secret");
+    const future = { ...file, version: 99 };
+    const result = decryptAndValidateBackup(JSON.stringify(future), "secret");
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.reason).toBe("unsupported-version");
+  });
+
+  it("round-trips an empty dataset", () => {
+    const payload = buildBackupPayload({
+      vials: [],
+      doses: [],
+      doseEvents: [],
+      inventoryTxns: [],
+      plans: [],
+      reminders: [],
+      exportedAtIso: "2026-07-18T12:00:00.000Z",
+    });
+    const raw = serializeBackupFile(createEncryptedBackup(payload, "empty-ok"));
+    const result = decryptAndValidateBackup(raw, "empty-ok");
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.plaintext.vials).toEqual([]);
+      expect(result.file.manifest.counts.vials).toBe(0);
+    }
   });
 });
 

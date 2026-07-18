@@ -22,7 +22,8 @@ function getRandomBytes(length: number): Uint8Array {
     subtleCrypto.getRandomValues(out);
     return out;
   }
-  // Node / Jest fallback.
+  // Node / Jest fallback (no Web Crypto).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Node-only path
   const nodeCrypto = require("crypto") as typeof import("crypto");
   return new Uint8Array(nodeCrypto.randomBytes(length));
 }

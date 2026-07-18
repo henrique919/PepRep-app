@@ -6,6 +6,8 @@ export const BACKUP_MAGIC = "PEPREP-BACKUP" as const;
 export const BACKUP_FORMAT_VERSION = 1 as const;
 export const BACKUP_KDF = "pbkdf2-sha256" as const;
 export const BACKUP_PBKDF2_ITERATIONS = 210_000;
+/** Reject restore/parse of ciphertext envelopes larger than this (UTF-8 bytes). */
+export const BACKUP_MAX_FILE_BYTES = 8 * 1024 * 1024;
 
 export type BackupManifest = {
   schemaVersion: number;
@@ -63,7 +65,8 @@ export type BackupValidationErr = {
     | "wrong-password"
     | "checksum-mismatch"
     | "corrupt"
-    | "schema-too-new";
+    | "schema-too-new"
+    | "oversized";
   message: string;
 };
 
