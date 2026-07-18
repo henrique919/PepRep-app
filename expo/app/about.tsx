@@ -21,7 +21,14 @@ export default function AboutScreen() {
     <Screen topInset={Platform.OS !== "ios"}>
       <View style={styles.chrome}>
         <AppText variant="heading">About</AppText>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.closeButton} testID="close-about">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.closeButton}
+          testID="close-about"
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <X size={18} color={colors.ink} />
         </Pressable>
       </View>

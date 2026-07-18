@@ -140,7 +140,14 @@ export default function LogEntryScreen() {
             {formatDateTime(nowIso)}
           </AppText>
         </View>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.closeButton} testID="close-log-entry">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.closeButton}
+          testID="close-log-entry"
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <X size={18} color={colors.ink} />
         </Pressable>
       </View>
@@ -168,6 +175,8 @@ export default function LogEntryScreen() {
                       onPress={() => selectVial(vial.id)}
                       style={[styles.chip, active && styles.chipActive]}
                       testID={`vial-chip-${vial.id}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
                     >
                       <AppText
                         variant="label"

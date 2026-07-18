@@ -310,6 +310,8 @@ export default function SettingsScreen() {
           hitSlop={12}
           style={styles.backButton}
           testID="close-settings"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ArrowLeft size={18} color={colors.ink} />
         </Pressable>
@@ -365,6 +367,8 @@ export default function SettingsScreen() {
                       }}
                       trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
                       thumbColor={colors.surface}
+                      accessibilityLabel={`${reminder.label} reminder`}
+                      accessibilityState={{ checked: reminder.enabled }}
                     />
                     <Pressable
                       onPress={() => {
@@ -375,6 +379,8 @@ export default function SettingsScreen() {
                       hitSlop={10}
                       style={styles.iconButton}
                       testID={`remove-reminder-${reminder.id}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={`Remove reminder ${reminder.label}`}
                     >
                       <X size={15} color={colors.inkFaint} />
                     </Pressable>
@@ -419,6 +425,8 @@ export default function SettingsScreen() {
                               key={candidate}
                               onPress={() => setMinute(candidate)}
                               style={[styles.minuteChip, active && styles.minuteChipActive]}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected: active }}
                             >
                               <AppText
                                 variant="label"
@@ -452,7 +460,12 @@ export default function SettingsScreen() {
             {!isWeb && !showEditor && (
               <View>
                 {reminders.length > 0 && <Hairline />}
-                <Pressable onPress={() => setShowEditor(true)} style={styles.addRow} testID="add-reminder">
+                <Pressable
+                  onPress={() => setShowEditor(true)}
+                  style={styles.addRow}
+                  testID="add-reminder"
+                  accessibilityRole="button"
+                >
                   <Plus size={16} color={colors.accent} />
                   <AppText variant="label" weight="semibold" tone="accent">
                     Add a reminder
@@ -473,6 +486,7 @@ export default function SettingsScreen() {
               onPress={() => setPendingExport("csv")}
               style={styles.actionRow}
               testID="export-csv"
+              accessibilityRole="button"
             >
               <FileDown size={18} color={colors.ink} />
               <View style={styles.actionBody}>
@@ -490,6 +504,7 @@ export default function SettingsScreen() {
               onPress={() => setPendingExport("json")}
               style={styles.actionRow}
               testID="export-json"
+              accessibilityRole="button"
             >
               <FileJson size={18} color={colors.ink} />
               <View style={styles.actionBody}>
@@ -503,7 +518,12 @@ export default function SettingsScreen() {
               <ChevronRight size={16} color={colors.inkFaint} />
             </Pressable>
             <Hairline />
-            <Pressable onPress={handleErasePress} style={styles.actionRow} testID="erase-data">
+            <Pressable
+              onPress={handleErasePress}
+              style={styles.actionRow}
+              testID="erase-data"
+              accessibilityRole="button"
+            >
               <Trash2 size={18} color={colors.dangerInk} />
               <View style={styles.actionBody}>
                 <AppText variant="body" weight="medium" tone="danger">
@@ -718,7 +738,12 @@ export default function SettingsScreen() {
         {/* About */}
         <View style={styles.section}>
           <Card padded={false}>
-            <Pressable onPress={() => router.push("/about")} style={styles.actionRow} testID="open-about">
+            <Pressable
+              onPress={() => router.push("/about")}
+              style={styles.actionRow}
+              testID="open-about"
+              accessibilityRole="button"
+            >
               <Info size={18} color={colors.ink} />
               <View style={styles.actionBody}>
                 <AppText variant="body" weight="medium">

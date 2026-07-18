@@ -163,6 +163,7 @@ export default function TodayScreen() {
             hitSlop={8}
             style={styles.gearButton}
             testID="open-plans"
+            accessibilityRole="button"
           >
             <AppText variant="caption" weight="semibold">
               Plans
@@ -267,6 +268,7 @@ export default function TodayScreen() {
         style={[styles.fab, { backgroundColor: colors.solid }]}
         onPress={() => router.push("/(tabs)")}
         testID="today-fab-calc"
+        accessibilityRole="button"
         accessibilityLabel="Open calculator"
       >
         <Plus size={22} color={colors.onSolid} strokeWidth={2.4} />
@@ -303,8 +305,9 @@ function createStyles(colors: ColorTokens) {
     },
     gearButton: {
       minWidth: 44,
-      height: 44,
+      minHeight: 44,
       paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
       borderRadius: radius.pill,
       backgroundColor: colors.surface,
       alignItems: "center",

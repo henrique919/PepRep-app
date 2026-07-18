@@ -133,11 +133,12 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     paddingHorizontal: spacing.lg,
     minHeight: 56,
+    paddingVertical: spacing.sm,
   },
   input: {
     flex: 1,
     fontSize: 26,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.xs,
   },
   monoInput: {
     fontFamily: fonts.monoMedium,

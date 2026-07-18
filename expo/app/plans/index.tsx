@@ -52,6 +52,8 @@ export default function PlansScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="plans-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
@@ -116,6 +118,8 @@ export default function PlansScreen() {
                   hitSlop={8}
                   style={styles.archiveButton}
                   testID={`archive-plan-${plan.id}`}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Archive plan ${plan.compoundName}`}
                 >
                   <Archive size={16} color={colors.inkFaint} />
                 </Pressable>

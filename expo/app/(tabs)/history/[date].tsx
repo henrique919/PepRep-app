@@ -69,6 +69,8 @@ export default function HistoryDayScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="history-day-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
@@ -106,6 +108,7 @@ export default function HistoryDayScreen() {
                       onPress={() => router.push(`/history/event/${event.id}`)}
                       style={styles.row}
                       testID={`day-event-${event.id}`}
+                      accessibilityRole="button"
                     >
                       <AppText variant="label" mono tone="faint" style={styles.time}>
                         {formatClock(event.occurredAt)}

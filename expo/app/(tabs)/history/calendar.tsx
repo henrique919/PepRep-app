@@ -47,6 +47,8 @@ export default function HistoryCalendarScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="calendar-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
@@ -61,6 +63,8 @@ export default function HistoryCalendarScreen() {
             onPress={() => setCursor((current) => startOfMonth(subMonths(current, 1)))}
             style={styles.monthButton}
             testID="calendar-prev"
+            accessibilityRole="button"
+            accessibilityLabel="Previous month"
           >
             <ChevronLeft size={20} color={colors.ink} />
           </Pressable>
@@ -69,6 +73,8 @@ export default function HistoryCalendarScreen() {
             onPress={() => setCursor((current) => startOfMonth(addMonths(current, 1)))}
             style={styles.monthButton}
             testID="calendar-next"
+            accessibilityRole="button"
+            accessibilityLabel="Next month"
           >
             <ChevronRight size={20} color={colors.ink} />
           </Pressable>
@@ -88,12 +94,22 @@ export default function HistoryCalendarScreen() {
             const inMonth = isSameMonth(date, cursor);
             const markers = dayMarkers(events, key);
             const hasMarker = markers.completed || markers.skipped || markers.missed;
+            const statusParts: string[] = [];
+            if (markers.completed) statusParts.push("completed");
+            if (markers.skipped) statusParts.push("skipped");
+            if (markers.missed) statusParts.push("missed");
+            const dayLabel = [
+              format(date, "MMMM d, yyyy"),
+              statusParts.length > 0 ? statusParts.join(", ") : "no recorded events",
+            ].join(", ");
             return (
               <Pressable
                 key={key}
                 onPress={() => router.push(`/history/${key}`)}
                 style={[styles.cell, !inMonth && styles.cellMuted]}
                 testID={`calendar-day-${key}`}
+                accessibilityRole="button"
+                accessibilityLabel={dayLabel}
               >
                 <AppText
                   variant="label"

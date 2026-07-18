@@ -152,6 +152,8 @@ export default function VialsScreen() {
             <Pressable
               key={view.vial.id}
               onPress={() => router.push(`/vial/${view.vial.id}` as Href)}
+              accessibilityRole="button"
+              accessibilityLabel={`Open vial ${view.vial.name}`}
             >
               <VialCard
                 vial={view.vial}

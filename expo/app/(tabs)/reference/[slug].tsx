@@ -156,6 +156,7 @@ function CompoundDetail({
                   onPress={() => openCitation(citation.url)}
                   style={styles.citationRow}
                   testID={`citation-${index}`}
+                  accessibilityRole="button"
                 >
                   <View style={styles.citationText}>
                     <AppText variant="label" weight="medium">
@@ -200,6 +201,8 @@ export default function ReferenceDetailScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="reference-detail-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>

@@ -97,6 +97,8 @@ export default function HistoryTimelineScreen() {
               hitSlop={8}
               style={styles.iconButton}
               testID="open-history-calendar"
+              accessibilityRole="button"
+              accessibilityLabel="Open calendar"
             >
               <CalendarDays size={18} color={colors.ink} />
             </Pressable>
@@ -144,7 +146,10 @@ export default function HistoryTimelineScreen() {
         ) : (
           groups.map((group) => (
             <View key={group.key} style={styles.group}>
-              <Pressable onPress={() => router.push(`/history/${group.key}`)}>
+              <Pressable
+                onPress={() => router.push(`/history/${group.key}`)}
+                accessibilityRole="button"
+              >
                 <AppText variant="overline" tone="faint" style={styles.groupHeading}>
                   {group.heading}
                 </AppText>
@@ -161,6 +166,7 @@ export default function HistoryTimelineScreen() {
                         onPress={() => router.push(`/history/event/${event.id}`)}
                         style={[styles.row, voided && styles.rowVoided]}
                         testID={`history-event-${event.id}`}
+                        accessibilityRole="button"
                       >
                         <AppText variant="label" mono tone="faint" style={styles.time}>
                           {formatClock(event.occurredAt)}

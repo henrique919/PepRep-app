@@ -25,6 +25,8 @@ export default function GlossaryScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="glossary-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>

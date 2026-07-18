@@ -150,7 +150,14 @@ export default function NewVialScreen() {
     <Screen topInset={Platform.OS !== "ios"}>
       <View style={styles.chrome}>
         <AppText variant="heading">New vial</AppText>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.closeButton} testID="close-vial-new">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.closeButton}
+          testID="close-vial-new"
+          accessibilityRole="button"
+          accessibilityLabel="Close"
+        >
           <X size={18} color={colors.ink} />
         </Pressable>
       </View>

@@ -84,6 +84,8 @@ export default function AskScreen() {
             hitSlop={8}
             style={styles.backButton}
             testID="ask-back"
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
           >
             <ChevronLeft size={22} color={colors.ink} />
           </Pressable>
@@ -111,6 +113,8 @@ export default function AskScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="ask-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
@@ -185,6 +189,7 @@ export default function AskScreen() {
                     }}
                     style={styles.chip}
                     testID={`ask-chip-${chip.slice(0, 12)}`}
+                    accessibilityRole="button"
                   >
                     <AppText variant="caption" tone="secondary">
                       {chip}

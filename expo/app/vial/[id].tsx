@@ -62,7 +62,13 @@ export default function VialDetailScreen() {
   return (
     <Screen>
       <View style={styles.chrome}>
-        <Pressable onPress={() => router.back()} hitSlop={8} style={styles.back}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={8}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
         <AppText variant="display" numberOfLines={1} style={styles.title}>

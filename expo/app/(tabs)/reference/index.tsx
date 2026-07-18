@@ -46,6 +46,8 @@ export default function ReferenceScreen() {
             hitSlop={8}
             style={styles.glossaryButton}
             testID="open-glossary"
+            accessibilityRole="button"
+            accessibilityLabel="Open glossary"
           >
             <BookMarked size={18} color={colors.ink} />
           </Pressable>
@@ -56,6 +58,8 @@ export default function ReferenceScreen() {
             onPress={() => router.push("/reference/ask")}
             style={styles.askRow}
             testID="open-ask"
+            accessibilityRole="button"
+            accessibilityLabel="Ask"
           >
             <View style={styles.askIcon}>
               <MessageCircleQuestion size={22} color={colors.onAccent} />
@@ -94,6 +98,8 @@ export default function ReferenceScreen() {
               key={compound.id}
               onPress={() => router.push(`/reference/${compound.slug}`)}
               testID={`compound-card-${compound.slug}`}
+              accessibilityRole="button"
+              accessibilityLabel={compound.name}
             >
               <Card style={styles.card}>
                 <View style={styles.cardTop}>

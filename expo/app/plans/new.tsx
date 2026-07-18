@@ -128,6 +128,8 @@ export default function NewPlanScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="plan-new-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
@@ -203,6 +205,8 @@ export default function NewPlanScreen() {
                     onPress={() => toggleDay(day.value)}
                     style={[styles.chip, active && styles.chipActive]}
                     testID={`day-chip-${day.value}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
                   >
                     <AppText
                       variant="label"
@@ -248,6 +252,8 @@ export default function NewPlanScreen() {
                     onPress={() => removeTime(time)}
                     style={styles.chip}
                     testID={`time-chip-${time}`}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Remove time ${time}`}
                   >
                     <AppText variant="label" mono weight="medium" tone="secondary">
                       {time}
@@ -273,6 +279,8 @@ export default function NewPlanScreen() {
                       onPress={() => setVialId(active ? undefined : vial.id)}
                       style={[styles.chip, active && styles.chipActive]}
                       testID={`plan-vial-chip-${vial.id}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
                     >
                       <AppText
                         variant="label"

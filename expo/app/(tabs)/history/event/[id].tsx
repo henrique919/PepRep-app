@@ -98,6 +98,8 @@ export default function HistoryEventScreen() {
           hitSlop={8}
           style={styles.backButton}
           testID="history-event-back"
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
         >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>

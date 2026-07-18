@@ -119,6 +119,8 @@ export default function LogPlanScreen() {
           hitSlop={12}
           style={styles.closeButton}
           testID="close-log-plan"
+          accessibilityRole="button"
+          accessibilityLabel="Close"
         >
           <X size={18} color={colors.ink} />
         </Pressable>
@@ -190,6 +192,8 @@ export default function LogPlanScreen() {
                       onPress={() => setVialId(active ? undefined : vial.id)}
                       style={[styles.chip, active && styles.chipActive]}
                       testID={`log-plan-vial-${vial.id}`}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: active }}
                     >
                       <AppText
                         variant="label"

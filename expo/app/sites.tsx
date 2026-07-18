@@ -25,7 +25,13 @@ export default function SitesScreen() {
   return (
     <Screen>
       <View style={styles.chrome}>
-        <Pressable onPress={() => router.back()} hitSlop={8} style={styles.back}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={8}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Go back"
+        >
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
         <AppText variant="display">Sites</AppText>

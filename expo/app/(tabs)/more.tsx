@@ -55,6 +55,9 @@ function MenuSection({
             key={row.label}
             disabled={row.trailing === "switch"}
             onPress={row.onPress}
+            accessibilityRole="button"
+            accessibilityLabel={row.label}
+            accessibilityState={{ disabled: row.trailing === "switch" }}
             style={({ pressed }) => [
               styles.row,
               index < rows.length - 1 && {
@@ -85,6 +88,8 @@ function MenuSection({
                 onValueChange={row.onSwitch}
                 trackColor={{ false: colors.surfaceSunken, true: colors.solid }}
                 thumbColor={colors.surface}
+                accessibilityLabel={row.label}
+                accessibilityState={{ checked: row.switchValue === true }}
               />
             ) : (
               <ChevronRight size={18} color={row.destructive ? colors.dangerInk : colors.inkFaint} />
