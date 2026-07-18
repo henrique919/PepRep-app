@@ -1,6 +1,8 @@
 /**
- * StorageAdapter — the only boundary between PepRep and the device.
- * Everything is stored locally; there is no network anywhere in the app.
+ * StorageAdapter — the only boundary between PepRep and on-device persistence.
+ * Local-first: calculator, inventory, history, and settings live here with no
+ * cloud sync. Optional Ask (when the user enables it) may call Rork AI Cloud
+ * for reference answers — that path does not go through this adapter.
  */
 
 import AsyncStorage from "@react-native-async-storage/async-storage";

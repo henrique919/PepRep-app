@@ -14,7 +14,10 @@ advisor: it never recommends a peptide, dose, stack, cycle, frequency or protoco
 - The user enters 100% of their own plan; the app only does arithmetic and record-keeping.
 - No dosing suggestions, "typical" ranges, stacks or cycle guidance — anywhere.
 - No account, no sign-in, no paywall. The calculator is never gated.
-- Fully offline: no network calls, no analytics, no telemetry. All data lives on-device.
+- Local-first: calculator, inventory, history, and settings stay on-device with no
+  analytics or telemetry. The one optional network path is **Ask** (Reference): when
+  the user explicitly enables it, question text is sent to Rork AI Cloud for
+  retrieval-grounded reference answers. Everything else works offline.
 
 ## The one rule that matters
 
