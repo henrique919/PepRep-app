@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
 import { useTheme } from "@/src/theme";
-import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
+import { spacing } from "@/src/theme/tokens";
 
 export type QuickPickOption = {
   label: string;

@@ -6,7 +6,6 @@
  */
 
 declare global {
-  // eslint-disable-next-line no-var
   var __PEPREP_ASK_V1__: boolean | undefined;
 }
 
