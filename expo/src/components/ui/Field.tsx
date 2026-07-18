@@ -21,6 +21,7 @@ interface FieldProps {
   accessory?: React.ReactNode;
   /** Optional error text announced to assistive tech. */
   error?: string;
+  secureTextEntry?: boolean;
   testID?: string;
 }
 
@@ -35,6 +36,7 @@ export default function Field({
   mono = true,
   accessory,
   error,
+  secureTextEntry = false,
   testID,
 }: FieldProps) {
   const { colors } = useTheme();
@@ -84,8 +86,10 @@ export default function Field({
           keyboardType={keyboardType}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          autoCapitalize={mono ? "none" : "sentences"}
-          autoCorrect={!mono}
+          autoCapitalize={mono || secureTextEntry ? "none" : "sentences"}
+          autoCorrect={!mono && !secureTextEntry}
+          secureTextEntry={secureTextEntry}
+          textContentType={secureTextEntry ? "password" : undefined}
         />
         {suffix !== undefined && (
           <AppText variant="label" mono weight="semibold" tone="secondary" importantForAccessibility="no">

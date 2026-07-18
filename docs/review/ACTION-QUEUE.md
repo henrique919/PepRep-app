@@ -73,7 +73,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   reduced-motion via T0.6. Remaining: icon-only Pressables, Dynamic Type clip audit, RTL
   accessible-name tests, VoiceOver/TalkBack recordings — leave unchecked until device sweep.
 
-- [ ] **T0.4 — PepRep-owned store identity**
+- [x] **T0.4 — PepRep-owned store identity**
   Evidence: `app.json` `scheme:"rork-app"`, ids `app.rork.fdbzggh0h14wkaztx609o`, router
   `origin:"https://rork.com/"`. Outcome: owner controls the store listing + deep links.
   Scope: set bundle/package to an owner domain (e.g. `app.peprep.mobile` /
@@ -85,6 +85,8 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   `expo prebuild`/build config valid. Tests: config lint. Manual: deep-link smoke; build
   config check. Rollback: revert `app.json`. Gate: **owner** (choose bundle id + confirm EAS
   ownership). Evidence: diff + build config output.
+  **Done 2026-07-18:** OD-2 → `com.henrique919.peprep`, scheme `peprep`, owner `henrique919`;
+  rork router origins removed; EAS `projectId` kept.
 
 - [x] **T0.5 — Privacy/offline truthfulness**
   Evidence: `README.md` "Fully offline: no network calls" and `src/db/adapter.ts` "there is no
@@ -176,7 +178,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   **Done 2026-07-18:** Documented v0→v4 chain; `parseCollectionJson` + quarantine on corrupt
   collection reads; `runMigrations` idempotence tests. 156 green.
 
-- [ ] **T1.7 — Optional encrypted backup file (local-first; NO account for v1)**
+- [x] **T1.7 — Optional encrypted backup file (local-first; NO account for v1)**
   Evidence: Supabase project unverified this session; recommend backup-files over sync (see
   SUPABASE-SAFETY-INVENTORY §4). Outcome: user can create + restore an encrypted backup file.
   Scope: export → client-side encrypt → save/share; restore validates manifest (schema/app/
@@ -186,6 +188,9 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   safely. Tests: encrypt/decrypt round-trip, manifest validation, restore-preview. Manual:
   backup → erase → restore. Rollback: feature flag. Gate: **owner** (confirm v1 = files, not
   sync). Supabase: none for v1; if uploading later, apply SUPABASE-SAFETY-INVENTORY §5.
+  **Done 2026-07-18 (OD-4 A):** PBKDF2 + AES-GCM backup in `src/backup/*`; Settings create/
+  share + DocumentPicker restore with preview + double-confirm; wrong password / tamper reject.
+  Tests: `backup/__tests__/backup.test.ts` (5).
 
 ## P2 — polish & competitive depth (after P0/P1)
 
@@ -229,9 +234,11 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **T1.5:** Pre-export plaintext warning + safe filenames; encrypted → T1.7.
 - **T1.6:** Migration runner tests + quarantine-on-corrupt hydrate; 156 tests.
 - **OD-1 decided:** Ask removed for v1 (`ASK_V1_ENABLED=false`).
-- **OD-4 decided:** encrypted backup files → external storage (T1.7 next).
-- **Blocked / open:** T0.3 device VoiceOver; T0.4/OD-2 bundle id; T1.7 impl; OD-5 sync vs
-  off-device backups only; T3.1 if Ask returns; OD-3 store posture.
+- **OD-2 decided:** `com.henrique919.peprep` / scheme `peprep` / owner `henrique919` (T0.4).
+- **OD-4 decided:** A now (encrypted backup files), B later (Supabase sync) — T1.7 done.
+- **T0.4 / T1.7:** Store identity + encrypted backup create/restore shipped in Settings.
+- **Blocked / open:** T0.3 device VoiceOver; OD-5 inventory before any sync DDL; T3.1 if Ask
+  returns; OD-3 store posture.
 
 ## Definition of complete (program)
 - Every P0 checked; `bun x tsc --noEmit` clean; `bun x jest` green.

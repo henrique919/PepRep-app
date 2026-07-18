@@ -1,4 +1,7 @@
+import * as DocumentPicker from "expo-document-picker";
+import * as FileSystem from "expo-file-system/legacy";
 import { useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import {
   ArrowLeft,
   BellRing,
@@ -6,15 +9,24 @@ import {
   FileDown,
   FileJson,
   Info,
+  KeyRound,
   Plus,
   Trash2,
   X,
 } from "lucide-react-native";
 import React, { useEffect, useRef, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
-import * as FileSystem from "expo-file-system/legacy";
-import * as Sharing from "expo-sharing";
 
+import { ASK_V1_ENABLED } from "@/src/ask/feature";
+import {
+  buildBackupPayload,
+  createEncryptedBackup,
+  decryptAndValidateBackup,
+  encryptedBackupFileName,
+  serializeBackupFile,
+} from "@/src/backup/codec";
+import { applyBackupPayload } from "@/src/backup/restore";
+import type { BackupValidationOk } from "@/src/backup/types";
 import AppText from "@/src/components/ui/AppText";
 import AskConsentCard from "@/src/components/ui/AskConsentCard";
 import Button from "@/src/components/ui/Button";
@@ -25,11 +37,12 @@ import Screen from "@/src/components/ui/Screen";
 import { clearAllData } from "@/src/db/adapter";
 import { SITE_LABELS } from "@/src/db/models";
 import { fmt } from "@/src/engine";
-import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
-import { ASK_V1_ENABLED } from "@/src/ask/feature";
+import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { EXPORT_PLAINTEXT_WARNING, exportFileName } from "@/src/export/filenames";
 import { useDosesStore } from "@/src/store/doses";
+import { useLedgerStore } from "@/src/store/ledger";
+import { usePlansStore } from "@/src/store/plans";
 import { useRemindersStore } from "@/src/store/reminders";
 import { useSettingsStore } from "@/src/store/settings";
 import { useVialsStore } from "@/src/store/vials";
@@ -55,7 +68,15 @@ export default function SettingsScreen() {
   const vials = useVialsStore((state) => state.vials);
   const resetDoses = useDosesStore((state) => state.reset);
   const resetVials = useVialsStore((state) => state.reset);
+  const hydrateVials = useVialsStore((state) => state.hydrate);
+  const hydrateDoses = useDosesStore((state) => state.hydrate);
   const reminders = useRemindersStore((state) => state.reminders);
+  const hydrateReminders = useRemindersStore((state) => state.hydrate);
+  const events = useLedgerStore((state) => state.events);
+  const txns = useLedgerStore((state) => state.txns);
+  const hydrateLedger = useLedgerStore((state) => state.hydrate);
+  const plans = usePlansStore((state) => state.plans);
+  const hydratePlans = usePlansStore((state) => state.hydrate);
   const askEnabled = useSettingsStore((state) => state.askEnabled);
   const setAskEnabled = useSettingsStore((state) => state.setAskEnabled);
   const acceptAskConsent = useSettingsStore((state) => state.acceptAskConsent);
@@ -73,6 +94,12 @@ export default function SettingsScreen() {
   const [showAskConsent, setShowAskConsent] = useState<boolean>(false);
   const [askConsentBusy, setAskConsentBusy] = useState<boolean>(false);
   const [pendingExport, setPendingExport] = useState<"csv" | "json" | null>(null);
+  const [backupPassword, setBackupPassword] = useState<string>("");
+  const [backupPasswordConfirm, setBackupPasswordConfirm] = useState<string>("");
+  const [backupBusy, setBackupBusy] = useState<boolean>(false);
+  const [restorePassword, setRestorePassword] = useState<string>("");
+  const [restorePreview, setRestorePreview] = useState<BackupValidationOk | null>(null);
+  const [restoreArmed, setRestoreArmed] = useState<boolean>(false);
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -165,6 +192,97 @@ export default function SettingsScreen() {
     setPendingExport(null);
     if (kind === "csv") runExportCsv();
     else if (kind === "json") runExportJson();
+  };
+
+  const canCreateBackup =
+    backupPassword.length >= 8 && backupPassword === backupPasswordConfirm && !backupBusy;
+
+  const createEncryptedBackupFile = () => {
+    if (!canCreateBackup || isWeb) return;
+    setBackupBusy(true);
+    try {
+      const payload = buildBackupPayload({
+        vials,
+        doses,
+        doseEvents: events,
+        inventoryTxns: txns,
+        plans,
+        reminders,
+        exportedAtIso: nowIso,
+      });
+      const file = createEncryptedBackup(payload, backupPassword);
+      const fileName = encryptedBackupFileName(nowIso.slice(0, 10));
+      shareFile(fileName, serializeBackupFile(file), "application/json")
+        .then(() => {
+          setStatusMessage("Encrypted backup ready to save to Files / Drive.");
+          setBackupPassword("");
+          setBackupPasswordConfirm("");
+        })
+        .catch((error) => console.error("[settings] Encrypted backup failed", error))
+        .finally(() => setBackupBusy(false));
+    } catch (error) {
+      console.error("[settings] Encrypted backup failed", error);
+      setStatusMessage("Could not create encrypted backup.");
+      setBackupBusy(false);
+    }
+  };
+
+  const pickRestoreFile = () => {
+    if (isWeb || restorePassword.length === 0) return;
+    DocumentPicker.getDocumentAsync({
+      type: "application/json",
+      copyToCacheDirectory: true,
+    })
+      .then(async (result) => {
+        if (result.canceled || result.assets.length === 0) return;
+        const asset = result.assets[0];
+        if (asset === undefined) return;
+        const raw = await FileSystem.readAsStringAsync(asset.uri);
+        const validated = decryptAndValidateBackup(raw, restorePassword);
+        if (!validated.ok) {
+          setRestorePreview(null);
+          setRestoreArmed(false);
+          setStatusMessage(validated.message);
+          return;
+        }
+        setRestorePreview(validated);
+        setRestoreArmed(false);
+        setStatusMessage(null);
+      })
+      .catch((error) => {
+        console.error("[settings] Restore pick failed", error);
+        setStatusMessage("Could not open that backup file.");
+      });
+  };
+
+  const confirmRestore = () => {
+    if (restorePreview === null) return;
+    if (!restoreArmed) {
+      setRestoreArmed(true);
+      return;
+    }
+    setBackupBusy(true);
+    applyBackupPayload(restorePreview.plaintext)
+      .then(() =>
+        Promise.all([
+          hydrateVials(),
+          hydrateDoses(),
+          hydrateLedger(),
+          hydratePlans(),
+          hydrateReminders(),
+        ]),
+      )
+      .then(() => {
+        setStatusMessage("Backup restored onto this device.");
+        setRestorePreview(null);
+        setRestoreArmed(false);
+        setRestorePassword("");
+      })
+      .catch((error) => {
+        console.error("[settings] Restore apply failed", error);
+        setStatusMessage("Restore failed — existing data was not cleared mid-write.");
+      })
+      .finally(() => setBackupBusy(false));
   };
 
   const handleErasePress = () => {
@@ -409,8 +527,8 @@ export default function SettingsScreen() {
                   pendingExport === "csv" ? "doses-csv" : "data-json",
                   nowIso.slice(0, 10),
                 )}{" "}
-                (no personal labels in the name). Encrypted backup files are tracked separately
-                in the roadmap.
+                (no personal labels in the name). Prefer an encrypted backup below for off-device
+                copies.
               </AppText>
               <Button
                 label="I understand — export"
@@ -426,6 +544,102 @@ export default function SettingsScreen() {
               />
             </Card>
           ) : null}
+          <Card style={styles.exportWarnCard} testID="encrypted-backup-card">
+            <AppText variant="heading">Encrypted backup</AppText>
+            <AppText variant="label" tone="secondary">
+              Password-protect a full copy, then save it to Files, iCloud Drive, or similar. PepRep
+              never uploads it. You will need the password to restore.
+            </AppText>
+            {isWeb ? (
+              <AppText variant="caption" tone="faint">
+                Encrypted backup and restore are available in the mobile app.
+              </AppText>
+            ) : (
+              <>
+                <Field
+                  label="Backup password"
+                  value={backupPassword}
+                  onChangeText={setBackupPassword}
+                  mono={false}
+                  keyboardType="default"
+                  secureTextEntry
+                  placeholder="At least 8 characters"
+                  testID="backup-password"
+                />
+                <Field
+                  label="Confirm password"
+                  value={backupPasswordConfirm}
+                  onChangeText={setBackupPasswordConfirm}
+                  mono={false}
+                  keyboardType="default"
+                  secureTextEntry
+                  placeholder="Repeat password"
+                  testID="backup-password-confirm"
+                />
+                <Button
+                  label={backupBusy ? "Working…" : "Create encrypted backup"}
+                  tone="primary"
+                  onPress={createEncryptedBackupFile}
+                  disabled={!canCreateBackup}
+                  icon={<KeyRound size={16} color={colors.onSolid} />}
+                  testID="create-encrypted-backup"
+                />
+                <Hairline />
+                <AppText variant="overline" tone="faint">
+                  Restore
+                </AppText>
+                <Field
+                  label="Restore password"
+                  value={restorePassword}
+                  onChangeText={setRestorePassword}
+                  mono={false}
+                  keyboardType="default"
+                  secureTextEntry
+                  placeholder="Password for the backup file"
+                  testID="restore-password"
+                />
+                <Button
+                  label="Choose backup file…"
+                  tone="ghost"
+                  onPress={pickRestoreFile}
+                  disabled={restorePassword.length === 0 || backupBusy}
+                  testID="pick-backup-file"
+                />
+                {restorePreview !== null ? (
+                  <View style={styles.restorePreview} testID="restore-preview">
+                    <AppText variant="label" tone="secondary">
+                      Preview · {restorePreview.file.manifest.createdAtIso.slice(0, 10)} ·{" "}
+                      {restorePreview.file.manifest.counts.vials} vials ·{" "}
+                      {restorePreview.file.manifest.counts.events} events ·{" "}
+                      {restorePreview.file.manifest.counts.plans} plans
+                    </AppText>
+                    <AppText variant="caption" tone="danger">
+                      Restore replaces all PepRep data on this device. This cannot be undone.
+                    </AppText>
+                    <Button
+                      label={
+                        restoreArmed
+                          ? "Tap again to replace everything"
+                          : "Restore this backup"
+                      }
+                      tone="danger"
+                      onPress={confirmRestore}
+                      disabled={backupBusy}
+                      testID="confirm-restore"
+                    />
+                    <Button
+                      label="Cancel restore"
+                      tone="ghost"
+                      onPress={() => {
+                        setRestorePreview(null);
+                        setRestoreArmed(false);
+                      }}
+                    />
+                  </View>
+                ) : null}
+              </>
+            )}
+          </Card>
           {statusMessage !== null && (
             <AppText variant="caption" tone="secondary" style={styles.status}>
               {statusMessage}
@@ -653,6 +867,9 @@ function createStyles(colors: ColorTokens) {
   },
   exportWarnCard: {
     gap: spacing.md,
+  },
+  restorePreview: {
+    gap: spacing.sm,
   },
   status: {
     paddingHorizontal: spacing.xs,

@@ -21,8 +21,9 @@ import {
   txnsRepository,
   vialsRepository,
 } from "./repositories";
+import { SCHEMA_VERSION } from "./schemaVersion";
 
-export const SCHEMA_VERSION = 4;
+export { SCHEMA_VERSION };
 
 const VERSION_KEY = `${STORAGE_PREFIX}schemaVersion`;
 
