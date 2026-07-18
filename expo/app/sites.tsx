@@ -14,8 +14,8 @@ const SITES = [
   { id: "abd-r", label: "Abdomen · right", hint: "Rotate within zone" },
   { id: "thigh-l", label: "Thigh · left", hint: "Outer mid-thigh" },
   { id: "thigh-r", label: "Thigh · right", hint: "Outer mid-thigh" },
-  { id: "arm-l", label: "Upper arm · left", hint: "If your protocol uses it" },
-  { id: "arm-r", label: "Upper arm · right", hint: "If your protocol uses it" },
+  { id: "arm-l", label: "Upper arm · left", hint: "Optional zone to record" },
+  { id: "arm-r", label: "Upper arm · right", hint: "Optional zone to record" },
 ] as const;
 
 export default function SitesScreen() {
