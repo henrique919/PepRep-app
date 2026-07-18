@@ -157,12 +157,14 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   preview; web note. No `plans/[id]` route — archive on plans list cancels. Tests:
   `planReminders.test.ts`. 146 green.
 
-- [ ] **T1.5 — Export warnings + protected sharing**
+- [x] **T1.5 — Export warnings + protected sharing**
   Evidence: CSV/JSON export in Settings. Outcome: user understands exports are unencrypted
   plaintext of health-adjacent records. Scope: pre-export warning; optional encrypted export
   (ties to T1.7); filename without PII. Files: `settings.tsx`, export helpers. Accept: warning
   shown before share; optional encrypted file works. Tests: export formatting. Manual: export
   on device. Gate: none.
+  **Done 2026-07-18:** Pre-export warning gate + PII-free `exportFileName`. Encrypted backup
+  deferred to T1.7 (owner OD-4). Tests: `export/__tests__/filenames.test.ts`. 149 green.
 
 - [ ] **T1.6 — Local DB durability + migration hardening**
   Evidence: `migrate-v1` test passes; single migration so far. Outcome: forward-only chain that

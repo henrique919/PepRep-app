@@ -27,6 +27,7 @@ import { SITE_LABELS } from "@/src/db/models";
 import { fmt } from "@/src/engine";
 import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
+import { EXPORT_PLAINTEXT_WARNING, exportFileName } from "@/src/export/filenames";
 import { useDosesStore } from "@/src/store/doses";
 import { useRemindersStore } from "@/src/store/reminders";
 import { useSettingsStore } from "@/src/store/settings";
@@ -70,6 +71,7 @@ export default function SettingsScreen() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [showAskConsent, setShowAskConsent] = useState<boolean>(false);
   const [askConsentBusy, setAskConsentBusy] = useState<boolean>(false);
+  const [pendingExport, setPendingExport] = useState<"csv" | "json" | null>(null);
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -120,7 +122,7 @@ export default function SettingsScreen() {
     }
   };
 
-  const exportCsv = () => {
+  const runExportCsv = () => {
     const header = "date,peptide,dose_value,dose_unit,dose_mcg,units_drawn,volume_ml,site,vial,note";
     const vialName = (vialId: string | null): string => {
       if (vialId === null) return "";
@@ -142,17 +144,26 @@ export default function SettingsScreen() {
       ].join(","),
     );
     const stamp = nowIso.slice(0, 10);
-    shareFile(`peprep-log-${stamp}.csv`, [header, ...rows].join("\n"), "text/csv").catch(
-      (error) => console.error("[settings] CSV export failed", error),
+    const fileName = exportFileName("doses-csv", stamp);
+    shareFile(fileName, [header, ...rows].join("\n"), "text/csv").catch((error) =>
+      console.error("[settings] CSV export failed", error),
     );
   };
 
-  const exportJson = () => {
+  const runExportJson = () => {
     const payload = JSON.stringify({ exportedAtIso: nowIso, vials, doses }, null, 2);
     const stamp = nowIso.slice(0, 10);
-    shareFile(`peprep-data-${stamp}.json`, payload, "application/json").catch((error) =>
+    const fileName = exportFileName("data-json", stamp);
+    shareFile(fileName, payload, "application/json").catch((error) =>
       console.error("[settings] JSON export failed", error),
     );
+  };
+
+  const confirmPendingExport = () => {
+    const kind = pendingExport;
+    setPendingExport(null);
+    if (kind === "csv") runExportCsv();
+    else if (kind === "json") runExportJson();
   };
 
   const handleErasePress = () => {
@@ -339,27 +350,35 @@ export default function SettingsScreen() {
             Your data — local only, yours only
           </AppText>
           <Card padded={false}>
-            <Pressable onPress={exportCsv} style={styles.actionRow} testID="export-csv">
+            <Pressable
+              onPress={() => setPendingExport("csv")}
+              style={styles.actionRow}
+              testID="export-csv"
+            >
               <FileDown size={18} color={colors.ink} />
               <View style={styles.actionBody}>
                 <AppText variant="body" weight="medium">
                   Export dose log (CSV)
                 </AppText>
                 <AppText variant="caption" tone="faint">
-                  {doses.length} {doses.length === 1 ? "entry" : "entries"}
+                  {doses.length} {doses.length === 1 ? "entry" : "entries"} · unencrypted
                 </AppText>
               </View>
               <ChevronRight size={16} color={colors.inkFaint} />
             </Pressable>
             <Hairline />
-            <Pressable onPress={exportJson} style={styles.actionRow} testID="export-json">
+            <Pressable
+              onPress={() => setPendingExport("json")}
+              style={styles.actionRow}
+              testID="export-json"
+            >
               <FileJson size={18} color={colors.ink} />
               <View style={styles.actionBody}>
                 <AppText variant="body" weight="medium">
                   Export everything (JSON)
                 </AppText>
                 <AppText variant="caption" tone="faint">
-                  Vials and dose log, machine-readable
+                  Vials and dose log · unencrypted
                 </AppText>
               </View>
               <ChevronRight size={16} color={colors.inkFaint} />
@@ -377,6 +396,35 @@ export default function SettingsScreen() {
               </View>
             </Pressable>
           </Card>
+          {pendingExport !== null ? (
+            <Card style={styles.exportWarnCard} testID="export-warning">
+              <AppText variant="heading">Before you export</AppText>
+              <AppText variant="label" tone="secondary">
+                {EXPORT_PLAINTEXT_WARNING}
+              </AppText>
+              <AppText variant="caption" tone="faint">
+                Filename will be{" "}
+                {exportFileName(
+                  pendingExport === "csv" ? "doses-csv" : "data-json",
+                  nowIso.slice(0, 10),
+                )}{" "}
+                (no personal labels in the name). Encrypted backup files are tracked separately
+                in the roadmap.
+              </AppText>
+              <Button
+                label="I understand — export"
+                tone="primary"
+                onPress={confirmPendingExport}
+                testID="export-confirm"
+              />
+              <Button
+                label="Cancel"
+                tone="ghost"
+                onPress={() => setPendingExport(null)}
+                testID="export-cancel"
+              />
+            </Card>
+          ) : null}
           {statusMessage !== null && (
             <AppText variant="caption" tone="secondary" style={styles.status}>
               {statusMessage}
@@ -597,6 +645,9 @@ function createStyles(colors: ColorTokens) {
     gap: spacing.md,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  exportWarnCard: {
+    gap: spacing.md,
   },
   status: {
     paddingHorizontal: spacing.xs,
