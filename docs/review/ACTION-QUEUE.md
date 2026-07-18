@@ -236,13 +236,34 @@ Do not merge to `main` from this agent. Continuous loop Steps 1–9.
   **Done 2026-07-18:** Branch created from `ca062d9` (= `origin/main`). Commit review in
   worklog. Untracked prompt/OD-3 drafts preserved. Push/PR pending.
 
-- [ ] **PF2 — Clean baseline verification** (typecheck, tests, lint, Expo Doctor, AI SDK absent, Ask disabled)
-- [ ] **PF3 — Native release config + generated permission evidence**
-- [ ] **PF4 — Privacy / network truth audit + `docs/privacy/V1-DATA-FLOW-INVENTORY.md`**
-- [ ] **PF5 — Local encrypted backup security + restore tests**
-- [ ] **PF6 — Optional Supabase encrypted cloud backup** (project `opbqlsmwljqkkdvguojh` only)
-- [ ] **PF7 — Device verification checklist** (`docs/release/DEVICE-VERIFICATION-CHECKLIST.md`)
-- [ ] **PF8 — Compliance / OD-3 / store material correction**
+- [x] **PF2 — Clean baseline verification** (typecheck, tests, lint, Expo Doctor, AI SDK absent, Ask disabled)
+  **Done 2026-07-18:** typecheck clean; 162+ tests; lint warnings cleaned in touched files;
+  Expo Doctor notes dual lockfiles + some package versions (documented, not fatal); AI SDK
+  absent; Ask gated off.
+
+- [x] **PF3 — Native release config + generated permission evidence**
+  **Done 2026-07-18:** Disposable Android prebuild inspected; blocked `SYSTEM_ALERT_WINDOW`;
+  icons 1024 RGB no alpha. Evidence in privacy inventory.
+
+- [x] **PF4 — Privacy / network truth audit + `docs/privacy/V1-DATA-FLOW-INVENTORY.md`**
+  **Done 2026-07-18:** Inventory written; rejected unsupported “zero network” / blanket
+  “Data Not Collected”; privacy copy updated for optional cloud.
+
+- [x] **PF5 — Local encrypted backup security + restore tests**
+  **Done 2026-07-18:** Oversized/truncated/future-version/empty-dataset tests; max file bytes.
+
+- [x] **PF6 — Optional Supabase encrypted cloud backup** (project `opbqlsmwljqkkdvguojh` only)
+  **Code done 2026-07-18; REMOTE APPLY OWNER-BLOCKED.** Migration + client + Settings UI +
+  project-ref guard. MCP `list_projects` = `[]` — cannot inventory/apply to
+  `opbqlsmwljqkkdvguojh`. See `docs/supabase/REMOTE-APPLY.md`. Never touched CleanRun.
+
+- [x] **PF7 — Device verification checklist** (`docs/release/DEVICE-VERIFICATION-CHECKLIST.md`)
+  **Done 2026-07-18:** Checklist written; no device items self-certified.
+
+- [x] **PF8 — Compliance / OD-3 / store material correction**
+  **Done 2026-07-18:** OD-3 corrected to Guideline **1.4.2** for dosage calculators; Play
+  Health declaration note; privacy/cloud disclosure.
+
 - [ ] **PF9 — Final verification + branch push handoff**
 
 ---

@@ -32,8 +32,11 @@ advice and does **not** recommend doses.
 
 ## Data & privacy
 
-v1 is local-first: no PepRep account, no analytics SDK, no cloud sync. See the hosted Privacy
-Policy (owner TODO). Optional AI “Ask” is **not** included in v1.
+v1 is local-first: calculation and logs work with no account. Optional encrypted **file**
+backups are user-controlled. Optional encrypted **cloud** backup (Supabase, PepRep project
+only) appears only when the build is configured — ciphertext only; passphrase stays on device.
+No analytics SDK. Optional AI “Ask” is **not** included in v1. See Privacy Policy (owner TODO
+to host).
 
 ## Contact
 
