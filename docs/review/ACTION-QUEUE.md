@@ -227,6 +227,26 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 
 ---
 
+## POST-FREEZE LAUNCH VERIFICATION
+
+Branch: `cursor/peprep-launch-verification`. Evidence: `docs/review/POST-FREEZE-WORKLOG.md`.
+Do not merge to `main` from this agent. Continuous loop Steps 1–9.
+
+- [x] **PF1 — Protect work on dedicated branch**
+  **Done 2026-07-18:** Branch created from `ca062d9` (= `origin/main`). Commit review in
+  worklog. Untracked prompt/OD-3 drafts preserved. Push/PR pending.
+
+- [ ] **PF2 — Clean baseline verification** (typecheck, tests, lint, Expo Doctor, AI SDK absent, Ask disabled)
+- [ ] **PF3 — Native release config + generated permission evidence**
+- [ ] **PF4 — Privacy / network truth audit + `docs/privacy/V1-DATA-FLOW-INVENTORY.md`**
+- [ ] **PF5 — Local encrypted backup security + restore tests**
+- [ ] **PF6 — Optional Supabase encrypted cloud backup** (project `opbqlsmwljqkkdvguojh` only)
+- [ ] **PF7 — Device verification checklist** (`docs/release/DEVICE-VERIFICATION-CHECKLIST.md`)
+- [ ] **PF8 — Compliance / OD-3 / store material correction**
+- [ ] **PF9 — Final verification + branch push handoff**
+
+---
+
 ## RELEASE — v1 store prep
 
 Release hygiene only (no new features). Engineering feature-freeze assumed.
