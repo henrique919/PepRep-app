@@ -27,6 +27,8 @@ import {
 } from "@/src/backup/codec";
 import { applyBackupPayload } from "@/src/backup/restore";
 import type { BackupValidationOk } from "@/src/backup/types";
+import { isCloudBackupConfigured } from "@/src/cloudBackup/config";
+import CloudBackupPanel from "@/src/components/domain/CloudBackupPanel";
 import AppText from "@/src/components/ui/AppText";
 import AskConsentCard from "@/src/components/ui/AskConsentCard";
 import Button from "@/src/components/ui/Button";
@@ -565,10 +567,10 @@ export default function SettingsScreen() {
             </Card>
           ) : null}
           <Card style={styles.exportWarnCard} testID="encrypted-backup-card">
-            <AppText variant="heading">Encrypted backup</AppText>
+            <AppText variant="heading">Encrypted backup (local file)</AppText>
             <AppText variant="label" tone="secondary">
-              Password-protect a full copy, then save it to Files, iCloud Drive, or similar. PepRep
-              never uploads it. You will need the password to restore.
+              Password-protect a full copy, then save it to Files, iCloud Drive, or similar. This
+              path does not upload to PepRep. You will need the password to restore.
             </AppText>
             {isWeb ? (
               <AppText variant="caption" tone="faint">
@@ -660,6 +662,26 @@ export default function SettingsScreen() {
               </>
             )}
           </Card>
+          {!isWeb && isCloudBackupConfigured() ? (
+            <CloudBackupPanel
+              onStatus={setStatusMessage}
+              onRestoreCiphertext={async (raw, password) => {
+                const validated = decryptAndValidateBackup(raw, password);
+                if (!validated.ok) {
+                  setStatusMessage(validated.message);
+                  return;
+                }
+                await applyBackupPayload(validated.plaintext);
+                await Promise.all([
+                  hydrateVials(),
+                  hydrateDoses(),
+                  hydrateLedger(),
+                  hydratePlans(),
+                  hydrateReminders(),
+                ]);
+              }}
+            />
+          ) : null}
           {statusMessage !== null && (
             <AppText variant="caption" tone="secondary" style={styles.status}>
               {statusMessage}
@@ -676,8 +698,10 @@ export default function SettingsScreen() {
             <View style={styles.privacyCopy}>
               <AppText variant="label" tone="secondary">
                 {ASK_V1_ENABLED
-                  ? "Your vials, doses, schedule and history never leave this device. There is no account and no analytics. The one exception is Ask: your question text is sent to Rork AI Cloud to generate an answer. Your records are never included. You can turn Ask off below."
-                  : "Your vials, doses, schedule and history stay on this device. There is no account and no analytics. Optional cloud Ask is not included in this build."}
+                  ? "Your vials, doses, schedule and history stay on this device by default. There is no analytics. Optional Ask sends question text to a cloud provider. Optional encrypted cloud backup (if enabled in this build) uploads only a password-encrypted file you choose — never the passphrase."
+                  : isCloudBackupConfigured()
+                    ? "Your vials, doses, schedule and history stay on this device by default. There is no analytics and no Ask in this build. Optional encrypted cloud backup uploads only a password-encrypted file you choose — the passphrase never leaves this device."
+                    : "Your vials, doses, schedule and history stay on this device. There is no account and no analytics. Optional cloud Ask is not included in this build. Local encrypted backups are files you choose to share."}
               </AppText>
             </View>
             {ASK_V1_ENABLED ? (
