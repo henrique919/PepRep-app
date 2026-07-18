@@ -2,6 +2,15 @@
  * Versioned local schema. Run once at startup before any repository is read.
  * Migrations are ordered and forward-only; each step commits its version
  * number before the next runs.
+ *
+ * Chain (never rewrite history — only append):
+ *   v0 → v1  initial empty schema
+ *   v1 → v2  DoseEvent + InventoryTxn back-fill from legacy doses/vials
+ *   v2 → v3  optional snapshotId (additive / no rewrite)
+ *   v3 → v4  vial expiry/lot/low-stock fields (normalise + re-save)
+ *
+ * Corrupt collection JSON is quarantined by repositories (see parseCollection)
+ * so hydrate never fatals the app.
  */
 
 import { getStorage, STORAGE_PREFIX } from "./adapter";

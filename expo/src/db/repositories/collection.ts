@@ -1,22 +1,17 @@
 /**
  * Generic JSON collection persisted through the StorageAdapter.
  * Repositories are the only code that touches storage keys.
+ *
+ * Corrupt payloads are quarantined (copied aside) and treated as empty /
+ * filtered so hydrate never fatals the app.
  */
 
 import { getStorage, STORAGE_PREFIX } from "../adapter";
+import { parseCollectionJson } from "../parseCollection";
 
 export interface CollectionRepository<T extends { id: string }> {
   list(): Promise<T[]>;
   saveAll(items: T[]): Promise<void>;
-}
-
-function hasStringId(value: unknown): value is { id: string } {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "id" in value &&
-    typeof (value as { id: unknown }).id === "string"
-  );
 }
 
 export interface AppendOnlyRepository<T extends { id: string }> {
@@ -55,11 +50,24 @@ export function createCollectionRepository<T extends { id: string }>(
   return {
     async list(): Promise<T[]> {
       try {
-        const raw = await getStorage().getItem(key);
-        if (raw === null) return [];
-        const parsed: unknown = JSON.parse(raw);
-        if (!Array.isArray(parsed)) return [];
-        return parsed.filter(hasStringId) as T[];
+        const storage = getStorage();
+        const raw = await storage.getItem(key);
+        const parsed = parseCollectionJson<T>(raw);
+        if (parsed.quarantined && raw !== null) {
+          const quarantineKey = `${key}.quarantine.${Date.now()}`;
+          await storage.setItem(quarantineKey, raw);
+          console.warn(
+            `[db] Quarantined corrupt collection "${name}" → ${quarantineKey}` +
+              (parsed.reason !== undefined ? ` (${parsed.reason})` : ""),
+          );
+          // Persist only the salvageable rows so the next read is clean.
+          if (parsed.items.length > 0) {
+            await storage.setItem(key, JSON.stringify(parsed.items));
+          } else if (parsed.reason === "invalid-json" || parsed.reason === "not-array") {
+            await storage.removeItem(key);
+          }
+        }
+        return parsed.items;
       } catch (error) {
         console.error(`[db] Failed to read collection "${name}"`, error);
         return [];

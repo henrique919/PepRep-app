@@ -166,12 +166,14 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   **Done 2026-07-18:** Pre-export warning gate + PII-free `exportFileName`. Encrypted backup
   deferred to T1.7 (owner OD-4). Tests: `export/__tests__/filenames.test.ts`. 149 green.
 
-- [ ] **T1.6 — Local DB durability + migration hardening**
+- [x] **T1.6 — Local DB durability + migration hardening**
   Evidence: `migrate-v1` test passes; single migration so far. Outcome: forward-only chain that
   never loses data across versions. Scope: document + test the migration runner; add a
   corruption-tolerant hydrate path. Files: `db/migrations.ts`, `db/adapter.ts`. Accept: v(n-1)
   fixture → current with zero loss; malformed record is quarantined, not fatal. Tests:
   migration fixtures. Gate: none.
+  **Done 2026-07-18:** Documented v0→v4 chain; `parseCollectionJson` + quarantine on corrupt
+  collection reads; `runMigrations` idempotence tests. 156 green.
 
 - [ ] **T1.7 — Optional encrypted backup file (local-first; NO account for v1)**
   Evidence: Supabase project unverified this session; recommend backup-files over sync (see
@@ -223,6 +225,10 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **T1.2:** Calculate-with-vial + Today snooze wired; save-as-vial already present.
 - **T1.3:** Vial expiry/lot/low-stock + schema v4 normalisation; 143 tests green.
 - **T1.4:** Plan weekly reminders with privacy preview; cancel on edit/archive; 146 tests.
+- **T1.5:** Pre-export plaintext warning + safe filenames; encrypted → T1.7.
+- **T1.6:** Migration runner tests + quarantine-on-corrupt hydrate; 156 tests.
+- **Blocked / open:** T0.3 device VoiceOver sweep; T0.4 OD-2 bundle id; T1.7 OD-4 files vs
+  sync; T3.1 human red-team; OD-1 Ask keep/remove for shipping.
 - **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1. T0.3 device sweep open.
 
 ## Definition of complete (program)
