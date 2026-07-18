@@ -1,0 +1,47 @@
+# Supabase local project config for PepRep.
+#
+# The linked remote project for PepRep is:
+#   project_id = "opbqlsmwljqkkdvguojh"   (organization henrique919, region ap-southeast-1)
+#
+# REMOTE APPLY IS OWNER-BLOCKED (see ../docs/supabase/REMOTE-APPLY.md). This file and the
+# migrations/ directory exist so the schema can be reviewed and applied locally (or later by
+# the owner, once MCP/CLI auth is scoped to opbqlsmwljqkkdvguojh) — nothing here talks to any
+# remote project automatically.
+#
+# NEVER point this at CleanRun (wleaepmpehzubveevcmi) or any other project.
+
+project_id = "opbqlsmwljqkkdvguojh"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 17
+
+[studio]
+enabled = true
+port = 54323
+
+[storage]
+enabled = true
+file_size_limit = "8MiB"
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = []
+jwt_expiry = 3600
+enable_signup = true
+# PepRep uses passwordless email OTP only — no password auth, so the dashboard
+# leaked-password-protection gate (OD-6) does not apply to this app.
+enable_confirmations = false
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false

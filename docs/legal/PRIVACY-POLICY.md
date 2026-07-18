@@ -26,13 +26,24 @@ On your device only (app storage), PepRep may store:
 Inventory remaining is derived from an append-only local ledger. PepRep does not sell or share
 this data.
 
-## What PepRep does **not** collect (v1)
+## What PepRep does **not** collect by default (v1)
 
-- No account or email signup
 - No analytics, crash-reporting, or advertising identifiers sent by PepRep
-- No automatic backup to PepRep servers
-- No “Ask” / AI cloud feature in the v1 build (optional cloud Q&A is disabled and not shipped
-  with a network AI SDK)
+- No automatic background sync
+- No “Ask” / AI cloud feature in the v1 build (disabled; no AI SDK in the binary)
+
+## Optional encrypted cloud backup (only if enabled in your build)
+
+If the build includes Supabase configuration for PepRep project `opbqlsmwljqkkdvguojh`:
+
+- You may opt in with **passwordless email** (one-time code).
+- PepRep uploads only a **password-encrypted backup file** you create — not your passphrase,
+  not a plaintext database.
+- Supabase stores account email + ciphertext object + non-health manifest metadata.
+- Local calculation, logging, and file backups work without an account.
+- You can delete individual cloud backups and sign out from Settings.
+
+Until that configuration is present, cloud backup UI does not appear and nothing is uploaded.
 
 ## Notifications
 

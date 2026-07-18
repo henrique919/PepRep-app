@@ -39,6 +39,8 @@ export default function VialDetailScreen() {
     const summary = summaryFromTxns(vial.vialMg, vialTxns, lastEvent?.doseMcg);
     const concentration = vialConcentration(vial.vialMg, vial.diluentMl);
     return { summary, concentration, lastDoseMcg: lastEvent?.doseMcg ?? null };
+    // `txns` invalidates when inventory ledger changes (body reads via getState).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional store invalidation
   }, [vial, events, txns]);
 
   if (!vial || !view) {

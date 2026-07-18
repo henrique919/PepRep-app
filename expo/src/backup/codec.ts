@@ -21,6 +21,7 @@ import {
   BACKUP_FORMAT_VERSION,
   BACKUP_KDF,
   BACKUP_MAGIC,
+  BACKUP_MAX_FILE_BYTES,
 } from "./types";
 
 const APP_VERSION = "1.0.0";
@@ -109,6 +110,14 @@ export function decryptAndValidateBackup(
   rawFile: string,
   password: string,
 ): BackupValidationResult {
+  if (new TextEncoder().encode(rawFile).length > BACKUP_MAX_FILE_BYTES) {
+    return {
+      ok: false,
+      reason: "oversized",
+      message: "This backup file is too large to restore safely.",
+    };
+  }
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(rawFile);

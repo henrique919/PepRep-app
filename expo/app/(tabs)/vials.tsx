@@ -68,6 +68,8 @@ export default function VialsScreen() {
         lastDoseMcg,
       };
     });
+    // `txns` invalidates when inventory ledger changes (body reads via getState).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional store invalidation
   }, [vials, txns, events]);
 
   const filtered = useMemo(() => {

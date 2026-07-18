@@ -1,6 +1,8 @@
 /**
  * Jest runs pure TypeScript under src/engine, src/db, src/ask, src/data,
- * src/store, src/onboarding, src/export, and src/backup — no React / RN / network.
+ * src/store, src/onboarding, src/export, src/backup, and src/cloudBackup — no React / RN /
+ * network. Only src/cloudBackup/config.ts and paths.ts are covered here — client.ts/api.ts
+ * import @supabase/supabase-js + expo-secure-store and are exercised via typecheck, not Jest.
  */
 module.exports = {
   testEnvironment: "node",
@@ -13,6 +15,7 @@ module.exports = {
     "<rootDir>/src/onboarding",
     "<rootDir>/src/export",
     "<rootDir>/src/backup",
+    "<rootDir>/src/cloudBackup",
   ],
   moduleFileExtensions: ["ts", "js"],
   transform: {

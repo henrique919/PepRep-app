@@ -71,6 +71,8 @@ export default function TodayScreen() {
       }
     }
     return rows.sort((a, b) => a.timeLocal.localeCompare(b.timeLocal));
+    // `events` invalidates when the ledger changes (body reads via getState).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional store invalidation
   }, [plans, today, events]);
 
   const dueCount = due.filter(
