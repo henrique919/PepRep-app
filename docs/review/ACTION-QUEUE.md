@@ -264,7 +264,9 @@ Do not merge to `main` from this agent. Continuous loop Steps 1–9.
   **Done 2026-07-18:** OD-3 corrected to Guideline **1.4.2** for dosage calculators; Play
   Health declaration note; privacy/cloud disclosure.
 
-- [ ] **PF9 — Final verification + branch push handoff**
+- [x] **PF9 — Final verification + branch push handoff**
+  **Done 2026-07-18:** typecheck clean; **184**/184 tests; branch commits ready to push.
+  Remote Supabase apply remains owner-blocked. Do not merge to `main` from this agent.
 
 ---
 
