@@ -14,6 +14,7 @@ import type { Vial } from "@/src/db/models";
 import { summaryFromTxns } from "@/src/db/vialBalance";
 import { vialConcentration } from "@/src/engine/inventory";
 import type { VialSummary, ConcentrationInfo } from "@/src/engine/inventory";
+import { isLowStock } from "@/src/engine/vialWarnings";
 import { selectTxnsForVial, useLedgerStore } from "@/src/store/ledger";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
@@ -27,8 +28,6 @@ interface VialView {
 }
 
 type VialFilter = "all" | "active" | "low";
-
-const LOW_THRESHOLD = 25;
 
 export default function VialsScreen() {
   const { colors } = useTheme();
@@ -73,10 +72,14 @@ export default function VialsScreen() {
 
   const filtered = useMemo(() => {
     if (filter === "low") {
-      return views.filter((view) => view.summary.remainingPercent <= LOW_THRESHOLD);
+      return views.filter((view) =>
+        isLowStock(view.summary.remainingPercent, view.vial.lowStockThresholdPercent),
+      );
     }
     if (filter === "active") {
-      return views.filter((view) => view.summary.remainingPercent > LOW_THRESHOLD);
+      return views.filter(
+        (view) => !isLowStock(view.summary.remainingPercent, view.vial.lowStockThresholdPercent),
+      );
     }
     return views;
   }, [views, filter]);
@@ -141,7 +144,7 @@ export default function VialsScreen() {
           <EmptyState
             icon={<TestTubes size={28} color={colors.inkFaint} />}
             title="Nothing in this filter"
-            caption="Try All or Active — Low only shows vials at or under 25% remaining."
+            caption="Try All or Active — Low shows vials at or under each vial’s threshold (default 25%)."
             action={<Button label="Show all" tone="primary" onPress={() => setFilter("all")} />}
           />
         ) : (

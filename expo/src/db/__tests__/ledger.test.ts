@@ -13,6 +13,9 @@ function makeVial(id: string, vialMg: number): Vial {
     note: "",
     reconstitutedAtIso: "2026-07-01T08:00:00.000Z",
     archivedAtIso: null,
+    expiresAtIso: null,
+    lot: "",
+    lowStockThresholdPercent: null,
   };
 }
 

@@ -10,6 +10,7 @@ import { fmt } from "@/src/engine";
 import type { VialSummary } from "@/src/engine/inventory";
 import type { ConcentrationInfo } from "@/src/engine/inventory";
 import { daysSince } from "@/src/engine/schedule";
+import { isExpiredOrDue, isLowStock } from "@/src/engine/vialWarnings";
 import { useTheme } from "@/src/theme";
 import { radius, spacing } from "@/src/theme/tokens";
 
@@ -36,6 +37,8 @@ export default function VialCard({
   const { colors } = useTheme();
   const age = daysSince(vial.reconstitutedAtIso, nowIso);
   const ageLabel = age === 0 ? "reconstituted today" : age === 1 ? "1 day ago" : `${age} days ago`;
+  const expired = isExpiredOrDue(vial.expiresAtIso, nowIso);
+  const low = isLowStock(summary.remainingPercent, vial.lowStockThresholdPercent);
 
   return (
     <Card padded={false}>
@@ -47,6 +50,11 @@ export default function VialCard({
           <AppText variant="label" mono tone="secondary">
             {fmt(vial.vialMg)} mg + {fmt(vial.diluentMl)} mL water
           </AppText>
+          {vial.lot.length > 0 ? (
+            <AppText variant="caption" mono tone="faint">
+              Lot {vial.lot}
+            </AppText>
+          ) : null}
         </View>
         <Pressable
           onPress={onDeletePress}
@@ -102,6 +110,17 @@ export default function VialCard({
           {ageLabel}
           {vial.note.length > 0 ? ` · ${vial.note}` : ""}
         </AppText>
+
+        {expired ? (
+          <AppText variant="caption" weight="semibold" tone="danger" testID={`vial-expired-${vial.id}`}>
+            Past the expiry / BUD date you recorded
+          </AppText>
+        ) : null}
+        {low ? (
+          <AppText variant="caption" weight="semibold" tone="warn" testID={`vial-low-${vial.id}`}>
+            At or below your low-stock threshold ({fmt(summary.remainingPercent, 0)}% left)
+          </AppText>
+        ) : null}
       </View>
     </Card>
   );

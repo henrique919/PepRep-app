@@ -13,6 +13,9 @@ const vials: Vial[] = [
     note: "",
     reconstitutedAtIso: "2026-06-01T08:00:00.000Z",
     archivedAtIso: null,
+    expiresAtIso: null,
+    lot: "",
+    lowStockThresholdPercent: null,
   },
   {
     id: "vial-b",
@@ -23,6 +26,9 @@ const vials: Vial[] = [
     note: "",
     reconstitutedAtIso: "2026-06-10T08:00:00.000Z",
     archivedAtIso: null,
+    expiresAtIso: null,
+    lot: "",
+    lowStockThresholdPercent: null,
   },
 ];
 

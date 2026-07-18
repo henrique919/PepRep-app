@@ -62,6 +62,9 @@ export default function OnboardingScreen() {
       ...draft.vial,
       reconstitutedAtIso,
       archivedAtIso: null,
+      expiresAtIso: null,
+      lot: "",
+      lowStockThresholdPercent: null,
     })
       .then(() => completeOnboarding(CURRENT_SAFETY_ACK_VERSION))
       .then(() => router.replace("/(tabs)"))

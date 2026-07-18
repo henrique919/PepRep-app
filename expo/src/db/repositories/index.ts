@@ -1,8 +1,20 @@
 import type { DoseEntry, Reminder, Vial } from "../models";
+import { normaliseVialRecord } from "../normaliseVial";
 import type { CalcSnapshot, DoseEvent, InventoryTxn, Plan } from "../types";
 import { createAppendOnlyRepository, createCollectionRepository } from "./collection";
 
-export const vialsRepository = createCollectionRepository<Vial>("vials");
+const vialsCollection = createCollectionRepository<Vial>("vials");
+
+/** Vials collection with additive-field normalisation for schema v4+. */
+export const vialsRepository = {
+  async list(): Promise<Vial[]> {
+    const rows = await vialsCollection.list();
+    return rows.map(normaliseVialRecord);
+  },
+  async saveAll(items: Vial[]): Promise<void> {
+    await vialsCollection.saveAll(items.map(normaliseVialRecord));
+  },
+};
 export const dosesRepository = createCollectionRepository<DoseEntry>("doses");
 export const remindersRepository = createCollectionRepository<Reminder>("reminders");
 

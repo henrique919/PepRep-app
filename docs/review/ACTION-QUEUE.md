@@ -132,7 +132,7 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   Today Snooze via privacy-safe local one-shot (`scheduleSnoozeMinutes`). Wiring test:
   `vial-calc-params.test.ts`. Manual device loop still recommended.
 
-- [ ] **T1.3 — Inventory fields: expiry/BUD, lot, low-stock**
+- [x] **T1.3 — Inventory fields: expiry/BUD, lot, low-stock**
   Evidence: `models.ts` has `reconstitutedAtIso` + `archivedAtIso`; **no expiry/BUD, lot,
   low-stock**. Outcome: real-world vial tracking. Scope: add optional `expiresAtIso`/BUD,
   `lot`, `lowStockThreshold`; surface expiry + low-stock warnings (non-prescriptive, factual).
@@ -140,6 +140,9 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   `VialCard.tsx`. Migration: **additive, versioned**; back-fill nulls; never lose data. Accept:
   fields persist; warnings show when past expiry / below threshold. Tests: migration test +
   warning logic (pure). Manual: set expiry in past → warning; relaunch persists. Gate: none.
+  **Done 2026-07-18:** Schema v4 + `normaliseVialRecord`; optional lot/expiry/low-stock on
+  `vial-new`; factual warnings on `VialCard`; Low filter uses per-vial threshold.
+  Tests: `vialWarnings.test.ts`, `normaliseVial.test.ts`. tsc clean; 143 tests green.
 
 - [ ] **T1.4 — Plan → reminder wiring + per-weekday scheduling + privacy previews**
   Evidence: `reminders.ts` is daily-only, standalone, unconnected to plans. Outcome: a plan can
@@ -211,6 +214,8 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **T0.2:** Ask default OFF + JIT consent; OD-1/T3.1 still gate enabling for real users.
 - **T0.3:** Partial a11y on Field/Button/FilterChips; device sweep still required.
 - **T1.1:** Onboarding saves user vial; calc 5/2 prefill removed.
+- **T1.2:** Calculate-with-vial + Today snooze wired; save-as-vial already present.
+- **T1.3:** Vial expiry/lot/low-stock + schema v4 normalisation; 143 tests green.
 - **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1. T0.3 device sweep open.
 
 ## Definition of complete (program)

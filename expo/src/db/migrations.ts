@@ -13,7 +13,7 @@ import {
   vialsRepository,
 } from "./repositories";
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 const VERSION_KEY = `${STORAGE_PREFIX}schemaVersion`;
 
@@ -51,11 +51,24 @@ async function migrateV2toV3(): Promise<void> {
   return undefined;
 }
 
+/**
+ * v3 → v4: additive optional vial inventory fields — `expiresAtIso`, `lot`,
+ * `lowStockThresholdPercent`. Existing rows keep data; missing keys are
+ * normalised on read via `normaliseVialRecord`. Loss-free by construction.
+ */
+async function migrateV3toV4(): Promise<void> {
+  const vials = await vialsRepository.list();
+  if (vials.length === 0) return;
+  // list() already normalises; re-save so persisted shape includes the new keys.
+  await vialsRepository.saveAll(vials);
+}
+
 const MIGRATIONS: { to: number; run: () => Promise<void> }[] = [
   // v0 → v1: initial schema; nothing to transform.
   { to: 1, run: async () => undefined },
   { to: 2, run: migrateV1toV2 },
   { to: 3, run: migrateV2toV3 },
+  { to: 4, run: migrateV3toV4 },
 ];
 
 export async function runMigrations(): Promise<void> {

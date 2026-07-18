@@ -47,6 +47,15 @@ export interface Vial {
   note: string;
   reconstitutedAtIso: string;
   archivedAtIso: string | null;
+  /** Optional BUD / expiry instant the user recorded (factual; never a discard order). */
+  expiresAtIso: string | null;
+  /** Optional lot / batch label entered by the user. */
+  lot: string;
+  /**
+   * Optional low-stock threshold as remaining percent (0–100).
+   * Null means use the app default for warnings only.
+   */
+  lowStockThresholdPercent: number | null;
   /** Optional link to the CalcSnapshot taken when this vial was saved from a draw. */
   snapshotId?: string;
 }

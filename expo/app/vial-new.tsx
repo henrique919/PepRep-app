@@ -53,6 +53,9 @@ export default function NewVialScreen() {
     capacityFromParam(stringParam(params.syringeCapacity)),
   );
   const [note, setNote] = useState<string>("");
+  const [lot, setLot] = useState<string>("");
+  const [expiresText, setExpiresText] = useState<string>("");
+  const [lowStockText, setLowStockText] = useState<string>("");
 
   useEffect(() => {
     const compound = stringParam(params.compoundName);
@@ -104,6 +107,25 @@ export default function NewVialScreen() {
         }
       }
 
+      const expiresTrimmed = expiresText.trim();
+      let expiresAtIso: string | null = null;
+      if (expiresTrimmed.length > 0) {
+        // Accept yyyy-MM-dd; store noon UTC so the calendar day is stable.
+        const parsedExpiry = Date.parse(
+          /^\d{4}-\d{2}-\d{2}$/.test(expiresTrimmed)
+            ? `${expiresTrimmed}T12:00:00.000Z`
+            : expiresTrimmed,
+        );
+        if (Number.isFinite(parsedExpiry)) {
+          expiresAtIso = new Date(parsedExpiry).toISOString();
+        }
+      }
+      const lowStockParsed = parseNumeric(lowStockText);
+      const lowStockThresholdPercent =
+        lowStockParsed !== null && lowStockParsed >= 0 && lowStockParsed <= 100
+          ? lowStockParsed
+          : null;
+
       await addVial({
         name: name.trim(),
         vialMg,
@@ -112,6 +134,9 @@ export default function NewVialScreen() {
         note: note.trim(),
         reconstitutedAtIso,
         archivedAtIso: null,
+        expiresAtIso,
+        lot: lot.trim(),
+        lowStockThresholdPercent,
         snapshotId,
       });
     };
@@ -154,7 +179,7 @@ export default function NewVialScreen() {
               value={vialText}
               onChangeText={setVialText}
               suffix="mg"
-              placeholder="5"
+              placeholder="0"
               testID="input-vial-mg"
             />
             <Field
@@ -162,8 +187,36 @@ export default function NewVialScreen() {
               value={waterText}
               onChangeText={setWaterText}
               suffix="mL"
-              placeholder="2"
+              placeholder="0"
               testID="input-vial-water"
+            />
+            <Field
+              label="Lot / batch (optional)"
+              value={lot}
+              onChangeText={setLot}
+              mono={false}
+              keyboardType="default"
+              placeholder="As printed on the vial"
+              testID="input-vial-lot"
+            />
+            <Field
+              label="Expiry / BUD (optional)"
+              value={expiresText}
+              onChangeText={setExpiresText}
+              mono
+              keyboardType="default"
+              placeholder="yyyy-MM-dd"
+              hint="your date"
+              testID="input-vial-expires"
+            />
+            <Field
+              label="Low-stock at % remaining (optional)"
+              value={lowStockText}
+              onChangeText={setLowStockText}
+              suffix="%"
+              placeholder="25"
+              hint="default 25"
+              testID="input-vial-low-stock"
             />
             <View style={styles.syringeRow}>
               <AppText variant="overline" tone="faint">
