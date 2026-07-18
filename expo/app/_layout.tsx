@@ -26,6 +26,7 @@ import { Platform, StyleSheet } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
+import RootErrorBoundary from "@/src/components/ui/RootErrorBoundary";
 import { runMigrations } from "@/src/db/migrations";
 import { runMissedRollover } from "@/src/db/rollover";
 import { dayKey } from "@/src/engine/schedule";
@@ -163,13 +164,15 @@ export default function RootLayout() {
   if (!ready) return null;
 
   return (
-    <ThemeProvider>
-      <GestureHandlerRootView style={styles.flex}>
-        <SafeAreaProvider>
-          <ThemedShell />
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </ThemeProvider>
+    <RootErrorBoundary>
+      <ThemeProvider>
+        <GestureHandlerRootView style={styles.flex}>
+          <SafeAreaProvider>
+            <ThemedShell />
+          </SafeAreaProvider>
+        </GestureHandlerRootView>
+      </ThemeProvider>
+    </RootErrorBoundary>
   );
 }
 

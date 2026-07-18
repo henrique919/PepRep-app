@@ -239,7 +239,10 @@ Release hygiene only (no new features). Engineering feature-freeze assumed.
   code paths; Ask returns `disabled`; notifications local; export/backup are user-initiated
   file share only.
 
-- [ ] **R2 — Root error boundary**
+- [x] **R2 — Root error boundary**
+  **Done 2026-07-18:** `RootErrorBoundary` wraps the tree in `app/_layout.tsx`; calm
+  PepRep-branded fallback + Try again; no stack traces to users.
+
 - [ ] **R3 — Version + build numbers**
 - [ ] **R4 — Permissions + iOS usage strings audit**
 - [ ] **R5 — Icon/splash store-spec verification**
