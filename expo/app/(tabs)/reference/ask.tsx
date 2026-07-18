@@ -20,6 +20,7 @@ import EmptyState from "@/src/components/ui/EmptyState";
 import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
 import { askQuestion, type AskOutcome } from "@/src/ask";
+import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { callRorkGenerateText } from "@/src/ask/rorkTransport";
 import { useSettingsStore } from "@/src/store/settings";
 import { useTheme } from "@/src/theme";
@@ -73,6 +74,34 @@ export default function AskScreen() {
       setBusy(false);
     }
   };
+
+  if (!ASK_V1_ENABLED) {
+    return (
+      <Screen>
+        <View style={styles.chrome}>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={8}
+            style={styles.backButton}
+            testID="ask-back"
+          >
+            <ChevronLeft size={22} color={colors.ink} />
+          </Pressable>
+          <View style={styles.chromeText}>
+            <AppText variant="heading">Ask</AppText>
+          </View>
+        </View>
+        <EmptyState
+          icon={<MessageCircleQuestion size={28} color={colors.inkFaint} />}
+          title="Ask is not in this build"
+          caption="Cloud Ask is disabled for v1. Reference search and the glossary still work offline."
+          action={
+            <Button label="Back to Reference" tone="primary" onPress={() => router.back()} />
+          }
+        />
+      </Screen>
+    );
+  }
 
   return (
     <Screen>

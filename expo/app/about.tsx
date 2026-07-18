@@ -61,8 +61,7 @@ export default function AboutScreen() {
             </AppText>
             <AppText variant="label" tone="secondary">
               No dose suggestions, ranges or protocols · no accounts or sign-in · no analytics or
-              telemetry. Records stay on this device. Optional Ask (when you enable it) may send
-              question text to Rork AI Cloud for reference answers only.
+              telemetry. Records stay on this device.
             </AppText>
           </View>
           <Hairline />

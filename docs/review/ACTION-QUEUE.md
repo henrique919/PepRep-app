@@ -53,7 +53,8 @@ Commands: `cd expo && bun x tsc --noEmit` · `cd expo && bun x jest` · web: `bu
   **Done 2026-07-18 (keep-with-consent path):** default OFF; legacy ON without consent forced
   OFF; JIT `AskConsentCard` in Settings + Ask; `acceptAskConsent` only enable path; tests in
   `src/store/__tests__/askConsent.test.ts` + existing disabled client test. **Still gated for
-  shipping Ask to users:** OD-1 (keep vs remove) + T3.1 human red-team sign-off.
+  shipping Ask to users:** OD-1 decided REMOVE for v1 (`ASK_V1_ENABLED=false`); T3.1 still
+  required before re-enabling.
 
 - [ ] **T0.3 — Accessibility blockers** *(partial — code landed, device sweep open)*
   Evidence: only 3 files use a11y props; `src/components/ui/Field.tsx` binds no
@@ -219,7 +220,7 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
   contract test (RTL mount test deferred — Jest is node/engine-only).
 - **T0.5:** Corrected false "fully offline / no network" claims in README + adapter docstring.
 - **T0.6:** SyringeGauge + AnimatedReadout gate decorative motion on `useReducedMotion()`.
-- **T0.2:** Ask default OFF + JIT consent; OD-1/T3.1 still gate enabling for real users.
+- **T0.2:** Ask default OFF + JIT consent; OD-1 later chose REMOVE for v1.
 - **T0.3:** Partial a11y on Field/Button/FilterChips; device sweep still required.
 - **T1.1:** Onboarding saves user vial; calc 5/2 prefill removed.
 - **T1.2:** Calculate-with-vial + Today snooze wired; save-as-vial already present.
@@ -227,9 +228,10 @@ integrations, biomarkers, PK curves, subscriptions, broad feature cloning.
 - **T1.4:** Plan weekly reminders with privacy preview; cancel on edit/archive; 146 tests.
 - **T1.5:** Pre-export plaintext warning + safe filenames; encrypted → T1.7.
 - **T1.6:** Migration runner tests + quarantine-on-corrupt hydrate; 156 tests.
-- **Blocked / open:** T0.3 device VoiceOver sweep; T0.4 OD-2 bundle id; T1.7 OD-4 files vs
-  sync; T3.1 human red-team; OD-1 Ask keep/remove for shipping.
-- **Owner gates open:** T0.4 (bundle id), OD-1/2/3/4/5/6/7, T3.1. T0.3 device sweep open.
+- **OD-1 decided:** Ask removed for v1 (`ASK_V1_ENABLED=false`).
+- **OD-4 decided:** encrypted backup files → external storage (T1.7 next).
+- **Blocked / open:** T0.3 device VoiceOver; T0.4/OD-2 bundle id; T1.7 impl; OD-5 sync vs
+  off-device backups only; T3.1 if Ask returns; OD-3 store posture.
 
 ## Definition of complete (program)
 - Every P0 checked; `bun x tsc --noEmit` clean; `bun x jest` green.

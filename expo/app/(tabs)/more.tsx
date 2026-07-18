@@ -18,7 +18,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import AppText from "@/src/components/ui/AppText";
 import BoldTallyMark from "@/src/components/ui/BoldTallyMark";
 import Screen from "@/src/components/ui/Screen";
-import { useSettingsStore } from "@/src/store/settings";
+import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
 import { hairlineWidth, radius, spacing } from "@/src/theme/tokens";
@@ -99,10 +99,40 @@ function MenuSection({
 export default function MoreScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const askEnabled = useSettingsStore((state) => state.askEnabled);
-  const setAskEnabled = useSettingsStore((state) => state.setAskEnabled);
 
   const go = (href: Href) => () => router.push(href);
+
+  const libraryRows: MenuRow[] = [
+    {
+      label: "Compound reference",
+      icon: <BookOpenText size={20} color={colors.ink} strokeWidth={1.6} />,
+      onPress: go("/(tabs)/reference" as Href),
+    },
+    {
+      label: "Glossary",
+      icon: <CircleHelp size={20} color={colors.ink} strokeWidth={1.6} />,
+      onPress: go("/(tabs)/reference/glossary" as Href),
+    },
+    ...(ASK_V1_ENABLED
+      ? [
+          {
+            label: "Ask",
+            icon: <MessageCircleQuestion size={20} color={colors.ink} strokeWidth={1.6} />,
+            onPress: go("/(tabs)/reference/ask" as Href),
+          } satisfies MenuRow,
+        ]
+      : []),
+    {
+      label: "Injection sites",
+      icon: <MapPin size={20} color={colors.ink} strokeWidth={1.6} />,
+      onPress: go("/sites" as Href),
+    },
+    {
+      label: "Progress",
+      icon: <TrendingUp size={20} color={colors.ink} strokeWidth={1.6} />,
+      onPress: go("/progress" as Href),
+    },
+  ];
 
   return (
     <Screen>
@@ -128,37 +158,7 @@ export default function MoreScreen() {
           </View>
         </View>
 
-        <MenuSection
-          title="Library"
-          colors={colors}
-          rows={[
-            {
-              label: "Compound reference",
-              icon: <BookOpenText size={20} color={colors.ink} strokeWidth={1.6} />,
-              onPress: go("/(tabs)/reference" as Href),
-            },
-            {
-              label: "Glossary",
-              icon: <CircleHelp size={20} color={colors.ink} strokeWidth={1.6} />,
-              onPress: go("/(tabs)/reference/glossary" as Href),
-            },
-            {
-              label: "Ask",
-              icon: <MessageCircleQuestion size={20} color={colors.ink} strokeWidth={1.6} />,
-              onPress: go("/(tabs)/reference/ask" as Href),
-            },
-            {
-              label: "Injection sites",
-              icon: <MapPin size={20} color={colors.ink} strokeWidth={1.6} />,
-              onPress: go("/sites" as Href),
-            },
-            {
-              label: "Progress",
-              icon: <TrendingUp size={20} color={colors.ink} strokeWidth={1.6} />,
-              onPress: go("/progress" as Href),
-            },
-          ]}
-        />
+        <MenuSection title="Library" colors={colors} rows={libraryRows} />
 
         <MenuSection
           title="Preferences"
@@ -168,15 +168,6 @@ export default function MoreScreen() {
               label: "All settings",
               icon: <Settings2 size={20} color={colors.ink} strokeWidth={1.6} />,
               onPress: go("/settings" as Href),
-            },
-            {
-              label: "Ask (cloud answers)",
-              icon: <MessageCircleQuestion size={20} color={colors.ink} strokeWidth={1.6} />,
-              trailing: "switch",
-              switchValue: askEnabled,
-              onSwitch: (value) => {
-                void setAskEnabled(value);
-              },
             },
             {
               label: "Privacy & safety",

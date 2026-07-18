@@ -27,6 +27,7 @@ import { SITE_LABELS } from "@/src/db/models";
 import { fmt } from "@/src/engine";
 import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
+import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { EXPORT_PLAINTEXT_WARNING, exportFileName } from "@/src/export/filenames";
 import { useDosesStore } from "@/src/store/doses";
 import { useRemindersStore } from "@/src/store/reminders";
@@ -440,59 +441,62 @@ export default function SettingsScreen() {
           <Card style={styles.privacyCard} padded={false}>
             <View style={styles.privacyCopy}>
               <AppText variant="label" tone="secondary">
-                Your vials, doses, schedule and history never leave this device. There is no account
-                and no analytics. The one exception is Ask: your question text is sent to Rork AI
-                Cloud to generate an answer. Your records are never included. You can turn Ask off
-                below.
+                {ASK_V1_ENABLED
+                  ? "Your vials, doses, schedule and history never leave this device. There is no account and no analytics. The one exception is Ask: your question text is sent to Rork AI Cloud to generate an answer. Your records are never included. You can turn Ask off below."
+                  : "Your vials, doses, schedule and history stay on this device. There is no account and no analytics. Optional cloud Ask is not included in this build."}
               </AppText>
             </View>
-            <Hairline />
-            <View style={styles.askToggleRow}>
-              <View style={styles.actionBody}>
-                <AppText variant="body" weight="medium">
-                  Ask
-                </AppText>
-                <AppText variant="caption" tone="faint">
-                  {askEnabled
-                    ? "On — question text may leave this device"
-                    : "Off — no Ask network calls"}
-                </AppText>
-              </View>
-              <Switch
-                value={askEnabled}
-                onValueChange={(next) => {
-                  if (next) {
-                    setShowAskConsent(true);
-                    return;
-                  }
-                  setShowAskConsent(false);
-                  setAskEnabled(false).catch((error) =>
-                    console.error("[settings] Toggle Ask failed", error),
-                  );
-                }}
-                trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
-                thumbColor={colors.surface}
-                accessibilityLabel="Ask"
-                accessibilityState={{ checked: askEnabled }}
-                testID="toggle-ask"
-              />
-            </View>
-            {showAskConsent && !askEnabled ? (
-              <View style={styles.privacyCopy}>
-                <AskConsentCard
-                  busy={askConsentBusy}
-                  onDecline={() => setShowAskConsent(false)}
-                  onAccept={() => {
-                    setAskConsentBusy(true);
-                    acceptAskConsent()
-                      .then(() => setShowAskConsent(false))
-                      .catch((error) =>
-                        console.error("[settings] Ask consent failed", error),
-                      )
-                      .finally(() => setAskConsentBusy(false));
-                  }}
-                />
-              </View>
+            {ASK_V1_ENABLED ? (
+              <>
+                <Hairline />
+                <View style={styles.askToggleRow}>
+                  <View style={styles.actionBody}>
+                    <AppText variant="body" weight="medium">
+                      Ask
+                    </AppText>
+                    <AppText variant="caption" tone="faint">
+                      {askEnabled
+                        ? "On — question text may leave this device"
+                        : "Off — no Ask network calls"}
+                    </AppText>
+                  </View>
+                  <Switch
+                    value={askEnabled}
+                    onValueChange={(next) => {
+                      if (next) {
+                        setShowAskConsent(true);
+                        return;
+                      }
+                      setShowAskConsent(false);
+                      setAskEnabled(false).catch((error) =>
+                        console.error("[settings] Toggle Ask failed", error),
+                      );
+                    }}
+                    trackColor={{ true: colors.accent, false: colors.surfaceSunken }}
+                    thumbColor={colors.surface}
+                    accessibilityLabel="Ask"
+                    accessibilityState={{ checked: askEnabled }}
+                    testID="toggle-ask"
+                  />
+                </View>
+                {showAskConsent && !askEnabled ? (
+                  <View style={styles.privacyCopy}>
+                    <AskConsentCard
+                      busy={askConsentBusy}
+                      onDecline={() => setShowAskConsent(false)}
+                      onAccept={() => {
+                        setAskConsentBusy(true);
+                        acceptAskConsent()
+                          .then(() => setShowAskConsent(false))
+                          .catch((error) =>
+                            console.error("[settings] Ask consent failed", error),
+                          )
+                          .finally(() => setAskConsentBusy(false));
+                      }}
+                    />
+                  </View>
+                ) : null}
+              </>
             ) : null}
           </Card>
         </View>
@@ -513,7 +517,8 @@ export default function SettingsScreen() {
         </View>
 
         <AppText variant="caption" tone="faint" style={styles.footer}>
-          PepRep 1.0.0 · No account · No analytics · Ask is optional
+          PepRep 1.0.0 · No account · No analytics
+            {ASK_V1_ENABLED ? " · Ask is optional" : ""}
         </AppText>
       </ScrollView>
     </Screen>

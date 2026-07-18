@@ -2,6 +2,7 @@
  * Ask client — leaf network surface. Failures never throw into the rest of the app.
  */
 
+import { isAskV1Enabled } from "./feature";
 import { buildAskOutboundPayload } from "./payload";
 import { evaluateAskPolicy } from "./policy";
 import { checkAskRateLimit, recordAskCall } from "./rateLimit";
@@ -78,6 +79,8 @@ export function clipAskAnswer(text: string, maxWords = MAX_ANSWER_WORDS): string
  * Policy refusals never hit the network.
  */
 export async function askQuestion(question: string, ctx: AskContext): Promise<AskOutcome> {
+  // OD-1: Ask removed from v1 store builds — hard gate before settings toggle.
+  if (!isAskV1Enabled()) return { kind: "disabled" };
   if (!ctx.askEnabled) return { kind: "disabled" };
   if (!ctx.online) return { kind: "offline" };
 

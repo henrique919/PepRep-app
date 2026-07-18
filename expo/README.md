@@ -15,9 +15,8 @@ advisor: it never recommends a peptide, dose, stack, cycle, frequency or protoco
 - No dosing suggestions, "typical" ranges, stacks or cycle guidance — anywhere.
 - No account, no sign-in, no paywall. The calculator is never gated.
 - Local-first: calculator, inventory, history, and settings stay on-device with no
-  analytics or telemetry. The one optional network path is **Ask** (Reference): when
-  the user explicitly enables it, question text is sent to Rork AI Cloud for
-  retrieval-grounded reference answers. Everything else works offline.
+  analytics or telemetry. Cloud **Ask** is compiled out of v1 (`ASK_V1_ENABLED=false`)
+  and can return later after safety sign-off. Everything ships works offline.
 
 ## The one rule that matters
 

@@ -8,6 +8,7 @@ import Card from "@/src/components/ui/Card";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Field from "@/src/components/ui/Field";
 import Screen from "@/src/components/ui/Screen";
+import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { NOT_ESTABLISHED, searchCompounds } from "@/src/data/compounds";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
@@ -50,23 +51,25 @@ export default function ReferenceScreen() {
           </Pressable>
         </View>
 
-        <Pressable
-          onPress={() => router.push("/reference/ask")}
-          style={styles.askRow}
-          testID="open-ask"
-        >
-          <View style={styles.askIcon}>
-            <MessageCircleQuestion size={22} color={colors.onAccent} />
-          </View>
-          <View style={styles.askText}>
-            <AppText variant="heading" tone="onDark">
-              Ask
-            </AppText>
-            <AppText variant="caption" tone="onDarkSecondary">
-              Reference answers from PepRep&apos;s compound data
-            </AppText>
-          </View>
-        </Pressable>
+        {ASK_V1_ENABLED ? (
+          <Pressable
+            onPress={() => router.push("/reference/ask")}
+            style={styles.askRow}
+            testID="open-ask"
+          >
+            <View style={styles.askIcon}>
+              <MessageCircleQuestion size={22} color={colors.onAccent} />
+            </View>
+            <View style={styles.askText}>
+              <AppText variant="heading" tone="onDark">
+                Ask
+              </AppText>
+              <AppText variant="caption" tone="onDarkSecondary">
+                Reference answers from PepRep&apos;s compound data
+              </AppText>
+            </View>
+          </Pressable>
+        ) : null}
 
         <Field
           label="Search"
