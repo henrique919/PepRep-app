@@ -119,6 +119,7 @@ export default function VialDetailScreen() {
               pathname: "/(tabs)",
               params: {
                 compoundName: vial.name,
+                vialId: vial.id,
                 vialMg: String(vial.vialMg),
                 diluentMl: String(vial.diluentMl),
                 syringeCapacity: String(vial.syringeCapacityUnits),

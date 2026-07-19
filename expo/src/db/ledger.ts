@@ -72,19 +72,45 @@ export function voidTxnForEvent(
   id: string,
   occurredAt: string,
 ): InventoryTxn | null {
-  const original = txns.find((txn) => txn.type === "dose" && txn.sourceEventId === eventId);
+  const eventTxns = txns.filter((txn) => txn.sourceEventId === eventId);
+  const original = eventTxns.find((txn) => txn.type === "dose" && txn.deltaMcg < 0);
   if (original === undefined) return null;
-  const alreadyVoided = txns.some(
-    (txn) => txn.type === "void" && txn.sourceEventId === eventId,
-  );
-  if (alreadyVoided) return null;
+  const appliedDelta = eventTxns.reduce((sum, txn) => sum + txn.deltaMcg, 0);
+  if (appliedDelta >= 0) return null;
   return {
     id,
     vialId: original.vialId,
     type: "void",
-    deltaMcg: -original.deltaMcg,
+    deltaMcg: -appliedDelta,
     sourceEventId: eventId,
     occurredAt,
     note: "compensates un-logged dose",
+  };
+}
+
+/**
+ * Reapply a previously voided dose exactly once. The append-only transaction
+ * sequence is treated as the source of truth, so repeated restore taps cannot
+ * double-debit inventory.
+ */
+export function restoreTxnForEvent(
+  txns: InventoryTxn[],
+  eventId: string,
+  id: string,
+  occurredAt: string,
+): InventoryTxn | null {
+  const eventTxns = txns.filter((txn) => txn.sourceEventId === eventId);
+  const original = eventTxns.find((txn) => txn.type === "dose" && txn.deltaMcg < 0);
+  if (original === undefined) return null;
+  const appliedDelta = eventTxns.reduce((sum, txn) => sum + txn.deltaMcg, 0);
+  if (appliedDelta < 0) return null;
+  return {
+    id,
+    vialId: original.vialId,
+    type: "dose",
+    deltaMcg: original.deltaMcg,
+    sourceEventId: eventId,
+    occurredAt,
+    note: "reapplies restored dose",
   };
 }

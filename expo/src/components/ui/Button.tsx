@@ -20,7 +20,7 @@ interface ButtonProps {
   testID?: string;
 }
 
-export default function Button({
+const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(function Button({
   label,
   onPress,
   tone = "primary",
@@ -29,7 +29,7 @@ export default function Button({
   compact = false,
   style,
   testID,
-}: ButtonProps) {
+}, ref) {
   const { colors } = useTheme();
 
   const handlePress = () => {
@@ -60,6 +60,7 @@ export default function Button({
 
   return (
     <Pressable
+      ref={ref}
       testID={testID}
       onPress={handlePress}
       disabled={disabled}
@@ -85,7 +86,9 @@ export default function Button({
       </AppText>
     </Pressable>
   );
-}
+});
+
+export default Button;
 
 const styles = StyleSheet.create({
   base: {

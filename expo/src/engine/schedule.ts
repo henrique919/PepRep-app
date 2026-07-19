@@ -121,7 +121,7 @@ export function dueOnDay(plan: Plan, key: string): boolean {
 export function appendScheduleVersion(plan: Plan, version: ScheduleVersion): Plan {
   const dayBefore = format(subDays(parseISO(version.effectiveFrom), 1), "yyyy-MM-dd");
   const closed = plan.versions.map((existing) =>
-    existing.effectiveTo === null && existing.effectiveFrom < version.effectiveFrom
+    existing.effectiveTo === null && existing.effectiveFrom <= version.effectiveFrom
       ? { ...existing, effectiveTo: dayBefore }
       : existing,
   );

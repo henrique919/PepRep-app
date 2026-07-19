@@ -1,15 +1,17 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import MathSteps from "@/src/components/domain/MathSteps";
 import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
+import ConfirmDialog from "@/src/components/ui/ConfirmDialog";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Hairline from "@/src/components/ui/Hairline";
 import Screen from "@/src/components/ui/Screen";
+import Toast from "@/src/components/ui/Toast";
 import { snapshotsRepository } from "@/src/db/repositories";
 import type { CalcSnapshot, DoseEvent } from "@/src/db/types";
 import { fmt } from "@/src/engine";
@@ -57,6 +59,7 @@ export default function HistoryEventScreen() {
 
   const events = useLedgerStore((state) => state.events);
   const unlogEvent = useLedgerStore((state) => state.unlogEvent);
+  const restoreEvent = useLedgerStore((state) => state.restoreEvent);
   const vials = useVialsStore((state) => state.vials);
 
   const event: DoseEvent | undefined = useMemo(
@@ -65,6 +68,9 @@ export default function HistoryEventScreen() {
   );
 
   const [snapshot, setSnapshot] = useState<CalcSnapshot | null>(null);
+  const [confirmingVoid, setConfirmingVoid] = useState<boolean>(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const voidButtonRef = useRef<{ focus?: () => void } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -154,6 +160,20 @@ export default function HistoryEventScreen() {
                   <Fact styles={styles} label="Voided at" value={formatDateTime(event.voidedAt)} />
                 </>
               )}
+              {(event.corrections?.length ?? 0) > 0 && (
+                <>
+                  <Hairline />
+                  <Fact
+                    styles={styles}
+                    label="Correction trail"
+                    value={event.corrections!
+                      .map((correction) =>
+                        `${correction.type === "void" ? "Voided" : "Restored"} ${formatDateTime(correction.occurredAt)}`,
+                      )
+                      .join(" · ")}
+                  />
+                </>
+              )}
             </Card>
 
             {snapshot !== null && steps.length > 0 && (
@@ -179,19 +199,52 @@ export default function HistoryEventScreen() {
 
             {event.status === "completed" && event.voidedAt === undefined && (
               <Button
+                ref={(node) => {
+                  voidButtonRef.current = node as unknown as { focus?: () => void } | null;
+                }}
                 label="Un-log (void)"
                 tone="ghost"
-                onPress={() => {
-                  unlogEvent(event.id).catch((error) =>
-                    console.error("[history/event] unlog failed", error),
-                  );
-                }}
+                onPress={() => setConfirmingVoid(true)}
                 testID="unlog-event"
+              />
+            )}
+            {event.voidedAt !== undefined && (
+              <Button
+                label="Restore voided log"
+                tone="ghost"
+                onPress={() => {
+                  restoreEvent(event.id)
+                    .then(() => setToast("Log restored and vial inventory debited once."))
+                    .catch((error) => console.error("[history/event] restore failed", error));
+                }}
+                testID="restore-event"
               />
             )}
           </>
         )}
       </ScrollView>
+      <ConfirmDialog
+        visible={confirmingVoid && event !== undefined}
+        title="Void this logged dose?"
+        message={
+          event !== undefined
+            ? `${event.compoundName} · ${fmt(event.doseValue)} ${event.doseUnit} · ${formatDateTime(event.occurredAt)} · Vial: ${vialName ?? "not recorded"}. This restores linked inventory and keeps the audit record.`
+            : ""
+        }
+        confirmLabel="Void log"
+        destructive
+        returnFocusRef={voidButtonRef}
+        onCancel={() => setConfirmingVoid(false)}
+        onConfirm={() => {
+          setConfirmingVoid(false);
+          if (event === undefined) return;
+          unlogEvent(event.id)
+            .then(() => setToast("Log voided. Linked inventory was restored."))
+            .catch((error) => console.error("[history/event] unlog failed", error));
+        }}
+        testID="confirm-unlog-event"
+      />
+      {toast !== null ? <Toast message={toast} onDismiss={() => setToast(null)} /> : null}
     </Screen>
   );
 }

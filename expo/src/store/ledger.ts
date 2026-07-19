@@ -6,7 +6,7 @@
 
 import { create } from "zustand";
 
-import { doseTxnForEvent, voidTxnForEvent } from "@/src/db/ledger";
+import { doseTxnForEvent, restoreTxnForEvent, voidTxnForEvent } from "@/src/db/ledger";
 import type { DoseEntry, Vial } from "@/src/db/models";
 import { createId } from "@/src/db/models";
 import {
@@ -43,6 +43,7 @@ interface LedgerState {
   logOccurrence: (input: LogOccurrenceInput) => Promise<DoseEvent>;
   skipOccurrence: (input: Omit<LogOccurrenceInput, "vialId" | "vial" | "note">) => Promise<DoseEvent>;
   unlogEvent: (eventId: string) => Promise<void>;
+  restoreEvent: (eventId: string) => Promise<void>;
   /** Append missed events from rollover (idempotent at the collector layer). */
   appendEvents: (events: DoseEvent[]) => Promise<void>;
   reset: () => void;
@@ -66,6 +67,11 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
   },
 
   logOccurrence: async (input) => {
+    const existing = get().events.find(
+      (event) => event.occurrenceKey === input.occurrenceKey && event.voidedAt === undefined,
+    );
+    if (existing !== undefined) return existing;
+
     const occurredAt = input.occurredAt ?? new Date().toISOString();
     const doseMcg =
       input.doseUnit === "mg" ? mgToMcg(input.doseValue) : input.doseValue;
@@ -162,6 +168,8 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
   },
 
   unlogEvent: async (eventId) => {
+    const existing = get().events.find((event) => event.id === eventId);
+    if (existing === undefined || existing.voidedAt !== undefined) return;
     const voidedAt = new Date().toISOString();
     await doseEventsRepository.markVoided(eventId, voidedAt);
     const txns = await txnsRepository.list();
@@ -180,6 +188,60 @@ export const useLedgerStore = create<LedgerState>((set, get) => ({
     set({
       events: sortEvents(events),
       txns: voidTxn !== null ? [...get().txns, voidTxn] : get().txns,
+    });
+  },
+
+  restoreEvent: async (eventId) => {
+    const existing = get().events.find((event) => event.id === eventId);
+    if (existing === undefined || existing.voidedAt === undefined) return;
+
+    const restoredAt = new Date().toISOString();
+    const txns = await txnsRepository.list();
+    const restoreTxn = restoreTxnForEvent(txns, eventId, createId(), restoredAt);
+    if (restoreTxn !== null) await txnsRepository.append(restoreTxn);
+    await doseEventsRepository.markRestored(eventId, restoredAt);
+
+    if (existing.status === "completed") {
+      const doses = await dosesRepository.list();
+      if (!doses.some((dose) => dose.id === existing.id)) {
+        const restoredDose: DoseEntry = {
+          id: existing.id,
+          vialId: existing.vialId ?? null,
+          peptideName: existing.compoundName,
+          doseValue: existing.doseValue,
+          doseUnit: existing.doseUnit,
+          doseMcg:
+            existing.doseMcg ??
+            (existing.doseUnit === "mg" ? mgToMcg(existing.doseValue) : existing.doseValue),
+          units: existing.units ?? null,
+          volumeMl: existing.volumeMl ?? null,
+          site: (existing.siteId as DoseEntry["site"]) ?? null,
+          note: existing.note ?? "",
+          atIso: existing.occurredAt,
+          snapshotId: existing.snapshotId,
+        };
+        const nextDoses = [restoredDose, ...doses].sort((a, b) =>
+          compareIsoDesc(a.atIso, b.atIso),
+        );
+        await dosesRepository.saveAll(nextDoses);
+        useDosesStore.setState({ doses: nextDoses });
+      }
+    }
+
+    const events = get().events.map((event) => {
+      if (event.id !== eventId) return event;
+      const { voidedAt: _voidedAt, ...activeEvent } = event;
+      return {
+        ...activeEvent,
+        corrections: [
+          ...(event.corrections ?? []),
+          { id: `restore-${eventId}-${restoredAt}`, type: "restore" as const, occurredAt: restoredAt },
+        ],
+      };
+    });
+    set({
+      events: sortEvents(events),
+      txns: restoreTxn !== null ? [...get().txns, restoreTxn] : get().txns,
     });
   },
 

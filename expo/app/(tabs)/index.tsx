@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronDown, ChevronUp, NotebookPen, TestTubes } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeInDown, useReducedMotion } from "react-native-reanimated";
 
 import MathSteps from "@/src/components/domain/MathSteps";
 import SyringeGauge from "@/src/components/domain/SyringeGauge";
@@ -151,8 +151,10 @@ function CalculatorScreen() {
   const params = useLocalSearchParams();
   const { colors } = useTheme();
   const styles = useMemo(() => createCalcStyles(colors), [colors]);
+  const reduceMotion = useReducedMotion();
 
   const prefilledName = stringParam(params.compoundName);
+  const prefilledVialId = stringParam(params.vialId);
   const prefilledUnit = unitFromConvention(stringParam(params.massUnitConvention));
   const prefilledVial = stringParam(params.vialMg);
   const prefilledWater = stringParam(params.diluentMl);
@@ -239,6 +241,10 @@ function CalculatorScreen() {
         doseUnit,
         units: String(drawResult.units),
         volumeMl: String(drawResult.volumeMl),
+        ...(prefilledVialId.length > 0 ? { vialId: prefilledVialId } : {}),
+        vialMg: String(vialMg ?? ""),
+        diluentMl: String(diluentMl ?? ""),
+        syringeCapacity: String(capacity),
         ...(compoundLabel.trim().length > 0
           ? { compoundName: compoundLabel.trim() }
           : {}),
@@ -580,7 +586,7 @@ function CalculatorScreen() {
               />
               {showMath && (
                 <Animated.View
-                  entering={FadeInDown.duration(280).springify().damping(18)}
+                  entering={reduceMotion ? undefined : FadeInDown.duration(280).springify().damping(18)}
                   style={styles.mathBody}
                 >
                   <View style={styles.mathHairline}>

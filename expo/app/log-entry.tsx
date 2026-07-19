@@ -55,14 +55,20 @@ export default function LogEntryScreen() {
   const prefillVialMg = parseNumeric(stringParam(params.vialMg));
   const prefillDiluentMl = parseNumeric(stringParam(params.diluentMl));
   const prefillCapacity = capacityFromParam(stringParam(params.syringeCapacity));
+  const prefillVialId = stringParam(params.vialId);
 
   const [peptideName, setPeptideName] = useState<string>(stringParam(params.compoundName));
-  const [vialId, setVialId] = useState<string | null>(null);
+  const [vialId, setVialId] = useState<string | null>(
+    prefillVialId.length > 0 && vials.some((vial) => vial.id === prefillVialId)
+      ? prefillVialId
+      : null,
+  );
   const [doseText, setDoseText] = useState<string>(stringParam(params.doseValue));
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefillUnit);
   const [unitsText, setUnitsText] = useState<string>(stringParam(params.units));
   const [site, setSite] = useState<InjectionSite | null>(null);
   const [note, setNote] = useState<string>("");
+  const [saving, setSaving] = useState<boolean>(false);
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
 
@@ -74,7 +80,11 @@ export default function LogEntryScreen() {
   const doseValue = parseNumeric(doseText);
   const units = parseNumeric(unitsText);
   const volumeMl = parseNumeric(stringParam(params.volumeMl));
-  const canSave = doseValue !== null && doseValue > 0 && (peptideName.trim().length > 0 || vialId !== null);
+  const canSave =
+    doseValue !== null &&
+    doseValue > 0 &&
+    (peptideName.trim().length > 0 || vialId !== null) &&
+    !saving;
 
   const selectVial = (id: string) => {
     if (vialId === id) {
@@ -89,7 +99,8 @@ export default function LogEntryScreen() {
   };
 
   const save = () => {
-    if (doseValue === null || doseValue <= 0) return;
+    if (doseValue === null || doseValue <= 0 || saving) return;
+    setSaving(true);
     const name = peptideName.trim();
     const atIso = new Date().toISOString();
 
@@ -128,7 +139,10 @@ export default function LogEntryScreen() {
 
     persist()
       .then(() => router.back())
-      .catch((error) => console.error("[log-entry] Failed to save dose", error));
+      .catch((error) => {
+        console.error("[log-entry] Failed to save dose", error);
+        setSaving(false);
+      });
   };
 
   return (
@@ -192,6 +206,11 @@ export default function LogEntryScreen() {
                   );
                 })}
               </View>
+              <AppText variant="caption" tone="secondary" accessibilityLiveRegion="polite">
+                {vialId !== null
+                  ? `Selected vial: ${vials.find((vial) => vial.id === vialId)?.name ?? vialId}. Saving will update this vial’s inventory.`
+                  : "No vial selected. This entry will not change vial inventory."}
+              </AppText>
             </View>
           )}
 
@@ -252,7 +271,13 @@ export default function LogEntryScreen() {
             <SitePicker value={site} onChange={setSite} recentSites={recentSites} />
           </Card>
 
-          <Button label="Save entry" tone="accent" onPress={save} disabled={!canSave} testID="save-dose" />
+          <Button
+            label={saving ? "Saving…" : "Save entry"}
+            tone="accent"
+            onPress={save}
+            disabled={!canSave}
+            testID="save-dose"
+          />
           {!canSave && (
             <AppText variant="caption" tone="faint" style={styles.hint}>
               A dose amount and either a peptide label or a vial are needed to keep the record

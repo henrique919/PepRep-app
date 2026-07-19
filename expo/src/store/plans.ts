@@ -10,7 +10,7 @@ import { createId } from "@/src/db/models";
 import { plansRepository } from "@/src/db/repositories";
 import type { Plan, ScheduleVersion } from "@/src/db/types";
 import { countPlanReminderSlots, planReminderCopy } from "@/src/engine/planReminders";
-import { appendScheduleVersion, dayKey } from "@/src/engine/schedule";
+import { appendScheduleVersion, dayKey, versionActiveOn } from "@/src/engine/schedule";
 import {
   cancelScheduledNotification,
   scheduleWeekly,
@@ -41,6 +41,7 @@ interface PlansState {
   addPlan: (input: NewPlanInput) => Promise<Plan>;
   appendVersion: (planId: string, input: NewPlanInput & { effectiveFrom: string }) => Promise<void>;
   archivePlan: (planId: string) => Promise<void>;
+  restorePlan: (planId: string) => Promise<void>;
   reset: () => void;
 }
 
@@ -133,6 +134,10 @@ export const usePlansStore = create<PlansState>((set, get) => ({
       compoundName: input.compoundName.trim(),
       createdAt,
       versions: [version],
+      reminderConfig: {
+        enabled: input.remindMe === true,
+        privacyMode: input.privacyMode !== false,
+      },
       ...(reminderNotificationIds.length > 0 ? { reminderNotificationIds } : {}),
     };
     const plans = [plan, ...get().plans];
@@ -151,6 +156,11 @@ export const usePlansStore = create<PlansState>((set, get) => ({
     const reminderNotificationIds = await schedulePlanReminders(input);
     const next: Plan = {
       ...nextBase,
+      compoundName: input.compoundName.trim(),
+      reminderConfig: {
+        enabled: input.remindMe === true,
+        privacyMode: input.privacyMode !== false,
+      },
       reminderNotificationIds:
         reminderNotificationIds.length > 0 ? reminderNotificationIds : undefined,
     };
@@ -171,6 +181,39 @@ export const usePlansStore = create<PlansState>((set, get) => ({
         ? { ...plan, archivedAt, reminderNotificationIds: undefined }
         : plan,
     );
+    set({ plans });
+    await plansRepository.saveAll(plans);
+  },
+
+  restorePlan: async (planId) => {
+    const existing = get().plans.find((plan) => plan.id === planId);
+    if (existing === undefined || existing.archivedAt === undefined) return;
+
+    const today = dayKey(new Date().toISOString());
+    const version =
+      versionActiveOn(existing, today) ?? existing.versions[existing.versions.length - 1];
+    if (version === undefined) return;
+    const reminderInput: NewPlanInput = {
+      compoundName: existing.compoundName,
+      name: version.name,
+      doseValue: version.doseValue,
+      doseUnit: version.doseUnit,
+      daysOfWeek: version.daysOfWeek,
+      timesLocal: version.timesLocal,
+      vialId: version.vialId,
+      remindMe: existing.reminderConfig?.enabled === true,
+      privacyMode: existing.reminderConfig?.privacyMode !== false,
+    };
+    const reminderNotificationIds = await schedulePlanReminders(reminderInput);
+    const plans = get().plans.map((plan) => {
+      if (plan.id !== planId) return plan;
+      const { archivedAt: _archivedAt, ...restored } = plan;
+      return {
+        ...restored,
+        reminderNotificationIds:
+          reminderNotificationIds.length > 0 ? reminderNotificationIds : undefined,
+      };
+    });
     set({ plans });
     await plansRepository.saveAll(plans);
   },

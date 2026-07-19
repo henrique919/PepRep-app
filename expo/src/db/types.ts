@@ -68,6 +68,11 @@ export interface Plan {
   archivedAt?: string;
   /** Local weekly notification ids scheduled for this plan (native only). */
   reminderNotificationIds?: string[];
+  /** Persisted reminder preference so edits and archive/restore can rebuild alerts safely. */
+  reminderConfig?: {
+    enabled: boolean;
+    privacyMode: boolean;
+  };
   versions: ScheduleVersion[];
 }
 
@@ -94,4 +99,10 @@ export interface DoseEvent {
   note?: string;
   /** Set when un-logged; the event itself is never deleted. */
   voidedAt?: string;
+  /** Append-only correction history retained across repeated void/restore cycles. */
+  corrections?: {
+    id: string;
+    type: "void" | "restore";
+    occurredAt: string;
+  }[];
 }

@@ -47,7 +47,11 @@ export default function StatusPill({ status, label }: StatusPillProps) {
           : colors.inkFaint;
 
   return (
-    <View style={[styles.pill, { backgroundColor: bg }]}>
+    <View
+      style={[styles.pill, { backgroundColor: bg }]}
+      accessibilityRole="text"
+      accessibilityLabel={`Status: ${label ?? LABELS[status]}`}
+    >
       <View style={[styles.dot, { backgroundColor: dot }]} />
       <AppText variant="overline" weight="semibold" style={{ color: ink, letterSpacing: 0.6 }}>
         {label ?? LABELS[status]}

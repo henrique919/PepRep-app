@@ -44,9 +44,32 @@ export const doseEventsRepository = {
     const events = await doseEventsCollection.list();
     const next = events.map((event) =>
       event.id === id && event.voidedAt === undefined
-        ? { ...event, voidedAt: voidedAtIso }
+        ? {
+            ...event,
+            voidedAt: voidedAtIso,
+            corrections: [
+              ...(event.corrections ?? []),
+              { id: `void-${id}-${voidedAtIso}`, type: "void" as const, occurredAt: voidedAtIso },
+            ],
+          }
         : event,
     );
+    await doseEventsCollection.saveAll(next);
+  },
+
+  async markRestored(id: string, restoredAtIso: string): Promise<void> {
+    const events = await doseEventsCollection.list();
+    const next = events.map((event) => {
+      if (event.id !== id || event.voidedAt === undefined) return event;
+      const { voidedAt: _voidedAt, ...activeEvent } = event;
+      return {
+        ...activeEvent,
+        corrections: [
+          ...(event.corrections ?? []),
+          { id: `restore-${id}-${restoredAtIso}`, type: "restore" as const, occurredAt: restoredAtIso },
+        ],
+      };
+    });
     await doseEventsCollection.saveAll(next);
   },
 };

@@ -91,6 +91,29 @@ describe("appendScheduleVersion — plan edits append, never mutate", () => {
     expect(openPlan.versions[0]?.effectiveTo).toBeNull();
   });
 
+  it("supersedes an earlier version edited on the same day", () => {
+    const sameDayPlan: Plan = {
+      ...openPlan,
+      versions: [
+        version({
+          id: "same-day-old",
+          effectiveFrom: "2026-07-10",
+          effectiveTo: null,
+          createdAt: "2026-07-10T08:00:00.000Z",
+        }),
+      ],
+    };
+    const sameDayNew = version({
+      id: "same-day-new",
+      effectiveFrom: "2026-07-10",
+      effectiveTo: null,
+      createdAt: "2026-07-10T09:00:00.000Z",
+    });
+    const next = appendScheduleVersion(sameDayPlan, sameDayNew);
+    expect(next.versions[0]?.effectiveTo).toBe("2026-07-09");
+    expect(versionActiveOn(next, "2026-07-10")?.id).toBe("same-day-new");
+  });
+
   it("leaves every pre-existing DoseEvent byte-identical", () => {
     const events: DoseEvent[] = [
       {

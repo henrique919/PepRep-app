@@ -1,8 +1,7 @@
 import { useRouter, type Href } from "expo-router";
-import { Plus, TestTubes } from "lucide-react-native";
+import { Plus, RotateCcw, TestTubes } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { useShallow } from "zustand/react/shallow";
 
 import VialCard from "@/src/components/domain/VialCard";
 import AppText from "@/src/components/ui/AppText";
@@ -10,6 +9,7 @@ import Button from "@/src/components/ui/Button";
 import EmptyState from "@/src/components/ui/EmptyState";
 import FilterChips from "@/src/components/ui/FilterChips";
 import Screen from "@/src/components/ui/Screen";
+import Toast from "@/src/components/ui/Toast";
 import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen";
 import type { Vial } from "@/src/db/models";
 import { summaryFromTxns } from "@/src/db/vialBalance";
@@ -17,7 +17,7 @@ import { vialConcentration } from "@/src/engine/inventory";
 import type { VialSummary, ConcentrationInfo } from "@/src/engine/inventory";
 import { isLowStock } from "@/src/engine/vialWarnings";
 import { selectTxnsForVial, useLedgerStore } from "@/src/store/ledger";
-import { selectActiveVials, useVialsStore } from "@/src/store/vials";
+import { useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
 import { spacing } from "@/src/theme/tokens";
 
@@ -33,13 +33,26 @@ type VialFilter = "all" | "active" | "low";
 function VialsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
-  const vials = useVialsStore(useShallow(selectActiveVials));
+  const allVials = useVialsStore((state) => state.vials);
+  const vials = useMemo(
+    () => allVials.filter((vial) => vial.archivedAtIso === null),
+    [allVials],
+  );
+  const archivedVials = useMemo(
+    () => allVials.filter((vial) => vial.archivedAtIso !== null),
+    [allVials],
+  );
   const updateVial = useVialsStore((state) => state.updateVial);
   const txns = useLedgerStore((state) => state.txns);
   const events = useLedgerStore((state) => state.events);
 
   const [armedId, setArmedId] = useState<string | null>(null);
   const [filter, setFilter] = useState<VialFilter>("all");
+  const [toast, setToast] = useState<{
+    message: string;
+    actionLabel?: string;
+    onAction?: () => void;
+  } | null>(null);
   const disarmTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -92,9 +105,20 @@ function VialsScreen() {
   const handleArchivePress = (id: string) => {
     if (armedId === id) {
       setArmedId(null);
-      updateVial(id, { archivedAtIso: new Date().toISOString() }).catch((error) =>
-        console.error("[vials] Failed to archive vial", error),
-      );
+      const vial = allVials.find((candidate) => candidate.id === id);
+      updateVial(id, { archivedAtIso: new Date().toISOString() })
+        .then(() =>
+          setToast({
+            message: `Archived ${vial?.name ?? "vial"}`,
+            actionLabel: "Undo",
+            onAction: () => {
+              updateVial(id, { archivedAtIso: null })
+                .then(() => setToast({ message: `Restored ${vial?.name ?? "vial"}` }))
+                .catch((error) => console.error("[vials] Failed to restore vial", error));
+            },
+          }),
+        )
+        .catch((error) => console.error("[vials] Failed to archive vial", error));
       return;
     }
     setArmedId(id);
@@ -174,7 +198,43 @@ function VialsScreen() {
             </Pressable>
           ))
         )}
+
+        {archivedVials.length > 0 ? (
+          <View style={styles.archivedSection}>
+            <AppText variant="overline" tone="secondary">Archived vials</AppText>
+            {archivedVials.map((vial) => (
+              <View key={vial.id} style={[styles.archivedRow, { backgroundColor: colors.surface }]}>
+                <View style={styles.archivedText}>
+                  <AppText variant="label" weight="semibold">{vial.name}</AppText>
+                  <AppText variant="caption" tone="secondary">
+                    {vial.vialMg} mg · archived, retained in History
+                  </AppText>
+                </View>
+                <Button
+                  label="Restore"
+                  tone="ghost"
+                  compact
+                  icon={<RotateCcw size={15} color={colors.ink} />}
+                  onPress={() => {
+                    updateVial(vial.id, { archivedAtIso: null })
+                      .then(() => setToast({ message: `Restored ${vial.name}` }))
+                      .catch((error) => console.error("[vials] Failed to restore vial", error));
+                  }}
+                  testID={`restore-vial-${vial.id}`}
+                />
+              </View>
+            ))}
+          </View>
+        ) : null}
       </ScrollView>
+      {toast !== null ? (
+        <Toast
+          message={toast.message}
+          actionLabel={toast.actionLabel}
+          onAction={toast.onAction}
+          onDismiss={() => setToast(null)}
+        />
+      ) : null}
     </Screen>
   );
 }
@@ -196,5 +256,21 @@ const styles = StyleSheet.create({
   headerText: {
     gap: spacing.xs,
     flex: 1,
+  },
+  archivedSection: {
+    gap: spacing.sm,
+    marginTop: spacing.lg,
+  },
+  archivedRow: {
+    minHeight: 64,
+    borderRadius: 16,
+    padding: spacing.md,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  archivedText: {
+    flex: 1,
+    gap: 2,
   },
 });

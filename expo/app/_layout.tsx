@@ -17,7 +17,6 @@ import {
   Syne_800ExtraBold,
 } from "@expo-google-fonts/syne";
 import { useFonts } from "expo-font";
-import * as Notifications from "expo-notifications";
 import { Redirect, Stack, useSegments, type Href } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -44,14 +43,18 @@ import { ThemeProvider, useTheme } from "@/src/theme";
 SplashScreen.preventAutoHideAsync();
 
 if (Platform.OS !== "web") {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldPlaySound: false,
-      shouldSetBadge: false,
-      shouldShowBanner: true,
-      shouldShowList: true,
-    }),
-  });
+  import("expo-notifications")
+    .then((Notifications) =>
+      Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+          shouldPlaySound: false,
+          shouldSetBadge: false,
+          shouldShowBanner: true,
+          shouldShowList: true,
+        }),
+      }),
+    )
+    .catch((error) => console.error("[notifications] Failed to configure handler", error));
 }
 
 function RootLayoutNav() {

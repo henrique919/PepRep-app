@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronLeft, Plus, X } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
@@ -22,6 +22,7 @@ import type { MassUnit } from "@/src/engine";
 import { fmt } from "@/src/engine";
 import { countPlanReminderSlots, planReminderCopy } from "@/src/engine/planReminders";
 import { parseNumeric } from "@/src/engine/parse";
+import { dayKey, versionActiveOn } from "@/src/engine/schedule";
 import { usePlansStore } from "@/src/store/plans";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
@@ -40,23 +41,48 @@ const DAY_OPTIONS: { value: number; label: string }[] = [
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
+function stringParam(value: string | string[] | undefined): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value) && value.length > 0) return value[0] ?? "";
+  return "";
+}
+
 export default function NewPlanScreen() {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
+  const params = useLocalSearchParams();
   const addPlan = usePlansStore((state) => state.addPlan);
+  const appendVersion = usePlansStore((state) => state.appendVersion);
+  const plans = usePlansStore((state) => state.plans);
   const vials = useVialsStore(useShallow(selectActiveVials));
 
-  const [compoundName, setCompoundName] = useState<string>("");
-  const [planName, setPlanName] = useState<string>("");
-  const [doseText, setDoseText] = useState<string>("");
-  const [doseUnit, setDoseUnit] = useState<MassUnit>("mcg");
-  const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
-  const [timesLocal, setTimesLocal] = useState<string[]>([]);
+  const editPlanId = stringParam(params.planId);
+  const editingPlan = plans.find((plan) => plan.id === editPlanId);
+  const editingVersion =
+    editingPlan !== undefined
+      ? versionActiveOn(editingPlan, dayKey(new Date().toISOString())) ??
+        editingPlan.versions[editingPlan.versions.length - 1]
+      : undefined;
+  const isEditing = editingPlan !== undefined && editingVersion !== undefined;
+
+  const [compoundName, setCompoundName] = useState<string>(editingPlan?.compoundName ?? "");
+  const [planName, setPlanName] = useState<string>(editingVersion?.name ?? "");
+  const [doseText, setDoseText] = useState<string>(
+    editingVersion !== undefined ? String(editingVersion.doseValue) : "",
+  );
+  const [doseUnit, setDoseUnit] = useState<MassUnit>(editingVersion?.doseUnit ?? "mcg");
+  const [daysOfWeek, setDaysOfWeek] = useState<number[]>(editingVersion?.daysOfWeek ?? []);
+  const [timesLocal, setTimesLocal] = useState<string[]>(editingVersion?.timesLocal ?? []);
   const [timeDraft, setTimeDraft] = useState<string>("");
-  const [vialId, setVialId] = useState<string | undefined>(undefined);
-  const [remindMe, setRemindMe] = useState<boolean>(false);
-  const [privacyMode, setPrivacyMode] = useState<boolean>(true);
+  const [vialId, setVialId] = useState<string | undefined>(editingVersion?.vialId);
+  const [remindMe, setRemindMe] = useState<boolean>(
+    editingPlan?.reminderConfig?.enabled === true ||
+      (editingPlan?.reminderNotificationIds?.length ?? 0) > 0,
+  );
+  const [privacyMode, setPrivacyMode] = useState<boolean>(
+    editingPlan?.reminderConfig?.privacyMode !== false,
+  );
   const [saving, setSaving] = useState<boolean>(false);
 
   const doseValue = parseNumeric(doseText);
@@ -102,7 +128,7 @@ export default function NewPlanScreen() {
   const save = () => {
     if (!canSave || doseValue === null || saving) return;
     setSaving(true);
-    addPlan({
+    const input = {
       compoundName: compoundName.trim(),
       name: planName.trim().length > 0 ? planName.trim() : undefined,
       doseValue,
@@ -112,7 +138,14 @@ export default function NewPlanScreen() {
       vialId,
       remindMe: remindMe && !isWeb,
       privacyMode,
-    })
+    };
+    const operation = isEditing
+      ? appendVersion(editingPlan.id, {
+          ...input,
+          effectiveFrom: dayKey(new Date().toISOString()),
+        })
+      : addPlan(input);
+    operation
       .then(() => router.back())
       .catch((error) => {
         console.error("[plans/new] Failed to create plan", error);
@@ -134,9 +167,11 @@ export default function NewPlanScreen() {
           <ChevronLeft size={22} color={colors.ink} />
         </Pressable>
         <View style={styles.chromeText}>
-          <AppText variant="display">Schedule</AppText>
+          <AppText variant="display">{isEditing ? "Edit plan" : "Schedule"}</AppText>
           <AppText variant="caption" tone="faint">
-            Every value is yours — nothing is suggested
+            {isEditing
+              ? "Changes apply to future occurrences only"
+              : "Every value is yours — nothing is suggested"}
           </AppText>
         </View>
       </View>
@@ -353,7 +388,7 @@ export default function NewPlanScreen() {
           </Card>
 
           <Button
-            label="Create plan"
+            label={saving ? "Saving…" : isEditing ? "Save changes" : "Create plan"}
             tone="primary"
             onPress={save}
             disabled={!canSave || saving}

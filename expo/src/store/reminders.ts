@@ -5,7 +5,6 @@
  * device.
  */
 
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { create } from "zustand";
 
@@ -15,15 +14,21 @@ import { remindersRepository } from "@/src/db/repositories";
 
 export type NewReminder = Pick<Reminder, "label" | "hour" | "minute">;
 
-async function ensurePermission(): Promise<boolean> {
-  if (Platform.OS === "web") return false;
+type NotificationsModule = typeof import("expo-notifications");
+
+async function getNotifications(): Promise<NotificationsModule | null> {
+  if (Platform.OS === "web") return null;
+  return import("expo-notifications");
+}
+
+async function ensurePermission(Notifications: NotificationsModule): Promise<boolean> {
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
   const requested = await Notifications.requestPermissionsAsync();
   return requested.granted;
 }
 
-async function ensureAndroidChannel(): Promise<void> {
+async function ensureAndroidChannel(Notifications: NotificationsModule): Promise<void> {
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("reminders", {
       name: "Reminders",
@@ -33,11 +38,12 @@ async function ensureAndroidChannel(): Promise<void> {
 }
 
 async function scheduleDaily(reminder: Reminder): Promise<string | null> {
-  if (Platform.OS === "web") return null;
+  const Notifications = await getNotifications();
+  if (Notifications === null) return null;
   try {
-    const granted = await ensurePermission();
+    const granted = await ensurePermission(Notifications);
     if (!granted) return null;
-    await ensureAndroidChannel();
+    await ensureAndroidChannel(Notifications);
     return await Notifications.scheduleNotificationAsync({
       content: {
         title: reminder.label.length > 0 ? reminder.label : "PepRep reminder",
@@ -67,11 +73,12 @@ export type WeeklyReminderInput = {
 
 /** Schedule a weekly local notification. Returns null on web / denied / failure. */
 export async function scheduleWeekly(input: WeeklyReminderInput): Promise<string | null> {
-  if (Platform.OS === "web") return null;
+  const Notifications = await getNotifications();
+  if (Notifications === null) return null;
   try {
-    const granted = await ensurePermission();
+    const granted = await ensurePermission(Notifications);
     if (!granted) return null;
-    await ensureAndroidChannel();
+    await ensureAndroidChannel(Notifications);
     return await Notifications.scheduleNotificationAsync({
       content: {
         title: input.title,
@@ -94,7 +101,9 @@ export async function scheduleWeekly(input: WeeklyReminderInput): Promise<string
 export async function cancelScheduledNotification(
   notificationId: string | null | undefined,
 ): Promise<void> {
-  if (notificationId == null || Platform.OS === "web") return;
+  if (notificationId == null) return;
+  const Notifications = await getNotifications();
+  if (Notifications === null) return;
   try {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
   } catch (error) {
@@ -107,12 +116,13 @@ export async function cancelScheduledNotification(
  * Returns notification id, or null on web / denied / failure.
  */
 export async function scheduleSnoozeMinutes(minutes: number): Promise<string | null> {
-  if (Platform.OS === "web") return null;
   if (!Number.isFinite(minutes) || minutes <= 0) return null;
+  const Notifications = await getNotifications();
+  if (Notifications === null) return null;
   try {
-    const granted = await ensurePermission();
+    const granted = await ensurePermission(Notifications);
     if (!granted) return null;
-    await ensureAndroidChannel();
+    await ensureAndroidChannel(Notifications);
     return await Notifications.scheduleNotificationAsync({
       content: {
         title: "PepRep reminder",

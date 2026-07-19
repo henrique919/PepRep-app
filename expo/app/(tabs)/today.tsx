@@ -1,13 +1,14 @@
 import { format } from "date-fns";
 import { useRouter } from "expo-router";
 import { CalendarDays, Plus } from "lucide-react-native";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useShallow } from "zustand/react/shallow";
 
 import AppText from "@/src/components/ui/AppText";
 import Button from "@/src/components/ui/Button";
 import Card from "@/src/components/ui/Card";
+import ConfirmDialog from "@/src/components/ui/ConfirmDialog";
 import EmptyState from "@/src/components/ui/EmptyState";
 import Screen from "@/src/components/ui/Screen";
 import StatusPill from "@/src/components/ui/StatusPill";
@@ -16,10 +17,11 @@ import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen
 import { occurrenceKey } from "@/src/db/occurrence";
 import type { DoseEvent, Plan, ScheduleVersion } from "@/src/db/types";
 import { fmt } from "@/src/engine";
-import { dayKey, dueOnDay, versionActiveOn } from "@/src/engine/schedule";
+import { dayKey, dueOnDay, formatDateTime, versionActiveOn } from "@/src/engine/schedule";
 import { selectEventForOccurrence, useLedgerStore } from "@/src/store/ledger";
 import { selectActivePlans, usePlansStore } from "@/src/store/plans";
 import { scheduleSnoozeMinutes } from "@/src/store/reminders";
+import { useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
 import { radius, spacing } from "@/src/theme/tokens";
@@ -47,11 +49,16 @@ function TodayScreen() {
   const now = new Date();
   const today = dayKey(now.toISOString());
   const [toast, setToast] = useState<ToastState>(null);
+  const [pendingUnlog, setPendingUnlog] = useState<DoseEvent | null>(null);
+  const unlogButtonRefs = useRef<Record<string, { focus?: () => void } | null>>({});
+  const activeReturnFocusRef = useRef<{ focus?: () => void } | null>(null);
 
   const plans = usePlansStore(useShallow(selectActivePlans));
   const events = useLedgerStore((state) => state.events);
   const skipOccurrence = useLedgerStore((state) => state.skipOccurrence);
   const unlogEvent = useLedgerStore((state) => state.unlogEvent);
+  const restoreEvent = useLedgerStore((state) => state.restoreEvent);
+  const vials = useVialsStore((state) => state.vials);
 
   const due: DueOccurrence[] = useMemo(() => {
     const ledgerState = useLedgerStore.getState();
@@ -125,9 +132,19 @@ function TodayScreen() {
       .catch((error) => console.error("[today] Failed to skip", error));
   };
 
-  const handleUnlog = (eventId: string, compoundName: string) => {
-    unlogEvent(eventId)
-      .then(() => setToast({ message: `Un-logged ${compoundName}` }))
+  const handleUnlog = (event: DoseEvent) => {
+    unlogEvent(event.id)
+      .then(() =>
+        setToast({
+          message: `Voided ${event.compoundName}. Inventory and scheduled state were restored.`,
+          actionLabel: "Undo",
+          onAction: () => {
+            restoreEvent(event.id)
+              .then(() => setToast({ message: `Restored ${event.compoundName}` }))
+              .catch((error) => console.error("[today] Failed to restore", error));
+          },
+        }),
+      )
       .catch((error) => console.error("[today] Failed to un-log", error));
   };
 
@@ -226,10 +243,16 @@ function TodayScreen() {
 
                 {isCompleted && event !== undefined ? (
                   <Button
+                    ref={(node) => {
+                      unlogButtonRefs.current[event.id] = node as unknown as { focus?: () => void } | null;
+                    }}
                     label="Un-log"
                     tone="ghost"
                     compact
-                    onPress={() => handleUnlog(event.id, row.plan.compoundName)}
+                    onPress={() => {
+                      activeReturnFocusRef.current = unlogButtonRefs.current[event.id];
+                      setPendingUnlog(event);
+                    }}
                     testID={`unlog-${row.key}`}
                   />
                 ) : isSkipped ? (
@@ -287,6 +310,25 @@ function TodayScreen() {
           onDismiss={dismissToast}
         />
       ) : null}
+      <ConfirmDialog
+        visible={pendingUnlog !== null}
+        title="Void this logged dose?"
+        message={
+          pendingUnlog !== null
+            ? `${pendingUnlog.compoundName} · ${fmt(pendingUnlog.doseValue)} ${pendingUnlog.doseUnit} · ${formatDateTime(pendingUnlog.occurredAt)} · Vial: ${pendingUnlog.vialId !== undefined ? (vials.find((vial) => vial.id === pendingUnlog.vialId)?.name ?? pendingUnlog.vialId) : "not recorded"}. You can restore it afterward.`
+            : ""
+        }
+        confirmLabel="Void log"
+        destructive
+        returnFocusRef={activeReturnFocusRef}
+        onCancel={() => setPendingUnlog(null)}
+        onConfirm={() => {
+          const event = pendingUnlog;
+          setPendingUnlog(null);
+          if (event !== null) handleUnlog(event);
+        }}
+        testID="confirm-unlog-today"
+      />
     </Screen>
   );
 }

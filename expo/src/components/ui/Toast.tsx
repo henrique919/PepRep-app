@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import Animated, { FadeInDown, FadeOutDown } from "react-native-reanimated";
+import Animated, { FadeInDown, FadeOutDown, useReducedMotion } from "react-native-reanimated";
 
 import AppText from "@/src/components/ui/AppText";
 import { useTheme } from "@/src/theme";
@@ -22,6 +22,7 @@ export default function Toast({
   durationMs = 4000,
 }: ToastProps) {
   const { colors } = useTheme();
+  const reduceMotion = useReducedMotion();
 
   useEffect(() => {
     const timer = setTimeout(onDismiss, durationMs);
@@ -30,8 +31,11 @@ export default function Toast({
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(180)}
-      exiting={FadeOutDown.duration(160)}
+      accessibilityRole="alert"
+      accessibilityLiveRegion="assertive"
+      accessibilityLabel={message}
+      entering={reduceMotion ? undefined : FadeInDown.duration(180)}
+      exiting={reduceMotion ? undefined : FadeOutDown.duration(160)}
       style={[styles.wrap, { backgroundColor: colors.solid }]}
     >
       <AppText variant="label" weight="medium" tone="onSolid" style={styles.message}>

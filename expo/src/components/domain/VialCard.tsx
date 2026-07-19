@@ -161,8 +161,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   archiveButton: {
-    minWidth: 30,
-    minHeight: 30,
+    minWidth: 44,
+    minHeight: 44,
     borderRadius: radius.pill,
     alignItems: "center",
     justifyContent: "center",
