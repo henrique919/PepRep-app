@@ -253,9 +253,10 @@ Do not merge to `main` from this agent. Continuous loop Steps 1–9.
   **Done 2026-07-18:** Oversized/truncated/future-version/empty-dataset tests; max file bytes.
 
 - [x] **PF6 — Optional Supabase encrypted cloud backup** (project `opbqlsmwljqkkdvguojh` only)
-  **Code done 2026-07-18; REMOTE APPLY OWNER-BLOCKED.** Migration + client + Settings UI +
-  project-ref guard. MCP `list_projects` = `[]` — cannot inventory/apply to
-  `opbqlsmwljqkkdvguojh`. See `docs/supabase/REMOTE-APPLY.md`. Never touched CleanRun.
+  **Remote applied 2026-07-18** via project-scoped MCP. Client: magic-link deep link +
+  `expo-crypto` RNG; EAS env wired. Owner updated Auth URL config 2026-07-19.
+  **Owner smoke still open:** sign-in link on device → upload ciphertext → list/restore.
+  See `docs/supabase/REMOTE-APPLY.md`, `AUTH-REDIRECTS.md`. Never touched CleanRun.
 
 - [x] **PF7 — Device verification checklist** (`docs/release/DEVICE-VERIFICATION-CHECKLIST.md`)
   **Done 2026-07-18:** Checklist written; no device items self-certified.
@@ -265,8 +266,8 @@ Do not merge to `main` from this agent. Continuous loop Steps 1–9.
   Health declaration note; privacy/cloud disclosure.
 
 - [x] **PF9 — Final verification + branch push handoff**
-  **Done 2026-07-18:** typecheck clean; **184**/184 tests; branch commits ready to push.
-  Remote Supabase apply remains owner-blocked. Do not merge to `main` from this agent.
+  **Done 2026-07-18; follow-ups 2026-07-19:** cloud auth deep-link, privacy screen, local
+  backup RNG. Do not merge to `main` from this agent until owner smoke-tests cloud backup.
 
 ---
 

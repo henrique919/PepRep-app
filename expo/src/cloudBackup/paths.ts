@@ -7,20 +7,13 @@
  * client-side before any download/delete, as defense in depth (never trust the server alone).
  */
 
+import { getSecureRandomBytes } from "../util/secureRandom";
+
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const BACKUP_EXTENSION = ".peprepbackup";
 
 function getRandomBytes(length: number): Uint8Array {
-  const out = new Uint8Array(length);
-  const webCrypto = globalThis.crypto;
-  if (webCrypto !== undefined && typeof webCrypto.getRandomValues === "function") {
-    webCrypto.getRandomValues(out);
-    return out;
-  }
-  // Node / Jest fallback (no Web Crypto).
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Node-only path
-  const nodeCrypto = require("crypto") as typeof import("crypto");
-  return new Uint8Array(nodeCrypto.randomBytes(length));
+  return getSecureRandomBytes(length);
 }
 
 /** Random UUIDv4, used as the backup id (and manifest primary key). */

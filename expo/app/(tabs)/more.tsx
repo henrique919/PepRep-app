@@ -177,7 +177,7 @@ export default function MoreScreen() {
             {
               label: "Privacy & safety",
               icon: <Shield size={20} color={colors.ink} strokeWidth={1.6} />,
-              onPress: go("/settings" as Href),
+              onPress: go("/privacy" as Href),
             },
             {
               label: "About PepRep",

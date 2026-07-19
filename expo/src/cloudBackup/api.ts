@@ -7,9 +7,62 @@
  * — it never sees a passphrase, a derived key, or plaintext health data. Manifests stored in
  * Postgres hold only non-health metadata (size, checksum, versions, timestamp, device label).
  */
+import * as Linking from "expo-linking";
+
 import { getSupabase } from "./client";
 import { assertPepRepProjectRef } from "./config";
 import { generateBackupId, objectPath, validateOwnedPath } from "./paths";
+
+/** Deep-link target for magic-link / confirm-email redirects (must be allow-listed in Supabase). */
+export function getAuthRedirectUrl(): string {
+  return Linking.createURL("auth/callback");
+}
+
+function parseAuthCallbackParams(url: string): Record<string, string> {
+  const hash = url.includes("#") ? (url.split("#")[1] ?? "") : "";
+  const queryPart = url.includes("?") ? (url.split("?")[1]?.split("#")[0] ?? "") : "";
+  const combined = hash.length > 0 ? hash : queryPart;
+  const params: Record<string, string> = {};
+  for (const pair of combined.split("&")) {
+    if (pair.length === 0) continue;
+    const [rawKey, rawValue = ""] = pair.split("=");
+    if (rawKey === undefined || rawKey.length === 0) continue;
+    params[decodeURIComponent(rawKey)] = decodeURIComponent(rawValue);
+  }
+  return params;
+}
+
+/**
+ * Completes sign-in when the user opens a Supabase magic/confirm link that deep-links into the app.
+ * Supports implicit tokens (`access_token` + `refresh_token`) and PKCE (`code`).
+ */
+export async function createSessionFromUrl(url: string): Promise<ApiResult<null>> {
+  assertPepRepProjectRef();
+  const supabase = getSupabase();
+  const params = parseAuthCallbackParams(url);
+  if (params.error !== undefined || params.error_description !== undefined) {
+    return {
+      ok: false,
+      message: params.error_description ?? params.error ?? "Sign-in link failed.",
+    };
+  }
+  if (params.code !== undefined && params.code.length > 0) {
+    const { error } = await supabase.auth.exchangeCodeForSession(params.code);
+    if (error) return { ok: false, message: error.message };
+    return { ok: true, value: null };
+  }
+  const accessToken = params.access_token;
+  const refreshToken = params.refresh_token;
+  if (accessToken !== undefined && refreshToken !== undefined) {
+    const { error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    });
+    if (error) return { ok: false, message: error.message };
+    return { ok: true, value: null };
+  }
+  return { ok: false, message: "Sign-in link did not include a session." };
+}
 
 const BUCKET = "peprep-encrypted-backups";
 const TABLE = "peprep_backup_manifests";
@@ -56,15 +109,31 @@ async function requireSignedInUserId(): Promise<string> {
   return data.user.id;
 }
 
-/** Sends a one-time passcode to `email`. Call `verifyEmailOtp` next to complete sign-in. */
+/**
+ * Sends a magic-link email (default Supabase template). Prefer opening the link on this device;
+ * optional 6-digit OTP works only if the project email template includes `{{ .Token }}`.
+ */
 export async function signInWithOtp(email: string): Promise<ApiResult<null>> {
   assertPepRepProjectRef();
   const supabase = getSupabase();
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: {
+      shouldCreateUser: true,
+      emailRedirectTo: getAuthRedirectUrl(),
+    },
   });
-  if (error) return { ok: false, message: error.message };
+  if (error) {
+    const message = error.message.toLowerCase();
+    if (message.includes("rate limit") || message.includes("email rate")) {
+      return {
+        ok: false,
+        message:
+          "Email send limit reached (Supabase default mail is capped). Wait about an hour, or use an address you already confirmed, or set custom SMTP.",
+      };
+    }
+    return { ok: false, message: error.message };
+  }
   return { ok: true, value: null };
 }
 

@@ -8,6 +8,8 @@ import { pbkdf2 } from "@noble/hashes/pbkdf2";
 import { sha256 } from "@noble/hashes/sha2";
 import { bytesToHex, utf8ToBytes } from "@noble/hashes/utils";
 
+import { getSecureRandomBytes } from "../util/secureRandom";
+
 import { BACKUP_PBKDF2_ITERATIONS } from "./types";
 
 const KEY_LEN = 32;
@@ -15,17 +17,7 @@ const IV_LEN = 12;
 const SALT_LEN = 16;
 
 function getRandomBytes(length: number): Uint8Array {
-  const out = new Uint8Array(length);
-  // Prefer Web Crypto when available (Expo / modern browsers).
-  const subtleCrypto = globalThis.crypto;
-  if (subtleCrypto !== undefined && typeof subtleCrypto.getRandomValues === "function") {
-    subtleCrypto.getRandomValues(out);
-    return out;
-  }
-  // Node / Jest fallback (no Web Crypto).
-  // eslint-disable-next-line @typescript-eslint/no-require-imports -- Node-only path
-  const nodeCrypto = require("crypto") as typeof import("crypto");
-  return new Uint8Array(nodeCrypto.randomBytes(length));
+  return getSecureRandomBytes(length);
 }
 
 export function bytesToBase64(bytes: Uint8Array): string {

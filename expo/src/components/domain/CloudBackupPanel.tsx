@@ -1,7 +1,9 @@
+import * as Linking from "expo-linking";
 import React, { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 
 import {
+  createSessionFromUrl,
   deleteBackup,
   downloadBackup,
   getSignedInEmail,
@@ -80,6 +82,30 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
     void refresh();
   }, [refresh]);
 
+  useEffect(() => {
+    if (!isCloudBackupConfigured()) return;
+
+    const handleUrl = (url: string | null) => {
+      if (url === null || !url.includes("auth/callback")) return;
+      setBusy(true);
+      void createSessionFromUrl(url)
+        .then(async (result) => {
+          if (!result.ok) {
+            onStatus(result.message);
+            return;
+          }
+          setOtpSent(false);
+          await refresh();
+          onStatus("Signed in for optional cloud backup.");
+        })
+        .finally(() => setBusy(false));
+    };
+
+    void Linking.getInitialURL().then(handleUrl);
+    const subscription = Linking.addEventListener("url", (event) => handleUrl(event.url));
+    return () => subscription.remove();
+  }, [onStatus, refresh]);
+
   if (!isCloudBackupConfigured()) return null;
 
   const sendOtp = async () => {
@@ -91,7 +117,7 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
         return;
       }
       setOtpSent(true);
-      onStatus("Check your email for a one-time code.");
+      onStatus("Check your email and open the sign-in link on this phone.");
     } finally {
       setBusy(false);
     }
@@ -207,9 +233,9 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
     <Card style={{ gap: spacing.md }} testID="cloud-backup-card">
       <AppText variant="heading">Encrypted cloud backup</AppText>
       <AppText variant="label" tone="secondary">
-        Optional. PepRep can upload a password-encrypted backup file to Supabase. The backup
-        passphrase is not uploaded. Local use does not require an account. This is not automatic
-        sync.
+        Optional account for uploading a password-encrypted backup file. The passphrase never
+        leaves this device. This is not automatic sync. Local encrypted backup (above) does not
+        use email.
       </AppText>
 
       {signedInEmail === null ? (
@@ -225,7 +251,7 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
           />
           {!otpSent ? (
             <Button
-              label={busy ? "Sending…" : "Send one-time code"}
+              label={busy ? "Sending…" : "Email me a sign-in link"}
               tone="primary"
               onPress={sendOtp}
               disabled={busy || email.trim().length === 0}
@@ -233,8 +259,13 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
             />
           ) : (
             <>
+              <AppText variant="caption" tone="secondary">
+                Open the link from the email on this phone so PepRep can finish sign-in. Ignore a
+                blank browser page if it appears after the app opens. If the email shows a 6-digit
+                code instead, enter it below.
+              </AppText>
               <Field
-                label="One-time code"
+                label="One-time code (optional)"
                 value={otp}
                 onChangeText={setOtp}
                 mono
@@ -243,11 +274,17 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
                 testID="cloud-backup-otp"
               />
               <Button
-                label={busy ? "Verifying…" : "Verify and sign in"}
+                label={busy ? "Verifying…" : "Verify code"}
                 tone="primary"
                 onPress={verifyOtp}
                 disabled={busy || otp.trim().length === 0}
                 testID="cloud-backup-verify-otp"
+              />
+              <Button
+                label="Send again"
+                tone="ghost"
+                onPress={sendOtp}
+                disabled={busy}
               />
             </>
           )}
