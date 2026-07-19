@@ -12,6 +12,7 @@ import SegmentedControl from "@/src/components/ui/SegmentedControl";
 import type { SyringeCapacity } from "@/src/engine";
 import { fmt, SYRINGES } from "@/src/engine";
 import { vialConcentration } from "@/src/engine/inventory";
+import { vialToCalculatorParams } from "@/src/engine/vialCalcParams";
 import { parseOnboardingVialDraft } from "@/src/onboarding/vialDraft";
 import {
   CURRENT_SAFETY_ACK_VERSION,
@@ -72,7 +73,14 @@ export default function OnboardingScreen() {
       lowStockThresholdPercent: null,
     })
       .then(() => completeOnboarding(CURRENT_SAFETY_ACK_VERSION))
-      .then(() => router.replace("/(tabs)"))
+      .then(() =>
+        // Carry the vial the user just saved into the calculator so the first
+        // screen they land on already reflects it instead of starting blank.
+        router.replace({
+          pathname: "/",
+          params: vialToCalculatorParams(draft.vial),
+        }),
+      )
       .catch((error) => {
         console.error("[onboarding] Failed to complete", error);
         setFinishing(false);

@@ -266,15 +266,17 @@ export default function TodayScreen() {
         )}
       </ScrollView>
 
-      <Pressable
-        style={[styles.fab, { backgroundColor: colors.solid }]}
-        onPress={() => router.push("/(tabs)")}
-        testID="today-fab-calc"
-        accessibilityRole="button"
-        accessibilityLabel="Open calculator"
-      >
-        <Plus size={22} color={colors.onSolid} strokeWidth={2.4} />
-      </Pressable>
+      {plans.length > 0 && (
+        <Pressable
+          style={[styles.fab, { backgroundColor: colors.solid }]}
+          onPress={() => router.push("/(tabs)")}
+          testID="today-fab-calc"
+          accessibilityRole="button"
+          accessibilityLabel="Open calculator"
+        >
+          <Plus size={22} color={colors.onSolid} strokeWidth={2.4} />
+        </Pressable>
+      )}
 
       {toast ? (
         <Toast

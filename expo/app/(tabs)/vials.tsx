@@ -33,7 +33,7 @@ export default function VialsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const vials = useVialsStore(useShallow(selectActiveVials));
-  const removeVial = useVialsStore((state) => state.removeVial);
+  const updateVial = useVialsStore((state) => state.updateVial);
   const txns = useLedgerStore((state) => state.txns);
   const events = useLedgerStore((state) => state.events);
 
@@ -86,10 +86,14 @@ export default function VialsScreen() {
     return views;
   }, [views, filter]);
 
-  const handleDeletePress = (id: string) => {
+  // Archive rather than delete — keeps the vial available for History rows
+  // that still reference it, matching PepRep's "nothing is truly deleted" record-keeping.
+  const handleArchivePress = (id: string) => {
     if (armedId === id) {
       setArmedId(null);
-      removeVial(id).catch((error) => console.error("[vials] Failed to delete vial", error));
+      updateVial(id, { archivedAtIso: new Date().toISOString() }).catch((error) =>
+        console.error("[vials] Failed to archive vial", error),
+      );
       return;
     }
     setArmedId(id);
@@ -163,8 +167,8 @@ export default function VialsScreen() {
                 concentration={view.concentration}
                 lastDoseMcg={view.lastDoseMcg}
                 nowIso={nowIso}
-                deleteArmed={armedId === view.vial.id}
-                onDeletePress={() => handleDeletePress(view.vial.id)}
+                archiveArmed={armedId === view.vial.id}
+                onArchivePress={() => handleArchivePress(view.vial.id)}
               />
             </Pressable>
           ))
