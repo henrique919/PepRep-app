@@ -1,0 +1,17 @@
+name: Create Android Production Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "expo/**"
+      - "expo/eas.json"
+      - "expo/.eas/workflows/create-production-builds.yml"
+
+jobs:
+  build_android:
+    type: build
+    params:
+      platform: android
+      profile: production
