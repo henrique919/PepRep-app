@@ -132,6 +132,13 @@ function capacityFromParam(value: string): SyringeCapacity | null {
   return null;
 }
 
+/** "vial", "vial and dose", "vial, water and dose" — never contradicts fields already filled in. */
+function joinFieldNames(names: string[]): string {
+  if (names.length <= 1) return names[0] ?? "";
+  if (names.length === 2) return `${names[0]} and ${names[1]}`;
+  return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
+}
+
 export default function CalculatorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
@@ -197,6 +204,21 @@ export default function CalculatorScreen() {
   const activeResult = mode === "draw" ? drawResult : waterResult;
   const hasOkResult = activeResult !== null && activeResult.ok;
   const showUnitCallout = mode === "draw" && doseUnit === "mcg";
+
+  // Only ever names the fields that are actually still empty, so this can't
+  // contradict values already showing above it (e.g. a prefilled vial).
+  const missingFields =
+    mode === "draw"
+      ? ([
+          vialMg === null && "vial",
+          diluentMl === null && "water",
+          doseValue === null && "dose",
+        ].filter((field): field is string => field !== false))
+      : ([
+          vialMg === null && "vial",
+          doseValue === null && "dose",
+          targetUnits === null && "target units",
+        ].filter((field): field is string => field !== false));
 
   const logThisDose = () => {
     if (drawResult === null || !drawResult.ok || doseValue === null) return;
@@ -387,8 +409,10 @@ export default function CalculatorScreen() {
           </Card>
 
           {showUnitCallout ? (
-            <Callout tone="warn" title="Unit check">
-              {`Dose is in mcg · vial is in mg. The result shows syringe units and mL separately so they cannot be confused.`}
+            <Callout tone="warn" title="Unit check" compact={hasOkResult}>
+              {hasOkResult
+                ? "Unit check — units and mL are shown separately so mcg/mg can't be confused."
+                : "Dose is in mcg · vial is in mg. The result shows syringe units and mL separately so they cannot be confused."}
             </Callout>
           ) : null}
 
@@ -399,8 +423,8 @@ export default function CalculatorScreen() {
               </AppText>
               <AppText variant="body" tone="secondary">
                 {mode === "draw"
-                  ? "Enter vial, water and your dose. The draw appears here."
-                  : "Enter vial, your dose and the draw size you want. Water volume appears here."}
+                  ? `Enter your ${joinFieldNames(missingFields)}. The draw appears here.`
+                  : `Enter your ${joinFieldNames(missingFields)}. Water volume appears here.`}
               </AppText>
             </Card>
           )}

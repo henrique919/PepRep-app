@@ -373,7 +373,7 @@ export default function SettingsScreen() {
                 <View key={reminder.id}>
                   {index > 0 && <Hairline />}
                   <View style={styles.reminderRow}>
-                    <BellRing size={17} color={reminder.enabled ? colors.accent : colors.inkFaint} />
+                    <BellRing size={17} color={reminder.enabled ? colors.solid : colors.inkFaint} />
                     <View style={styles.reminderBody}>
                       <AppText variant="body" weight="medium" numberOfLines={1}>
                         {reminder.label}
@@ -493,8 +493,8 @@ export default function SettingsScreen() {
                   testID="add-reminder"
                   accessibilityRole="button"
                 >
-                  <Plus size={16} color={colors.accent} />
-                  <AppText variant="label" weight="semibold" tone="accent">
+                  <Plus size={16} color={colors.ink} />
+                  <AppText variant="label" weight="semibold">
                     Add a reminder
                   </AppText>
                 </Pressable>

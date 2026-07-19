@@ -155,7 +155,7 @@ export default function MoreScreen() {
           </View>
           <View style={styles.profileText}>
             <AppText variant="heading" weight="semibold">
-              PepRep user
+              On this device
             </AppText>
             <AppText variant="caption" tone="secondary">
               Data stays on your device · export any time

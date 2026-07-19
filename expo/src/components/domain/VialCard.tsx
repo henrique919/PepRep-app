@@ -1,4 +1,4 @@
-import { X } from "lucide-react-native";
+import { Archive } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -20,8 +20,8 @@ interface VialCardProps {
   /** The user's own most recent dose from this vial, in mcg (display only). */
   lastDoseMcg: number | null;
   nowIso: string;
-  deleteArmed: boolean;
-  onDeletePress: () => void;
+  archiveArmed: boolean;
+  onArchivePress: () => void;
 }
 
 export default function VialCard({
@@ -30,8 +30,8 @@ export default function VialCard({
   concentration,
   lastDoseMcg,
   nowIso,
-  deleteArmed,
-  onDeletePress,
+  archiveArmed,
+  onArchivePress,
 }: VialCardProps) {
   const { colors } = useTheme();
   const age = daysSince(vial.reconstitutedAtIso, nowIso);
@@ -56,23 +56,23 @@ export default function VialCard({
           ) : null}
         </View>
         <Pressable
-          onPress={onDeletePress}
+          onPress={onArchivePress}
           hitSlop={10}
           accessibilityRole="button"
           accessibilityLabel={
-            deleteArmed
-              ? `Confirm delete vial ${vial.name}`
-              : `Delete vial ${vial.name}`
+            archiveArmed
+              ? `Confirm archive vial ${vial.name}`
+              : `Archive vial ${vial.name}`
           }
-          style={[styles.deleteButton, deleteArmed && { backgroundColor: colors.dangerBg }]}
-          testID={`delete-vial-${vial.id}`}
+          style={[styles.archiveButton, archiveArmed && { backgroundColor: colors.dangerBg }]}
+          testID={`archive-vial-${vial.id}`}
         >
-          {deleteArmed ? (
+          {archiveArmed ? (
             <AppText variant="caption" weight="semibold" tone="danger">
-              Delete?
+              Archive?
             </AppText>
           ) : (
-            <X size={15} color={colors.inkFaint} />
+            <Archive size={15} color={colors.dangerInk} />
           )}
         </Pressable>
       </View>
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: radius.pill,
   },
-  deleteButton: {
+  archiveButton: {
     minWidth: 30,
     minHeight: 30,
     borderRadius: radius.pill,

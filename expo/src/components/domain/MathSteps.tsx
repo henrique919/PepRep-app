@@ -21,7 +21,7 @@ export default function MathSteps({ steps }: MathStepsProps) {
           {index > 0 && <Hairline />}
           <View style={styles.step}>
             <View style={[styles.indexBadge, { backgroundColor: colors.accentSoft }]}>
-              <AppText variant="caption" mono weight="semibold" tone="accent">
+              <AppText variant="caption" mono weight="semibold">
                 {String(index + 1)}
               </AppText>
             </View>
