@@ -1,13 +1,7 @@
-name: Create Android Production Build
+name: Create Android Production Build (dashboard)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "expo/**"
-      - "eas.json"
-      - ".eas/workflows/create-production-builds.yml"
+  workflow_dispatch: {}
 
 jobs:
   build_android:
