@@ -9,7 +9,7 @@
  */
 import * as Linking from "expo-linking";
 
-import { getSupabase } from "./client";
+import { getSupabase, resetSupabaseClient } from "./client";
 import { assertPepRepProjectRef } from "./config";
 import { generateBackupId, objectPath, validateOwnedPath } from "./paths";
 
@@ -157,6 +157,29 @@ export async function signOut(): Promise<void> {
   assertPepRepProjectRef();
   const supabase = getSupabase();
   await supabase.auth.signOut();
+}
+
+/**
+ * Permanently removes the optional cloud-backup account and every server-side
+ * backup owned by it. Local PepRep records are deliberately untouched.
+ */
+export async function deleteCloudAccount(): Promise<void> {
+  assertPepRepProjectRef();
+  const supabase = getSupabase();
+  await requireSignedInUserId();
+  const { data, error } = await supabase.functions.invoke("delete-peprep-account", {
+    body: { confirm: true },
+  });
+  if (error) throw new Error(error.message);
+  if (data === null || typeof data !== "object" || data.ok !== true) {
+    const message =
+      data !== null && typeof data === "object" && typeof data.message === "string"
+        ? data.message
+        : "Cloud account deletion did not complete.";
+    throw new Error(message);
+  }
+  await supabase.auth.signOut({ scope: "local" });
+  resetSupabaseClient();
 }
 
 export async function listManifests(): Promise<BackupManifestRow[]> {

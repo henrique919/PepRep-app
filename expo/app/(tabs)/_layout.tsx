@@ -15,8 +15,11 @@ export default function TabLayout() {
   const { colors } = useTheme();
   return (
     <Tabs
+      detachInactiveScreens={true}
       initialRouteName="today"
       screenOptions={{
+        freezeOnBlur: true,
+        lazy: true,
         headerShown: false,
         tabBarActiveTintColor: colors.ink,
         tabBarInactiveTintColor: colors.inkSecondary,

@@ -10,6 +10,7 @@ import Button from "@/src/components/ui/Button";
 import EmptyState from "@/src/components/ui/EmptyState";
 import FilterChips from "@/src/components/ui/FilterChips";
 import Screen from "@/src/components/ui/Screen";
+import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen";
 import type { Vial } from "@/src/db/models";
 import { summaryFromTxns } from "@/src/db/vialBalance";
 import { vialConcentration } from "@/src/engine/inventory";
@@ -29,7 +30,7 @@ interface VialView {
 
 type VialFilter = "all" | "active" | "low";
 
-export default function VialsScreen() {
+function VialsScreen() {
   const { colors } = useTheme();
   const router = useRouter();
   const vials = useVialsStore(useShallow(selectActiveVials));
@@ -177,6 +178,8 @@ export default function VialsScreen() {
     </Screen>
   );
 }
+
+export default withAccessibleTabScreen(VialsScreen, (pathname) => pathname === "/vials");
 
 const styles = StyleSheet.create({
   content: {

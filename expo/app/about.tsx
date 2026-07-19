@@ -68,7 +68,8 @@ export default function AboutScreen() {
             </AppText>
             <AppText variant="label" tone="secondary">
               No dose suggestions, ranges or protocols · no analytics or telemetry. Records stay
-              on this device by default. Optional cloud backup (if enabled in this build) is
+              on this device by default and native records are encrypted at rest with a
+              device-protected key. Optional cloud backup (if enabled in this build) is
               opt-in ciphertext only.
             </AppText>
           </View>

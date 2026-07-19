@@ -86,6 +86,18 @@ export interface DrawResult {
 
 export type DrawOutcome = DrawResult | CalcError;
 
+/**
+ * True when a calculated draw must not be logged without correcting the inputs.
+ * The result remains visible so the user can inspect the arithmetic, but actions
+ * derived from an impossible barrel fit or a dose larger than the vial are blocked.
+ */
+export function requiresDrawCorrection(
+  result: DrawResult,
+  capacity: SyringeCapacity,
+): boolean {
+  return result.dosesPerVial < 1 || roundTo(result.units, 1) > capacity;
+}
+
 export function calculateDraw(input: DrawInput): DrawOutcome {
   const errors: string[] = [];
   requirePositive("Vial amount", input.vialMg, errors);

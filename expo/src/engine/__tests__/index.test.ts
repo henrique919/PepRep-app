@@ -5,6 +5,7 @@ import {
   mcgToMg,
   mgToMcg,
   mlToUnits,
+  requiresDrawCorrection,
   roundTo,
   SYRINGES,
   U100_UNITS_PER_ML,
@@ -119,6 +120,19 @@ describe("calculateDraw", () => {
     expectOk(result);
     expect(result.units).toBe(40);
     expect(result.warnings.some((w) => w.includes("more than a 30-unit syringe"))).toBe(true);
+    expect(requiresDrawCorrection(result, 30)).toBe(true);
+  });
+
+  it("blocks logging when the entered dose is larger than the whole vial", () => {
+    const result = calculateDraw({ vialMg: 1, diluentMl: 1, doseValue: 2, doseUnit: "mg" });
+    expectOk(result);
+    expect(requiresDrawCorrection(result, 100)).toBe(true);
+  });
+
+  it("does not block a valid draw", () => {
+    const result = calculateDraw({ vialMg: 5, diluentMl: 2, doseValue: 250, doseUnit: "mcg" });
+    expectOk(result);
+    expect(requiresDrawCorrection(result, 50)).toBe(false);
   });
 
   it("warns on sub-2-unit draws that are hard to measure", () => {

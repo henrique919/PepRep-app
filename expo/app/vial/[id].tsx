@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ChevronLeft, TestTubes } from "lucide-react-native";
+import { ChevronLeft, Pencil, TestTubes } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -126,6 +126,18 @@ export default function VialDetailScreen() {
             })
           }
           testID="calculate-with-vial"
+        />
+        <Button
+          label="Edit vial details"
+          tone="ghost"
+          icon={<Pencil size={17} color={colors.ink} />}
+          onPress={() =>
+            router.push({
+              pathname: "/vial-edit",
+              params: { vialId: vial.id },
+            })
+          }
+          testID="edit-vial"
         />
         <Button
           label="Log a dose from this vial"

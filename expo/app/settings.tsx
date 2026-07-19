@@ -506,7 +506,7 @@ export default function SettingsScreen() {
         {/* Data */}
         <View style={styles.section}>
           <AppText variant="overline" tone="faint" style={styles.sectionLabel}>
-            Your data — local only, yours only
+            Your data — private by default
           </AppText>
           <Card padded={false}>
             <Pressable
@@ -724,9 +724,9 @@ export default function SettingsScreen() {
             <View style={styles.privacyCopy}>
               <AppText variant="label" tone="secondary">
                 {ASK_V1_ENABLED
-                  ? "Your vials, doses, schedule and history stay on this device by default. There is no analytics. Optional Ask sends question text to a cloud provider. Optional encrypted cloud backup (if enabled in this build) uploads only a password-encrypted file you choose — never the passphrase."
+                  ? "Your vials, doses, schedule and history stay on this device by default. Native app records are encrypted at rest with a device-protected key. There is no analytics. Optional Ask sends question text to a cloud provider. Optional encrypted cloud backup (if enabled in this build) uploads only a password-encrypted file you choose — never the passphrase."
                   : isCloudBackupConfigured()
-                    ? "Your vials, doses, schedule and history stay on this device by default. There is no analytics and no Ask in this build. Optional encrypted cloud backup uploads only a password-encrypted file you choose — the passphrase never leaves this device."
+                    ? "Your vials, doses, schedule and history stay on this device by default. Native app records are encrypted at rest with a device-protected key. There is no analytics and no Ask in this build. Optional encrypted cloud backup uploads only a password-encrypted file you choose — the passphrase never leaves this device."
                     : "Your vials, doses, schedule and history stay on this device. There is no account and no analytics. Optional cloud Ask is not included in this build. Local encrypted backups are files you choose to share."}
               </AppText>
             </View>
