@@ -18,6 +18,7 @@ import { Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import AppText from "@/src/components/ui/AppText";
 import BoldTallyMark from "@/src/components/ui/BoldTallyMark";
 import Screen from "@/src/components/ui/Screen";
+import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen";
 import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { useTheme } from "@/src/theme";
 import type { ColorTokens } from "@/src/theme/tokens";
@@ -101,7 +102,7 @@ function MenuSection({
   );
 }
 
-export default function MoreScreen() {
+function MoreScreen() {
   const { colors } = useTheme();
   const router = useRouter();
 
@@ -208,6 +209,8 @@ export default function MoreScreen() {
     </Screen>
   );
 }
+
+export default withAccessibleTabScreen(MoreScreen, (pathname) => pathname === "/more");
 
 const styles = StyleSheet.create({
   content: {

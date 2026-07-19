@@ -1,4 +1,5 @@
 import { useRouter } from "expo-router";
+import { Check } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
@@ -88,6 +89,19 @@ export default function OnboardingScreen() {
       });
   };
 
+  const finishWithoutVial = () => {
+    if (finishing) return;
+    setFormError(null);
+    setFinishing(true);
+    completeOnboarding(CURRENT_SAFETY_ACK_VERSION)
+      .then(() => router.replace("/(tabs)"))
+      .catch((error) => {
+        console.error("[onboarding] Failed to complete without a vial", error);
+        setFinishing(false);
+        setFormError("Could not finish setup. Try again.");
+      });
+  };
+
   return (
     <Screen topInset={Platform.OS !== "ios"}>
       <ScrollView
@@ -147,7 +161,9 @@ export default function OnboardingScreen() {
               accessibilityLabel="I understand — PepRep does not recommend doses."
               testID="onboarding-ack"
             >
-              <View style={[styles.checkbox, acked && styles.checkboxActive]} />
+              <View style={[styles.checkbox, acked && styles.checkboxActive]}>
+                {acked ? <Check size={16} color={colors.onAccent} strokeWidth={3} /> : null}
+              </View>
               <AppText variant="label" weight="medium" style={styles.ackText}>
                 I understand — PepRep does not recommend doses.
               </AppText>
@@ -247,6 +263,16 @@ export default function OnboardingScreen() {
               disabled={finishing || !parsed.ok}
               testID="onboarding-finish"
             />
+            <Button
+              label="Use calculator without saving a vial"
+              tone="ghost"
+              onPress={finishWithoutVial}
+              disabled={finishing}
+              testID="onboarding-skip-vial"
+            />
+            <AppText variant="caption" tone="faint" style={styles.hint}>
+              You can add a vial later from the Vials tab.
+            </AppText>
           </View>
         )}
       </ScrollView>
@@ -297,6 +323,8 @@ function createStyles(colors: ColorTokens) {
       borderWidth: hairlineWidth,
       borderColor: colors.inkFaint,
       backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
     },
     checkboxActive: {
       backgroundColor: colors.accent,

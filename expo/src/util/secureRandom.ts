@@ -15,7 +15,6 @@ export function getSecureRandomBytes(length: number): Uint8Array {
 
   // Node / Jest without global Web Crypto.
   if (typeof process !== "undefined" && process.versions?.node != null) {
-    // eslint-disable-next-line no-eval, @typescript-eslint/no-unsafe-call -- Node-only; hide from Metro
     const nodeRequire = (0, eval)("require") as NodeRequire;
     const nodeCrypto = nodeRequire("crypto") as typeof import("crypto");
     return new Uint8Array(nodeCrypto.randomBytes(length));

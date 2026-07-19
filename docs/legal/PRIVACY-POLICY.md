@@ -1,17 +1,15 @@
-# PepRep Privacy Policy (draft)
+# PepRep Privacy Policy
 
-**Status:** Draft for the owner to host and publish.  
-**TODO (owner):** Host this page at a public HTTPS URL, then paste that URL into Apple App
-Store Connect and Google Play Console data-safety / privacy fields. Do not invent a URL here.
+**Status:** Published at `https://peprep.co/privacy`; final legal-owner review remains recommended.
 
 **Applies to:** PepRep mobile app v1.0.0 (`com.henrique919.peprep`)  
-**Last updated:** 2026-07-18
+**Last updated:** 2026-07-19
 
 ## Summary
 
-PepRep is a **local-first measurement and personal record-keeping** tool. In v1 it does **not**
-create accounts, does **not** include analytics or advertising SDKs, and does **not** transmit
-your vials, doses, plans, or history to PepRep or any third party as part of normal use.
+PepRep is a **local-first measurement and personal record-keeping** tool. It does **not**
+include analytics or advertising SDKs and does **not** transmit your vials, doses, plans, or
+history as part of normal use. An account is optional and used only for encrypted cloud backup.
 
 ## What PepRep stores
 
@@ -34,16 +32,15 @@ this data.
 
 ## Optional encrypted cloud backup (only if enabled in your build)
 
-If the build includes Supabase configuration for PepRep project `opbqlsmwljqkkdvguojh`:
+If you choose encrypted cloud backup:
 
-- You may opt in with **passwordless email** (one-time code).
+- You may opt in with **passwordless email** (a sign-in link or one-time code).
 - PepRep uploads only a **password-encrypted backup file** you create — not your passphrase,
   not a plaintext database.
 - Supabase stores account email + ciphertext object + non-health manifest metadata.
 - Local calculation, logging, and file backups work without an account.
-- You can delete individual cloud backups and sign out from Settings.
-
-Until that configuration is present, cloud backup UI does not appear and nothing is uploaded.
+- You can delete individual cloud backups, sign out, or permanently delete the cloud account
+  and all its backups from Settings.
 
 ## Notifications
 
@@ -55,9 +52,9 @@ sent to a PepRep server.
 - **Plaintext export** (CSV/JSON): created only when you choose Export. Files are unencrypted;
   you control where they are shared (Files, Drive, email, etc.).
 - **Encrypted backup**: created only when you choose Create encrypted backup. The file is
-  password-protected on device (AES-GCM). PepRep does not upload it; you choose where to save
-  or share it. Restore requires the password and replaces local PepRep data on that device
-  after confirmation.
+  password-protected on device (AES-GCM). PepRep uploads it only if you separately choose the
+  encrypted cloud backup action; otherwise you choose where to save or share it. Restore
+  requires the password and replaces local PepRep data on that device after confirmation.
 
 These are **user-controlled** off-device copies, not PepRep-operated cloud sync.
 
@@ -66,6 +63,10 @@ These are **user-controlled** off-device copies, not PepRep-operated cloud sync.
 Use **Settings → Erase all data** to remove PepRep records from the device. Uninstalling the
 app also removes local app storage (subject to OS behavior). Encrypted backups or exports you
 previously saved elsewhere must be deleted by you from those locations.
+
+If you created an optional cloud account, use **Settings → Encrypted cloud backup → Delete
+cloud account**. The app requires a second confirmation, then removes the account and all
+associated cloud backup files. This does not erase local records on the device.
 
 ## Children’s privacy
 
@@ -85,4 +86,5 @@ App safety acknowledgement copy is versioned in the app and may re-prompt when i
 
 ## Contact
 
-**TODO (owner):** Add a support email or contact form URL here before store submission.
+Support is available at `https://peprep.co/contact`. Do not include health or treatment details
+in a public support request.

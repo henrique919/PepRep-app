@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { X } from "lucide-react-native";
 import React from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Linking, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { isCloudBackupConfigured } from "@/src/cloudBackup/config";
@@ -83,7 +83,7 @@ export default function PrivacySafetyScreen() {
             </AppText>
             <AppText variant="label" tone="secondary">
               {cloudConfigured
-                ? "Local encrypted backups are password-protected files you save yourself. Optional cloud backup uploads only ciphertext you choose — the passphrase never leaves this device. Neither path is automatic sync."
+                ? "Native app records are encrypted at rest using a key protected by iOS Keychain or Android Keystore. Local encrypted backups are password-protected files you save yourself. Optional cloud backup uploads only ciphertext you choose — the passphrase never leaves this device. Neither path is automatic sync."
                 : "Local encrypted backups are password-protected files you save yourself (Files, Drive, etc.). PepRep does not upload them. This is not automatic sync."}
             </AppText>
           </View>
@@ -111,6 +111,34 @@ export default function PrivacySafetyScreen() {
           </AppText>
           <AppText variant="caption" tone="faint">
             Reminders, backups, export, erase
+          </AppText>
+        </Pressable>
+        <Pressable
+          onPress={() => void Linking.openURL("https://peprep.co/privacy")}
+          accessibilityRole="link"
+          accessibilityLabel="Open the PepRep privacy policy"
+          style={({ pressed }) => [styles.linkRow, pressed && { opacity: 0.7 }]}
+          testID="privacy-policy-link"
+        >
+          <AppText variant="label" weight="medium">
+            Read the full privacy policy
+          </AppText>
+          <AppText variant="caption" tone="faint">
+            peprep.co/privacy
+          </AppText>
+        </Pressable>
+        <Pressable
+          onPress={() => void Linking.openURL("https://peprep.co/contact")}
+          accessibilityRole="link"
+          accessibilityLabel="Open PepRep support"
+          style={({ pressed }) => [styles.linkRow, pressed && { opacity: 0.7 }]}
+          testID="support-link"
+        >
+          <AppText variant="label" weight="medium">
+            Support and contact
+          </AppText>
+          <AppText variant="caption" tone="faint">
+            peprep.co/contact
           </AppText>
         </Pressable>
       </ScrollView>

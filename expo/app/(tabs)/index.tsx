@@ -17,9 +17,16 @@ import Hairline from "@/src/components/ui/Hairline";
 import QuickPicks from "@/src/components/ui/QuickPicks";
 import Screen from "@/src/components/ui/Screen";
 import SegmentedControl from "@/src/components/ui/SegmentedControl";
+import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen";
 import { hapticTick } from "@/src/haptics";
 import type { DiluentOutcome, DrawOutcome, MassUnit, SyringeCapacity } from "@/src/engine";
-import { calculateDiluent, calculateDraw, fmt, SYRINGES } from "@/src/engine";
+import {
+  calculateDiluent,
+  calculateDraw,
+  fmt,
+  requiresDrawCorrection,
+  SYRINGES,
+} from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
 import { useTheme } from "@/src/theme";
 import {
@@ -139,7 +146,7 @@ function joinFieldNames(names: string[]): string {
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`;
 }
 
-export default function CalculatorScreen() {
+function CalculatorScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { colors } = useTheme();
@@ -203,6 +210,8 @@ export default function CalculatorScreen() {
 
   const activeResult = mode === "draw" ? drawResult : waterResult;
   const hasOkResult = activeResult !== null && activeResult.ok;
+  const drawNeedsCorrection =
+    drawResult !== null && drawResult.ok && requiresDrawCorrection(drawResult, capacity);
   const showUnitCallout = mode === "draw" && doseUnit === "mcg";
 
   // Only ever names the fields that are actually still empty, so this can't
@@ -442,6 +451,13 @@ export default function CalculatorScreen() {
             </Card>
           )}
 
+          {hasOkResult && activeResult.ok && (
+            <Warnings
+              warnings={activeResult.warnings}
+              critical={mode === "draw" && drawNeedsCorrection}
+            />
+          )}
+
           {mode === "draw" && drawResult !== null && drawResult.ok && (
             <View style={styles.resultGroup}>
               <Card dark elevated style={styles.resultCard} testID="draw-result">
@@ -546,8 +562,6 @@ export default function CalculatorScreen() {
             </View>
           )}
 
-          {hasOkResult && activeResult.ok && <Warnings warnings={activeResult.warnings} />}
-
           {hasOkResult && activeResult.ok && (
             <Card elevated padded={false} style={styles.mathCard}>
               <Button
@@ -597,14 +611,17 @@ export default function CalculatorScreen() {
               </View>
               <View style={styles.actionBlock}>
                 <Button
-                  label="Log this dose"
+                  label={drawNeedsCorrection ? "Correct inputs before logging" : "Log this dose"}
                   tone="ghost"
                   onPress={logThisDose}
+                  disabled={drawNeedsCorrection}
                   icon={<NotebookPen size={17} color={colors.ink} />}
                   testID="log-this-dose"
                 />
                 <AppText variant="caption" tone="faint" style={styles.actionHint}>
-                  One-off record in History — does not create a vial.
+                  {drawNeedsCorrection
+                    ? "This result does not fit the selected syringe or exceeds the vial amount."
+                    : "One-off record in History — does not create a vial."}
                 </AppText>
               </View>
             </View>
@@ -618,3 +635,5 @@ export default function CalculatorScreen() {
     </Screen>
   );
 }
+
+export default withAccessibleTabScreen(CalculatorScreen, (pathname) => pathname === "/");

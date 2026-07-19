@@ -1,0 +1,24 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "info": {
+      "en-US": {
+        "title": "PepRep",
+        "subtitle": "Peptide Calculator & Log",
+        "description": "PepRep is a measurement instrument for peptide reconstitution arithmetic and personal record-keeping.\n\nYou enter every number: vial amount, water volume and the dose you intend to draw. PepRep shows the calculation in both millilitres and U-100 syringe units, keeps the working visible, checks the selected syringe capacity and preserves an auditable history of what you log.\n\nWHAT PEPREP DOES\n• Calculates from your own vial, water and dose inputs\n• Shows concentration, volume, U-100 units and worked steps\n• Tracks vials using an append-only inventory ledger\n• Supports plans and local reminders you define\n• Keeps immutable history with voided corrections\n• Exports your records and creates password-encrypted backups\n• Offers optional encrypted cloud backup without automatic sync\n\nWHAT PEPREP DOES NOT DO\n• No dose, treatment, protocol, cycle or stack recommendations\n• No diagnosis or medical supervision\n• No advertising or behavioural analytics\n• No account required for calculation or local records\n\nPepRep is a measurement tool, not medical advice. Check every result against your vial and syringe and follow guidance from an appropriately qualified healthcare professional.",
+        "keywords": [
+          "peptide calculator",
+          "reconstitution",
+          "vial tracker",
+          "dose log",
+          "U-100"
+        ],
+        "promoText": "Visible reconstitution arithmetic and an auditable record—calculated only from the numbers you enter.",
+        "marketingUrl": "https://peprep.co/",
+        "supportUrl": "https://peprep.co/contact",
+        "privacyPolicyUrl": "https://peprep.co/privacy",
+        "privacyChoicesUrl": "https://peprep.co/privacy#your-choices"
+      }
+    }
+  }
+}

@@ -19,8 +19,7 @@ export type CloudBackupConfig = {
   projectRef: string;
 };
 
-function readEnv(name: string): string | undefined {
-  const value = process.env[name];
+function normaliseEnv(value: string | undefined): string | undefined {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : undefined;
 }
 
@@ -29,9 +28,9 @@ function readEnv(name: string): string | undefined {
  * in principle, a runtime config change) are observed immediately.
  */
 export function getCloudBackupConfig(): CloudBackupConfig | null {
-  const url = readEnv("EXPO_PUBLIC_SUPABASE_URL");
-  const anonKey = readEnv("EXPO_PUBLIC_SUPABASE_ANON_KEY");
-  const projectRef = readEnv("EXPO_PUBLIC_SUPABASE_PROJECT_REF");
+  const url = normaliseEnv(process.env.EXPO_PUBLIC_SUPABASE_URL);
+  const anonKey = normaliseEnv(process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY);
+  const projectRef = normaliseEnv(process.env.EXPO_PUBLIC_SUPABASE_PROJECT_REF);
   if (url === undefined || anonKey === undefined || projectRef === undefined) return null;
   return { url, anonKey, projectRef };
 }

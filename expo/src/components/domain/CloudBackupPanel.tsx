@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import {
   createSessionFromUrl,
+  deleteCloudAccount,
   deleteBackup,
   downloadBackup,
   getSignedInEmail,
@@ -62,6 +63,7 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
   const [restoreTarget, setRestoreTarget] = useState<BackupManifestRow | null>(null);
   const [restorePassword, setRestorePassword] = useState("");
   const [deleteArmedId, setDeleteArmedId] = useState<string | null>(null);
+  const [accountDeleteArmed, setAccountDeleteArmed] = useState(false);
 
   const refresh = useCallback(async () => {
     if (!isCloudBackupConfigured()) return;
@@ -149,6 +151,27 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
       onStatus("Signed out of cloud backup.");
     } catch (error) {
       onStatus(error instanceof Error ? error.message : "Sign out failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    if (!accountDeleteArmed) {
+      setAccountDeleteArmed(true);
+      onStatus("Tap Delete cloud account again to permanently remove the account and all cloud backups.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await deleteCloudAccount();
+      setAccountDeleteArmed(false);
+      setSignedInEmail(null);
+      setManifests([]);
+      setOtpSent(false);
+      onStatus("Cloud account and cloud backups deleted. Local PepRep records remain on this device.");
+    } catch (error) {
+      onStatus(error instanceof Error ? error.message : "Account deletion failed.");
     } finally {
       setBusy(false);
     }
@@ -381,6 +404,33 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
               />
             </View>
           ) : null}
+          <Hairline />
+          <View style={{ gap: spacing.sm }}>
+            <AppText variant="overline" tone="faint">
+              Cloud account controls
+            </AppText>
+            <AppText variant="caption" tone="secondary">
+              Deleting the cloud account permanently removes its email account, backup files and
+              backup manifests. Records stored locally on this device are not erased.
+            </AppText>
+            <Button
+              label={accountDeleteArmed ? "Delete cloud account permanently" : "Delete cloud account"}
+              tone="danger"
+              compact
+              onPress={() => void handleDeleteAccount()}
+              disabled={busy}
+              testID="delete-cloud-account"
+            />
+            {accountDeleteArmed ? (
+              <Button
+                label="Cancel account deletion"
+                tone="ghost"
+                compact
+                onPress={() => setAccountDeleteArmed(false)}
+                disabled={busy}
+              />
+            ) : null}
+          </View>
         </View>
       )}
     </Card>

@@ -10,6 +10,8 @@ Supabase MCP (`apply_migration` name `peprep_encrypted_backups`).
 | `public.peprep_backup_manifests` | Present, RLS enabled, 0 rows |
 | Storage bucket `peprep-encrypted-backups` | Private, 8 MiB limit |
 | Storage policies `peprep_backups_*` | select/insert/update/delete |
+| Manifest grants | authenticated CRUD only; no anon grants |
+| Account-deletion function | `delete-peprep-account` v2 active, JWT required |
 | Project URL | `https://opbqlsmwljqkkdvguojh.supabase.co` |
 
 ## Advisors (post-apply)
@@ -18,6 +20,15 @@ Supabase MCP (`apply_migration` name `peprep_encrypted_backups`).
   password auth is unused (email OTP only for this feature). See OD-6.
 - **Performance INFO:** unused index on `peprep_backup_manifests_user_created_idx` —
   expected on an empty table; keep for list-by-user queries.
+
+## 2026-07-19 launch hardening
+
+- Applied grant hardening migration `20260719073601`.
+- Deployed `delete-peprep-account` v2 with authenticated user verification, orphaned-object
+  cleanup, backup deletion, and Auth user deletion.
+- Verified own-row access, cross-user isolation, and anonymous denial in rolled-back SQL tests.
+- Verified unauthenticated function requests return `401` and CORS preflight returns `200`.
+- Verified final production state remained empty: 0 manifests and 0 storage objects.
 
 ## Why SQL Editor may have failed earlier
 

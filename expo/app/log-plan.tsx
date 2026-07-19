@@ -72,6 +72,10 @@ export default function LogPlanScreen() {
   const nowIso = useMemo(() => new Date().toISOString(), []);
   const doseValue = parseNumeric(doseText);
   const timeOk = TIME_PATTERN.test(timeLocal.trim());
+  const occurredAtIso =
+    dayFromKey.length > 0 && timeOk
+      ? occurredAtFromLocal(dayFromKey, timeLocal.trim())
+      : nowIso;
   const canSave =
     planId.length > 0 &&
     scheduleVersionId.length > 0 &&
@@ -96,7 +100,7 @@ export default function LogPlanScreen() {
       vialId,
       vial,
       note,
-      occurredAt: dayFromKey.length > 0 ? occurredAtFromLocal(dayFromKey, timeLocal.trim()) : undefined,
+      occurredAt: dayFromKey.length > 0 ? occurredAtIso : undefined,
     })
       .then(() => router.back())
       .catch((error) => {
@@ -111,7 +115,7 @@ export default function LogPlanScreen() {
         <View style={styles.chromeText}>
           <AppText variant="heading">Log dose</AppText>
           <AppText variant="caption" mono tone="faint">
-            {planName.length > 0 ? planName : compoundName} · {formatDateTime(nowIso)}
+            {planName.length > 0 ? planName : compoundName} · logging {formatDateTime(occurredAtIso)}
           </AppText>
         </View>
         <Pressable
@@ -167,6 +171,9 @@ export default function LogPlanScreen() {
               placeholder="08:00"
               testID="input-log-plan-time"
             />
+            <AppText variant="caption" tone="faint">
+              This is the timestamp PepRep will save for the event.
+            </AppText>
             <Field
               label="Note (optional)"
               value={note}

@@ -12,6 +12,7 @@ import EmptyState from "@/src/components/ui/EmptyState";
 import Screen from "@/src/components/ui/Screen";
 import StatusPill from "@/src/components/ui/StatusPill";
 import Toast from "@/src/components/ui/Toast";
+import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen";
 import { occurrenceKey } from "@/src/db/occurrence";
 import type { DoseEvent, Plan, ScheduleVersion } from "@/src/db/types";
 import { fmt } from "@/src/engine";
@@ -39,7 +40,7 @@ type ToastState = {
   onAction?: () => void;
 } | null;
 
-export default function TodayScreen() {
+function TodayScreen() {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
   const router = useRouter();
@@ -289,6 +290,8 @@ export default function TodayScreen() {
     </Screen>
   );
 }
+
+export default withAccessibleTabScreen(TodayScreen, (pathname) => pathname === "/today");
 
 function createStyles(colors: ColorTokens) {
   return StyleSheet.create({

@@ -1,8 +1,9 @@
 import { Stack } from "expo-router";
 
+import { withAccessibleTabScreen } from "@/src/components/ui/AccessibleTabScreen";
 import { colors } from "@/src/theme/tokens";
 
-export default function HistoryLayout() {
+function HistoryLayout() {
   return (
     <Stack
       screenOptions={{
@@ -17,3 +18,5 @@ export default function HistoryLayout() {
     </Stack>
   );
 }
+
+export default withAccessibleTabScreen(HistoryLayout, (pathname) => pathname.startsWith("/history"));

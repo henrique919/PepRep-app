@@ -1,7 +1,7 @@
-# PepRep — Store listing draft (NOT for submission)
+# PepRep — Store listing copy
 
-**Status:** Owner draft only. Review with OD-3 medical/store posture before pasting into
-App Store Connect / Play Console.
+**Status:** Technically verified launch copy. Complete the final store-owner and medical/legal
+review before submission.
 
 ---
 
@@ -31,7 +31,7 @@ overflow and under-draw, and keeps an auditable history of what you actually log
 **What PepRep is not**
 - Not medical advice
 - Does not recommend doses, schedules, stacks, or protocols
-- No account and no cloud sync in v1
+- No account required; optional encrypted cloud backup is opt-in and never automatic sync
 - No analytics or advertising
 
 A U-100 syringe is always 100 units per millilitre. Syringe “30 / 50 / 100” sizes are barrel
@@ -55,12 +55,13 @@ Avoid: dose recommendation, therapy, treatment, protocol builder, clinic, prescr
 | Question | v1 answer |
 | --- | --- |
 | Account required? | No |
-| Data collected / transmitted by PepRep? | No (local-only; Ask/AI off) |
+| Data collected / transmitted by PepRep? | Local records stay on device by default. Optional cloud backup transmits account email, encrypted backup ciphertext, and non-health manifest metadata. |
 | Analytics / ads? | No |
 | Local notifications? | Yes — user-scheduled reminders only |
-| User-controlled export/backup? | Yes — optional; not PepRep cloud sync |
-| Privacy policy URL | TODO — host `docs/legal/PRIVACY-POLICY.md` |
-| Support URL / email | TODO — host `docs/legal/SUPPORT.md` |
+| User-controlled export/backup? | Yes — optional file backup and optional encrypted cloud backup; neither is automatic sync |
+| Account deletion | In-app deletion removes the optional cloud account and all cloud backups; local records remain until separately erased |
+| Privacy policy URL | `https://peprep.co/privacy` |
+| Support URL | `https://peprep.co/contact` |
 
 ## Screenshots (owner TODO)
 
