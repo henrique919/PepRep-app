@@ -2,11 +2,12 @@ name: Create Android Production Build
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
-      - expo/**
-      - eas.json
-      - .eas/workflows/create-production-builds.yml
+      - "expo/**"
+      - "eas.json"
+      - ".eas/workflows/create-production-builds.yml"
 
 jobs:
   build_android:
