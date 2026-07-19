@@ -102,14 +102,16 @@ export default function HistoryTimelineScreen() {
             >
               <CalendarDays size={18} color={colors.ink} />
             </Pressable>
-            <Button
-              label="Log"
-              tone="primary"
-              compact
-              onPress={() => router.push("/log-entry")}
-              icon={<Plus size={16} color={colors.onSolid} />}
-              testID="open-log-entry"
-            />
+            {sorted.length > 0 && (
+              <Button
+                label="Log"
+                tone="primary"
+                compact
+                onPress={() => router.push("/log-entry")}
+                icon={<Plus size={16} color={colors.onSolid} />}
+                testID="open-log-entry"
+              />
+            )}
           </View>
         </View>
 

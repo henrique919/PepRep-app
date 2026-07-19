@@ -3,21 +3,12 @@
  * that restore the same user-entered numbers (no invented defaults).
  */
 
-import type { Vial } from "../../db/models";
+import { vialToCalculatorParams } from "../vialCalcParams";
 
-function calcParamsFromVial(vial: Pick<Vial, "name" | "vialMg" | "diluentMl" | "syringeCapacityUnits">) {
-  return {
-    compoundName: vial.name,
-    vialMg: String(vial.vialMg),
-    diluentMl: String(vial.diluentMl),
-    syringeCapacity: String(vial.syringeCapacityUnits),
-  };
-}
-
-describe("calcParamsFromVial", () => {
+describe("vialToCalculatorParams", () => {
   it("round-trips user vial numbers into calculator params", () => {
     expect(
-      calcParamsFromVial({
+      vialToCalculatorParams({
         name: "My peptide",
         vialMg: 10,
         diluentMl: 1.5,
