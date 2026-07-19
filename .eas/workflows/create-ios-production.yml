@@ -1,0 +1,11 @@
+name: Create iOS Production Build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_ios:
+    type: build
+    params:
+      platform: ios
+      profile: production
