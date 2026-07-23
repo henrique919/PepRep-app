@@ -62,6 +62,9 @@ export default function NewVialScreen() {
     const vialMgParam = stringParam(params.vialMg);
     const diluentParam = stringParam(params.diluentMl);
     const capacityParam = stringParam(params.syringeCapacity);
+    // Re-seeds editable fields when new route params arrive on the same
+    // mounted screen, without clobbering fields the params didn't provide.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (compound.length > 0) setName(compound);
     if (vialMgParam.length > 0) setVialText(vialMgParam);
     if (diluentParam.length > 0) setWaterText(diluentParam);

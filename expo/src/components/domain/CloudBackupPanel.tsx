@@ -81,6 +81,9 @@ export default function CloudBackupPanel({ onStatus, onRestoreCiphertext }: Prop
   }, []);
 
   useEffect(() => {
+    // refresh() only sets state after its internal awaits resolve, so this
+    // isn't a synchronous effect-body setState — standard fetch-on-mount.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh]);
 
