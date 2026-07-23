@@ -55,9 +55,14 @@ export default function LogEntryScreen() {
   const prefillVialMg = parseNumeric(stringParam(params.vialMg));
   const prefillDiluentMl = parseNumeric(stringParam(params.diluentMl));
   const prefillCapacity = capacityFromParam(stringParam(params.syringeCapacity));
+  const prefillVialId = stringParam(params.vialId);
 
   const [peptideName, setPeptideName] = useState<string>(stringParam(params.compoundName));
-  const [vialId, setVialId] = useState<string | null>(null);
+  const [vialId, setVialId] = useState<string | null>(() =>
+    prefillVialId.length > 0 && vials.some((vial) => vial.id === prefillVialId)
+      ? prefillVialId
+      : null,
+  );
   const [doseText, setDoseText] = useState<string>(stringParam(params.doseValue));
   const [doseUnit, setDoseUnit] = useState<MassUnit>(prefillUnit);
   const [unitsText, setUnitsText] = useState<string>(stringParam(params.units));
@@ -177,6 +182,7 @@ export default function LogEntryScreen() {
                       testID={`vial-chip-${vial.id}`}
                       accessibilityRole="button"
                       accessibilityState={{ selected: active }}
+                      aria-selected={active}
                     >
                       <AppText
                         variant="label"

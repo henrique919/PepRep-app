@@ -96,6 +96,7 @@ export default function SitePicker({ value, onChange, recentSites = [] }: SitePi
             accessibilityRole="button"
             accessibilityLabel={SITE_LABELS[point.site]}
             accessibilityState={{ selected: value === point.site }}
+            aria-selected={value === point.site}
             style={[
               styles.hitArea,
               { left: point.x - HIT_SIZE / 2, top: point.y - HIT_SIZE / 2 },

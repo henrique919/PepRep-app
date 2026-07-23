@@ -207,6 +207,7 @@ export default function NewPlanScreen() {
                     testID={`day-chip-${day.value}`}
                     accessibilityRole="button"
                     accessibilityState={{ selected: active }}
+                    aria-selected={active}
                   >
                     <AppText
                       variant="label"
@@ -281,6 +282,7 @@ export default function NewPlanScreen() {
                       testID={`plan-vial-chip-${vial.id}`}
                       accessibilityRole="button"
                       accessibilityState={{ selected: active }}
+                    aria-selected={active}
                     >
                       <AppText
                         variant="label"
@@ -321,6 +323,7 @@ export default function NewPlanScreen() {
                 thumbColor={colors.surface}
                 accessibilityLabel="Remind me"
                 accessibilityState={{ checked: remindMe && !isWeb, disabled: isWeb }}
+                aria-checked={remindMe && !isWeb}
                 testID="toggle-plan-remind"
               />
             </View>
@@ -342,6 +345,7 @@ export default function NewPlanScreen() {
                     thumbColor={colors.surface}
                     accessibilityLabel="Private notifications"
                     accessibilityState={{ checked: privacyMode }}
+                    aria-checked={privacyMode}
                     testID="toggle-plan-privacy"
                   />
                 </View>

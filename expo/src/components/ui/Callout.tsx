@@ -13,9 +13,16 @@ interface CalloutProps {
   /** One-line, no title — for once the warning is informational rather than actionable. */
   compact?: boolean;
   children: string;
+  testID?: string;
 }
 
-export default function Callout({ tone = "info", title, compact = false, children }: CalloutProps) {
+export default function Callout({
+  tone = "info",
+  title,
+  compact = false,
+  children,
+  testID,
+}: CalloutProps) {
   const { colors } = useTheme();
   const bg =
     tone === "warn" ? colors.warnBg : tone === "error" ? colors.dangerBg : colors.infoBg;
@@ -24,7 +31,10 @@ export default function Callout({ tone = "info", title, compact = false, childre
   const border = tone === "warn" ? colors.warnBorder : "transparent";
 
   return (
-    <View style={[styles.box, compact && styles.boxCompact, { backgroundColor: bg, borderColor: border }]}>
+    <View
+      testID={testID}
+      style={[styles.box, compact && styles.boxCompact, { backgroundColor: bg, borderColor: border }]}
+    >
       {title && !compact ? (
         <AppText variant="label" weight="semibold" style={{ color: ink }}>
           {title}

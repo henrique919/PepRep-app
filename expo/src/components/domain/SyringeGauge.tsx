@@ -65,14 +65,15 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
   const [fillProgress, setFillProgress] = useState(() => model.fillFraction);
   const appear = useSharedValue(1);
 
+  // Under reduced motion the target value is used directly at render time
+  // (see displayedFillProgress) — this effect only drives the rAF tween.
   useEffect(() => {
-    const target = model.fillFraction;
     if (reduceMotion) {
       appear.value = 1;
-      setFillProgress(target);
       return;
     }
 
+    const target = model.fillFraction;
     appear.value = 0;
     appear.value = withTiming(1, {
       duration: 380,
@@ -82,6 +83,9 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
     const start = performance.now();
     const duration = 520;
     let frame = 0;
+    // Resets the tween's start value before subscribing to rAF below — the
+    // animated value itself (target) only ever updates from that callback.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setFillProgress(0);
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / duration);
@@ -92,6 +96,8 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
   }, [model.fillFraction, units, capacity, appear, reduceMotion]);
+
+  const displayedFillProgress = reduceMotion ? model.fillFraction : fillProgress;
 
   const shellStyle = useAnimatedStyle(() => ({
     opacity: 0.55 + appear.value * 0.45,
@@ -107,9 +113,9 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
     const viewW = thumbX + THUMB_W + ROD_END_PAD;
     const barrelY = (VIEW_H - barrelH) / 2 + 4;
     const cy = barrelY + barrelH / 2;
-    const fillX = barrelX + barrelW * fillProgress;
+    const fillX = barrelX + barrelW * displayedFillProgress;
     /** Stopper sits at the fluid meniscus; empty barrel parks it at the zero end. */
-    const stopX = fillProgress > 0.001 ? fillX : barrelX + 5;
+    const stopX = displayedFillProgress > 0.001 ? fillX : barrelX + 5;
     const markerX = Math.min(Math.max(fillX, barrelX), barrelX + barrelW);
     const labelX = Math.min(Math.max(markerX, 36), viewW - 36);
 
@@ -130,7 +136,7 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
       markerX,
       labelX,
     };
-  }, [model.capacityUnits, fillProgress]);
+  }, [model.capacityUnits, displayedFillProgress]);
 
   const {
     barrelW,
@@ -151,7 +157,7 @@ export default function SyringeGauge({ units, capacity }: SyringeGaugeProps) {
   const labelTicks = model.ticks.filter((tick) => tick.major);
   const fluidColor = model.overflow ? colors.fluidOverflow : colors.fluid;
   const markerColor = model.overflow ? colors.dangerInk : colors.accent;
-  const showFill = fillProgress > 0.001;
+  const showFill = displayedFillProgress > 0.001;
   const rodW = Math.max(thumbX - stopX - 4, 0);
   const clipId = `barrel-bore-${uid}`;
   const fluidGradId = `fluid-grad-${uid}`;

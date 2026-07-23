@@ -73,15 +73,15 @@ export default function OnboardingScreen() {
       lot: "",
       lowStockThresholdPercent: null,
     })
-      .then(() => completeOnboarding(CURRENT_SAFETY_ACK_VERSION))
-      .then(() =>
+      .then(async (created) => {
+        await completeOnboarding(CURRENT_SAFETY_ACK_VERSION);
         // Carry the vial the user just saved into the calculator so the first
         // screen they land on already reflects it instead of starting blank.
         router.replace({
           pathname: "/",
-          params: vialToCalculatorParams(draft.vial),
-        }),
-      )
+          params: vialToCalculatorParams(created),
+        });
+      })
       .catch((error) => {
         console.error("[onboarding] Failed to complete", error);
         setFinishing(false);
@@ -158,6 +158,7 @@ export default function OnboardingScreen() {
               style={[styles.ackRow, acked && styles.ackRowActive]}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: acked }}
+              aria-checked={acked}
               accessibilityLabel="I understand — PepRep does not recommend doses."
               testID="onboarding-ack"
             >

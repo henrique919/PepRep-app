@@ -30,6 +30,7 @@ import RootErrorBoundary from "@/src/components/ui/RootErrorBoundary";
 import { runMigrations } from "@/src/db/migrations";
 import { runMissedRollover } from "@/src/db/rollover";
 import { dayKey } from "@/src/engine/schedule";
+import { useCalcDraftStore } from "@/src/store/calcDraft";
 import { useDosesStore } from "@/src/store/doses";
 import { useLedgerStore } from "@/src/store/ledger";
 import { usePlansStore } from "@/src/store/plans";
@@ -124,6 +125,7 @@ export default function RootLayout() {
   const hydratePlans = usePlansStore((state) => state.hydrate);
   const hydrateLedger = useLedgerStore((state) => state.hydrate);
   const hydrateSettings = useSettingsStore((state) => state.hydrate);
+  const hydrateCalcDraft = useCalcDraftStore((state) => state.hydrate);
 
   useEffect(() => {
     let cancelled = false;
@@ -137,6 +139,7 @@ export default function RootLayout() {
           hydratePlans(),
           hydrateLedger(),
           hydrateSettings(),
+          hydrateCalcDraft(),
         ]);
         const today = dayKey(new Date().toISOString());
         const { created } = await runMissedRollover({
@@ -157,7 +160,15 @@ export default function RootLayout() {
     return () => {
       cancelled = true;
     };
-  }, [hydrateVials, hydrateDoses, hydrateReminders, hydratePlans, hydrateLedger, hydrateSettings]);
+  }, [
+    hydrateVials,
+    hydrateDoses,
+    hydrateReminders,
+    hydratePlans,
+    hydrateLedger,
+    hydrateSettings,
+    hydrateCalcDraft,
+  ]);
 
   const ready = fontsLoaded && dataReady;
 

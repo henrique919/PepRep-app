@@ -201,6 +201,7 @@ export default function LogPlanScreen() {
                       testID={`log-plan-vial-${vial.id}`}
                       accessibilityRole="button"
                       accessibilityState={{ selected: active }}
+                      aria-selected={active}
                     >
                       <AppText
                         variant="label"
