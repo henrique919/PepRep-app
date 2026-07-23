@@ -61,6 +61,7 @@ export default function SegmentedControl<T extends string | number>({
             accessibilityRole="button"
             accessibilityLabel={option.label}
             accessibilityState={{ selected: active }}
+            aria-selected={active}
             style={[
               styles.segment,
               appearance === "solid" && index > 0

@@ -10,6 +10,7 @@
 export function parseNumeric(text: string): number | null {
   const normalized = text.trim().replace(/,/g, ".");
   if (normalized.length === 0 || normalized === ".") return null;
+  if (!/^\d*\.?\d*$/.test(normalized)) return null;
   const value = Number(normalized);
   return Number.isFinite(value) ? value : null;
 }

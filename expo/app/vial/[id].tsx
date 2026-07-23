@@ -118,6 +118,7 @@ export default function VialDetailScreen() {
             router.push({
               pathname: "/(tabs)",
               params: {
+                vialId: vial.id,
                 compoundName: vial.name,
                 vialMg: String(vial.vialMg),
                 diluentMl: String(vial.diluentMl),

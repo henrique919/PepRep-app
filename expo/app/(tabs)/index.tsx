@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronDown, ChevronUp, NotebookPen, TestTubes } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
@@ -28,6 +28,8 @@ import {
   SYRINGES,
 } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
+import { vialLinkIntact, type VialLinkSource } from "@/src/engine/vialCalcParams";
+import { draftHasContent, useCalcDraftStore, type CalcDraft } from "@/src/store/calcDraft";
 import { useTheme } from "@/src/theme";
 import {
   DISCLAIMER,
@@ -156,6 +158,7 @@ function CalculatorScreen() {
   const prefilledUnit = unitFromConvention(stringParam(params.massUnitConvention));
   const prefilledVial = stringParam(params.vialMg);
   const prefilledWater = stringParam(params.diluentMl);
+  const prefilledVialId = stringParam(params.vialId);
   const prefilledCapacity =
     capacityFromParam(stringParam(params.syringeCapacity)) ??
     capacityFromParam(stringParam(params.capacity));
@@ -170,20 +173,37 @@ function CalculatorScreen() {
   const [targetUnitsText, setTargetUnitsText] = useState<string>("");
   const [capacity, setCapacity] = useState<SyringeCapacity>(prefilledCapacity ?? 50);
   const [showMath, setShowMath] = useState<boolean>(false);
+  // The saved vial this draft was seeded from, if any — lets a dose logged
+  // from here debit the right vial as long as the numbers still match it.
+  const [sourceVial, setSourceVial] = useState<VialLinkSource | null>(
+    prefilledVialId.length > 0 && prefilledVial.length > 0 && prefilledWater.length > 0
+      ? { id: prefilledVialId, vialMg: prefilledVial, diluentMl: prefilledWater }
+      : null,
+  );
+  const [restoredFromDraft, setRestoredFromDraft] = useState<boolean>(false);
 
   useEffect(() => {
     const name = stringParam(params.compoundName);
     const unit = unitFromConvention(stringParam(params.massUnitConvention));
     const vial = stringParam(params.vialMg);
     const water = stringParam(params.diluentMl);
+    const vialId = stringParam(params.vialId);
     const nextCapacity =
       capacityFromParam(stringParam(params.syringeCapacity)) ??
       capacityFromParam(stringParam(params.capacity));
+    // Re-seeds editable fields when a later navigation brings new route
+    // params (e.g. "Calculate with this vial" while already on this screen)
+    // without clobbering fields the params didn't provide.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (name.length > 0) setCompoundLabel(name);
     if (unit !== null) setDoseUnit(unit);
     if (vial.length > 0) setVialText(vial);
     if (water.length > 0) setWaterText(water);
     if (nextCapacity !== null) setCapacity(nextCapacity);
+    if (vialId.length > 0 && vial.length > 0 && water.length > 0) {
+      setSourceVial({ id: vialId, vialMg: vial, diluentMl: water });
+      setRestoredFromDraft(false);
+    }
   }, [
     params.compoundName,
     params.massUnitConvention,
@@ -191,7 +211,94 @@ function CalculatorScreen() {
     params.diluentMl,
     params.syringeCapacity,
     params.capacity,
+    params.vialId,
   ]);
+
+  // Not a reactive subscription — this effect also WRITES this store via
+  // saveCalcDraft, and subscribing to the value it writes would re-fire the
+  // effect on every save (a new object each time) for an infinite loop.
+  // The restore only ever needs the draft once, read imperatively below.
+  const calcDraftHydrated = useCalcDraftStore((state) => state.hydrated);
+  const saveCalcDraft = useCalcDraftStore((state) => state.save);
+  // "init" — waiting on hydration/first decision; "restoring" — a restore's
+  // setState calls were just issued and this effect is waiting for them to
+  // land (a sibling firing in the same commit would otherwise see stale
+  // pre-restore values and misread them as a user edit); "live" — normal,
+  // every firing from here is a genuine change to persist.
+  const phase = useRef<"init" | "restoring" | "live">("init");
+
+  // Restore the last session's draft on a cold start with no fresh route
+  // params (a navigation with params, e.g. "Calculate with this vial",
+  // always wins over an older draft), then persist every change after —
+  // one effect so the restore and its own resulting re-render can't race.
+  useEffect(() => {
+    if (!calcDraftHydrated) return;
+
+    if (phase.current === "init") {
+      const hasFreshParams =
+        prefilledName.length > 0 || prefilledVial.length > 0 || prefilledWater.length > 0;
+      const draft = useCalcDraftStore.getState().draft;
+      if (hasFreshParams || draft === null || !draftHasContent(draft)) {
+        phase.current = "live";
+        return;
+      }
+      phase.current = "restoring";
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setMode(draft.mode);
+      setCompoundLabel(draft.compoundLabel);
+      setVialText(draft.vialText);
+      setWaterText(draft.waterText);
+      setDoseText(draft.doseText);
+      setDoseUnit(draft.doseUnit);
+      setTargetUnitsText(draft.targetUnitsText);
+      setCapacity(draft.capacity);
+      setSourceVial(draft.sourceVial);
+      setRestoredFromDraft(true);
+      return;
+    }
+
+    if (phase.current === "restoring") {
+      // The restore's own values have now landed — don't re-persist our
+      // own echo or clear the note we just showed for it.
+      phase.current = "live";
+      return;
+    }
+
+    // A genuine edit — the "restored" note no longer describes what's on screen.
+    setRestoredFromDraft(false);
+    const draft: CalcDraft = {
+      mode,
+      compoundLabel,
+      vialText,
+      waterText,
+      doseText,
+      doseUnit,
+      targetUnitsText,
+      capacity,
+      sourceVial,
+    };
+    void saveCalcDraft(draft);
+  }, [
+    calcDraftHydrated,
+    prefilledName,
+    prefilledVial,
+    prefilledWater,
+    mode,
+    compoundLabel,
+    vialText,
+    waterText,
+    doseText,
+    doseUnit,
+    targetUnitsText,
+    capacity,
+    sourceVial,
+    saveCalcDraft,
+  ]);
+
+  const linkedVialId =
+    sourceVial !== null && vialLinkIntact(sourceVial, { vialText, waterText })
+      ? sourceVial.id
+      : undefined;
 
   const vialMg = parseNumeric(vialText);
   const diluentMl = parseNumeric(waterText);
@@ -242,6 +349,7 @@ function CalculatorScreen() {
         ...(compoundLabel.trim().length > 0
           ? { compoundName: compoundLabel.trim() }
           : {}),
+        ...(linkedVialId !== undefined ? { vialId: linkedVialId } : {}),
       },
     });
   };
@@ -300,6 +408,12 @@ function CalculatorScreen() {
               ? "You've mixed your vial. Enter water and your dose — see units to draw."
               : "Before you mix. Pick dose and draw size — see how much water to add."}
           </AppText>
+
+          {restoredFromDraft ? (
+            <Callout tone="info" compact testID="calc-restored-note">
+              Restored from your last session.
+            </Callout>
+          ) : null}
 
           <Card elevated style={styles.formCard}>
             <View style={styles.fieldBlock}>
@@ -420,7 +534,7 @@ function CalculatorScreen() {
           {showUnitCallout ? (
             <Callout tone="warn" title="Unit check" compact={hasOkResult}>
               {hasOkResult
-                ? "Unit check — units and mL are shown separately so mcg/mg can't be confused."
+                ? "Unit check — units and mL shown separately."
                 : "Dose is in mcg · vial is in mg. The result shows syringe units and mL separately so they cannot be confused."}
             </Callout>
           ) : null}

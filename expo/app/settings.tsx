@@ -396,6 +396,7 @@ export default function SettingsScreen() {
                       thumbColor={colors.surface}
                       accessibilityLabel={`${reminder.label} reminder`}
                       accessibilityState={{ checked: reminder.enabled }}
+                      aria-checked={reminder.enabled}
                     />
                     <Pressable
                       onPress={() => {
@@ -454,6 +455,7 @@ export default function SettingsScreen() {
                               style={[styles.minuteChip, active && styles.minuteChipActive]}
                               accessibilityRole="button"
                               accessibilityState={{ selected: active }}
+                              aria-selected={active}
                             >
                               <AppText
                                 variant="label"
@@ -760,6 +762,7 @@ export default function SettingsScreen() {
                     thumbColor={colors.surface}
                     accessibilityLabel="Ask"
                     accessibilityState={{ checked: askEnabled }}
+                    aria-checked={askEnabled}
                     testID="toggle-ask"
                   />
                 </View>

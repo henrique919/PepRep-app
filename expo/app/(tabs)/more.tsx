@@ -91,6 +91,7 @@ function MenuSection({
                 thumbColor={colors.surface}
                 accessibilityLabel={row.label}
                 accessibilityState={{ checked: row.switchValue === true }}
+                aria-checked={row.switchValue === true}
               />
             ) : (
               <ChevronRight size={18} color={row.destructive ? colors.dangerInk : colors.inkFaint} />

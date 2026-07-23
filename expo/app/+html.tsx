@@ -29,4 +29,9 @@ body {
   body {
     background-color: #141311;
   }
+}
+/* Field.tsx paints its own focus border on the wrapper row; the UA focus
+   ring on the inner input doubles it and can paint past the card edge. */
+input:focus, textarea:focus {
+  outline: none;
 }`;

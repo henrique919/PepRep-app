@@ -42,6 +42,7 @@ export default function QuickPicks({
               option.sublabel ? `${option.label}, ${option.sublabel}` : option.label
             }
             accessibilityState={{ selected: on }}
+            aria-selected={on}
             style={[
               styles.chip,
               equal && styles.chipEqual,

@@ -41,6 +41,7 @@ export default function FilterChips<T extends string>({
             accessibilityRole="button"
             accessibilityLabel={option.label}
             accessibilityState={{ selected: on }}
+            aria-selected={on}
             style={[
               styles.chip,
               {
