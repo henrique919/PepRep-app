@@ -7,12 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "peprep",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/images/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F3F0E8"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.henrique919.peprep",
