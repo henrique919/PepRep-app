@@ -21,6 +21,7 @@ import type { MassUnit } from "@/src/engine";
 import { fmt } from "@/src/engine";
 import { formatDateTime } from "@/src/engine/schedule";
 import { parseNumeric } from "@/src/engine/parse";
+import { normalizeTimeText } from "@/src/engine/timeText";
 import { useLedgerStore } from "@/src/store/ledger";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
@@ -32,8 +33,6 @@ function stringParam(value: string | string[] | undefined): string {
   if (Array.isArray(value) && value.length > 0 && typeof value[0] === "string") return value[0];
   return "";
 }
-
-const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
 /** Combine a dayKey + HH:mm into an ISO timestamp in local time. */
 function occurredAtFromLocal(day: string, timeLocal: string): string {
@@ -71,10 +70,11 @@ export default function LogPlanScreen() {
 
   const nowIso = useMemo(() => new Date().toISOString(), []);
   const doseValue = parseNumeric(doseText);
-  const timeOk = TIME_PATTERN.test(timeLocal.trim());
+  const normalizedTime = normalizeTimeText(timeLocal);
+  const timeOk = normalizedTime !== null;
   const occurredAtIso =
-    dayFromKey.length > 0 && timeOk
-      ? occurredAtFromLocal(dayFromKey, timeLocal.trim())
+    dayFromKey.length > 0 && normalizedTime !== null
+      ? occurredAtFromLocal(dayFromKey, normalizedTime)
       : nowIso;
   const canSave =
     planId.length > 0 &&
@@ -137,6 +137,7 @@ export default function LogPlanScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
           <Card style={styles.formCard}>

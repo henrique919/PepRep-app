@@ -111,7 +111,7 @@ export default function EditVialScreen() {
   };
 
   return (
-    <Screen topInset={Platform.OS !== "ios"}>
+    <Screen>
       <View style={styles.chrome}>
         <AppText variant="heading">Edit vial details</AppText>
         <Pressable
@@ -128,6 +128,7 @@ export default function EditVialScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
           <Card style={styles.formCard}>

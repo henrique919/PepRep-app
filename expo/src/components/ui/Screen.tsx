@@ -1,8 +1,9 @@
 import React from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { Platform, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useTheme } from "@/src/theme";
+import { spacing } from "@/src/theme/tokens";
 
 interface ScreenProps {
   children: React.ReactNode;
@@ -12,6 +13,10 @@ interface ScreenProps {
 
 const TABLET_MIN = 820;
 const CONTENT_MAX = 720;
+
+// The safe-area line alone leaves screen titles touching the status bar
+// clock on notched iPhones; a little breathing room keeps them clear.
+const NATIVE_TOP_BREATHING_ROOM = Platform.OS === "web" ? 0 : spacing.sm;
 
 export default function Screen({ children, topInset = true }: ScreenProps) {
   const insets = useSafeAreaInsets();
@@ -24,7 +29,7 @@ export default function Screen({ children, topInset = true }: ScreenProps) {
       style={[
         styles.root,
         { backgroundColor: colors.bg },
-        topInset && { paddingTop: insets.top },
+        topInset && { paddingTop: insets.top + NATIVE_TOP_BREATHING_ROOM },
       ]}
     >
       <View style={[styles.inner, isTablet && styles.innerTablet]}>{children}</View>

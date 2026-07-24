@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { X } from "lucide-react-native";
 import React from "react";
-import { Linking, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import { ASK_V1_ENABLED } from "@/src/ask/feature";
 import { isCloudBackupConfigured } from "@/src/cloudBackup/config";
@@ -22,7 +22,7 @@ export default function PrivacySafetyScreen() {
   const cloudConfigured = isCloudBackupConfigured();
 
   return (
-    <Screen topInset={Platform.OS !== "ios"}>
+    <Screen>
       <View style={styles.chrome}>
         <AppText variant="heading">Privacy & safety</AppText>
         <Pressable
