@@ -30,6 +30,7 @@ import RootErrorBoundary from "@/src/components/ui/RootErrorBoundary";
 import { runMigrations } from "@/src/db/migrations";
 import { runMissedRollover } from "@/src/db/rollover";
 import { dayKey } from "@/src/engine/schedule";
+import { reconcileScheduledNotifications } from "@/src/notifications/reconcile";
 import { useCalcDraftStore } from "@/src/store/calcDraft";
 import { useDosesStore } from "@/src/store/doses";
 import { useLedgerStore } from "@/src/store/ledger";
@@ -150,6 +151,15 @@ export default function RootLayout() {
         if (created.length > 0) {
           await useLedgerStore.getState().appendEvents(created);
         }
+        // Cancel any repeating notification the current data doesn't own —
+        // ghosts left by an erase, a restore, or an older build would
+        // otherwise keep firing forever.
+        await reconcileScheduledNotifications([
+          ...useRemindersStore.getState().reminders.map((reminder) => reminder.notificationId),
+          ...usePlansStore
+            .getState()
+            .plans.flatMap((plan) => plan.reminderNotificationIds ?? []),
+        ]);
       } catch (error) {
         console.error("[boot] Failed to hydrate local data", error);
       } finally {

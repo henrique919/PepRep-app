@@ -42,6 +42,7 @@ import { fmt } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
 import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { EXPORT_PLAINTEXT_WARNING, exportFileName } from "@/src/export/filenames";
+import { cancelAllAppNotifications } from "@/src/notifications/reconcile";
 import { useCalcDraftStore } from "@/src/store/calcDraft";
 import { useDosesStore } from "@/src/store/doses";
 import { useLedgerStore } from "@/src/store/ledger";
@@ -321,7 +322,9 @@ export default function SettingsScreen() {
       return;
     }
     setEraseArmed(false);
-    Promise.all([clearAllData(), resetReminders()])
+    // cancelAllAppNotifications covers plan reminders and any strays —
+    // resetReminders alone only cancels the reminders it still tracks.
+    Promise.all([clearAllData(), resetReminders(), cancelAllAppNotifications()])
       .then(() => {
         // Every store must drop its in-memory copy too — any store left
         // populated can silently re-persist the "erased" data on its next
