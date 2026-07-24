@@ -165,6 +165,9 @@ const styles = StyleSheet.create({
     alignItems: "baseline",
     justifyContent: "space-between",
     gap: spacing.sm,
+    // On narrow phones the label + hint + accessory (e.g. the mcg/mg
+    // toggle) can exceed the row; wrapping beats clipping the accessory.
+    flexWrap: "wrap",
   },
   label: {
     letterSpacing: 0.8,

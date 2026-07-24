@@ -42,6 +42,7 @@ import { fmt } from "@/src/engine";
 import { parseNumeric } from "@/src/engine/parse";
 import { formatNextOccurrence, formatTimeOfDay } from "@/src/engine/schedule";
 import { EXPORT_PLAINTEXT_WARNING, exportFileName } from "@/src/export/filenames";
+import { useCalcDraftStore } from "@/src/store/calcDraft";
 import { useDosesStore } from "@/src/store/doses";
 import { useLedgerStore } from "@/src/store/ledger";
 import { usePlansStore } from "@/src/store/plans";
@@ -322,8 +323,21 @@ export default function SettingsScreen() {
     setEraseArmed(false);
     Promise.all([clearAllData(), resetReminders()])
       .then(() => {
+        // Every store must drop its in-memory copy too — any store left
+        // populated can silently re-persist the "erased" data on its next
+        // write, and the onboarding gate must re-arm.
         resetDoses();
         resetVials();
+        usePlansStore.getState().reset();
+        useLedgerStore.getState().reset();
+        useCalcDraftStore.getState().reset();
+        useSettingsStore.setState({
+          askEnabled: false,
+          askConsentVersion: null,
+          onboardingComplete: false,
+          safetyAckVersion: null,
+          hydrated: true,
+        });
         setStatusMessage("All data erased from this device.");
       })
       .catch((error) => console.error("[settings] Erase failed", error));
@@ -346,7 +360,13 @@ export default function SettingsScreen() {
         <View style={styles.chromeSpacer} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        automaticallyAdjustKeyboardInsets
+      >
         {/* Reminders */}
         <View style={styles.section}>
           <AppText variant="overline" tone="faint" style={styles.sectionLabel}>

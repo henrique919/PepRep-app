@@ -1,4 +1,4 @@
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { Archive, CalendarDays, ChevronLeft, Plus } from "lucide-react-native";
 import React, { useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -60,6 +60,16 @@ export default function PlansScreen() {
         <View style={styles.chromeText}>
           <AppText variant="heading">Plans</AppText>
         </View>
+        <Pressable
+          onPress={() => router.push("/plans/calendar" as Href)}
+          hitSlop={8}
+          style={styles.backButton}
+          testID="open-plans-calendar"
+          accessibilityRole="button"
+          accessibilityLabel="Planned calendar"
+        >
+          <CalendarDays size={20} color={colors.ink} />
+        </Pressable>
         <Button
           label="New"
           tone="accent"

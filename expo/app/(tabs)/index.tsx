@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ChevronDown, ChevronUp, NotebookPen, TestTubes } from "lucide-react-native";
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from "react-native";
+import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import MathSteps from "@/src/components/domain/MathSteps";
@@ -374,12 +374,13 @@ function CalculatorScreen() {
     <Screen>
       <KeyboardAvoidingView
         style={styles.flex}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={undefined}
       >
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.headerRow}>
@@ -651,6 +652,12 @@ function CalculatorScreen() {
                   bacteriostatic water · one-time mix
                 </AppText>
                 <Hairline dark />
+                {/* The gauge depicts the DOSE draw, not the water above — without
+                    the caption, "1.5 mL" next to a 15-unit gauge reads as a
+                    (wrong) mL→units conversion. */}
+                <AppText variant="caption" tone="onDarkSecondary">
+                  Each dose you draw: {fmt(targetUnits)} units on a U-100 syringe
+                </AppText>
                 <View style={styles.gaugeWell}>
                   <SyringeGauge units={targetUnits} capacity={100} />
                 </View>
