@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { useRouter } from "expo-router";
+import { useRouter, type Href } from "expo-router";
 import { CalendarDays, Plus } from "lucide-react-native";
 import React, { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -162,6 +162,16 @@ function TodayScreen() {
             </AppText>
           </View>
           <Pressable
+            onPress={() => router.push("/plans/calendar" as Href)}
+            hitSlop={8}
+            style={styles.gearButton}
+            testID="open-planned-calendar"
+            accessibilityRole="button"
+            accessibilityLabel="Planned calendar"
+          >
+            <CalendarDays size={18} color={colors.ink} />
+          </Pressable>
+          <Pressable
             onPress={() => router.push("/plans")}
             hitSlop={8}
             style={styles.gearButton}
@@ -304,6 +314,7 @@ function createStyles(colors: ColorTokens) {
       flexDirection: "row",
       alignItems: "flex-end",
       justifyContent: "space-between",
+      gap: spacing.sm,
       marginTop: spacing.sm,
     },
     headerText: {

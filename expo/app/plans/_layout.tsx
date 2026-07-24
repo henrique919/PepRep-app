@@ -12,6 +12,7 @@ export default function PlansLayout() {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="new" />
+      <Stack.Screen name="calendar" />
     </Stack>
   );
 }

@@ -18,6 +18,7 @@ module.exports = {
     "<rootDir>/src/backup",
     "<rootDir>/src/cloudBackup",
     "<rootDir>/src/history",
+    "<rootDir>/src/notifications",
   ],
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/$1",
