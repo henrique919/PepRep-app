@@ -22,6 +22,7 @@ import type { MassUnit } from "@/src/engine";
 import { fmt } from "@/src/engine";
 import { countPlanReminderSlots, planReminderCopy } from "@/src/engine/planReminders";
 import { parseNumeric } from "@/src/engine/parse";
+import { normalizeTimeText } from "@/src/engine/timeText";
 import { usePlansStore } from "@/src/store/plans";
 import { selectActiveVials, useVialsStore } from "@/src/store/vials";
 import { useTheme } from "@/src/theme";
@@ -38,8 +39,6 @@ const DAY_OPTIONS: { value: number; label: string }[] = [
   { value: 6, label: "Sat" },
 ];
 
-const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
-
 export default function NewPlanScreen() {
   const { colors } = useTheme();
   const styles = React.useMemo(() => createStyles(colors), [colors]);
@@ -54,6 +53,7 @@ export default function NewPlanScreen() {
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>([]);
   const [timesLocal, setTimesLocal] = useState<string[]>([]);
   const [timeDraft, setTimeDraft] = useState<string>("");
+  const [timeError, setTimeError] = useState<string | null>(null);
   const [vialId, setVialId] = useState<string | undefined>(undefined);
   const [remindMe, setRemindMe] = useState<boolean>(false);
   const [privacyMode, setPrivacyMode] = useState<boolean>(true);
@@ -68,15 +68,23 @@ export default function NewPlanScreen() {
   });
   const isWeb = Platform.OS === "web";
 
+  // A valid time still sitting in the draft field counts — requiring the
+  // extra "Add" tap before Create dead-ends the form on a technicality.
+  const pendingTime = normalizeTimeText(timeDraft);
+  const effectiveTimes = useMemo(() => {
+    if (pendingTime === null || timesLocal.includes(pendingTime)) return timesLocal;
+    return [...timesLocal, pendingTime].sort();
+  }, [timesLocal, pendingTime]);
+
   const canSave = useMemo(() => {
     return (
       compoundName.trim().length > 0 &&
       doseValue !== null &&
       doseValue > 0 &&
       daysOfWeek.length > 0 &&
-      timesLocal.length > 0
+      effectiveTimes.length > 0
     );
-  }, [compoundName, doseValue, daysOfWeek.length, timesLocal.length]);
+  }, [compoundName, doseValue, daysOfWeek.length, effectiveTimes.length]);
 
   const toggleDay = (day: number) => {
     setDaysOfWeek((prev) =>
@@ -85,13 +93,17 @@ export default function NewPlanScreen() {
   };
 
   const addTime = () => {
-    const trimmed = timeDraft.trim();
-    if (!TIME_PATTERN.test(trimmed)) return;
-    if (timesLocal.includes(trimmed)) {
+    const normalized = normalizeTimeText(timeDraft);
+    if (normalized === null) {
+      setTimeError("Enter a time like 8:00 — 8.00 and 0800 work too.");
+      return;
+    }
+    setTimeError(null);
+    if (timesLocal.includes(normalized)) {
       setTimeDraft("");
       return;
     }
-    setTimesLocal((prev) => [...prev, trimmed].sort());
+    setTimesLocal((prev) => [...prev, normalized].sort());
     setTimeDraft("");
   };
 
@@ -108,7 +120,7 @@ export default function NewPlanScreen() {
       doseValue,
       doseUnit,
       daysOfWeek,
-      timesLocal,
+      timesLocal: effectiveTimes,
       vialId,
       remindMe: remindMe && !isWeb,
       privacyMode,
@@ -121,7 +133,8 @@ export default function NewPlanScreen() {
   };
 
   return (
-    <Screen topInset={Platform.OS !== "ios"}>
+    // Pushed full-screen (not a modal), so the top safe-area inset applies.
+    <Screen>
       <View style={styles.chrome}>
         <Pressable
           onPress={() => router.back()}
@@ -148,6 +161,7 @@ export default function NewPlanScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           showsVerticalScrollIndicator={false}
         >
           <Card style={styles.formCard}>
@@ -230,9 +244,14 @@ export default function NewPlanScreen() {
               <View style={styles.timeField}>
                 <Field
                   label="Add a time"
+                  hint="8.00 or 0800 work too"
                   value={timeDraft}
-                  onChangeText={setTimeDraft}
+                  onChangeText={(text) => {
+                    setTimeDraft(text);
+                    setTimeError(null);
+                  }}
                   placeholder="08:00"
+                  error={timeError ?? undefined}
                   testID="input-plan-time"
                 />
               </View>

@@ -1,10 +1,26 @@
 import React, { useId, useState } from "react";
-import { StyleSheet, TextInput, View } from "react-native";
+import {
+  InputAccessoryView,
+  Keyboard,
+  Platform,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
 import type { KeyboardTypeOptions } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
 import { useTheme } from "@/src/theme";
 import { fonts, fontSize, spacing } from "@/src/theme/tokens";
+
+/** iOS numeric keypads have no return key, so they get a Done bar instead. */
+const NUMERIC_KEYBOARDS: KeyboardTypeOptions[] = [
+  "decimal-pad",
+  "number-pad",
+  "numeric",
+  "numbers-and-punctuation",
+];
 
 interface FieldProps {
   label: string;
@@ -45,6 +61,10 @@ export default function Field({
   const inputId = `field-${reactId.replace(/:/g, "")}`;
   const accessibilityLabel =
     suffix !== undefined && suffix.length > 0 ? `${label}, ${suffix}` : label;
+  const doneBarId =
+    Platform.OS === "ios" && NUMERIC_KEYBOARDS.includes(keyboardType)
+      ? `${inputId}-done`
+      : undefined;
 
   return (
     <View style={styles.wrap}>
@@ -84,6 +104,8 @@ export default function Field({
           placeholder={placeholder}
           placeholderTextColor={colors.inkFaint}
           keyboardType={keyboardType}
+          returnKeyType="done"
+          inputAccessoryViewID={doneBarId}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           autoCapitalize={mono || secureTextEntry ? "none" : "sentences"}
@@ -107,6 +129,28 @@ export default function Field({
         >
           {error}
         </AppText>
+      ) : null}
+      {doneBarId !== undefined ? (
+        <InputAccessoryView nativeID={doneBarId}>
+          <View
+            style={[
+              styles.doneBar,
+              { backgroundColor: colors.surface, borderTopColor: colors.hairline },
+            ]}
+          >
+            <Pressable
+              onPress={() => Keyboard.dismiss()}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Done"
+              style={({ pressed }) => [styles.doneButton, pressed && { opacity: 0.6 }]}
+            >
+              <AppText variant="label" weight="semibold">
+                Done
+              </AppText>
+            </Pressable>
+          </View>
+        </InputAccessoryView>
       ) : null}
     </View>
   );
@@ -146,5 +190,16 @@ const styles = StyleSheet.create({
   uiInput: {
     fontFamily: fonts.uiMedium,
     fontSize: fontSize.body,
+  },
+  doneBar: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  doneButton: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
 });

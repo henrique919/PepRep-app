@@ -1,7 +1,7 @@
 import { useRouter } from "expo-router";
 import { Check } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 
 import AppText from "@/src/components/ui/AppText";
 import BoldTallyMark from "@/src/components/ui/BoldTallyMark";
@@ -103,10 +103,11 @@ export default function OnboardingScreen() {
   };
 
   return (
-    <Screen topInset={Platform.OS !== "ios"}>
+    <Screen>
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.brandRow}>
